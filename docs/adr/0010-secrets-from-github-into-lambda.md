@@ -1,0 +1,9 @@
+# Secrets live in GitHub Secrets and never pass through Terraform
+
+The Neon URL, Turnstile secret, PostHog key, and signing keys are GitHub Secrets. The deploy job injects them as Lambda environment variables with `update-function-configuration`. Terraform creates the function with placeholder code and `ignore_changes = [filename, environment]`. Passing secrets as `TF_VAR_*` would write them into Terraform state in plaintext. SSM Parameter Store was considered and dropped for simplicity.
+
+## Consequences
+
+- Rotating a secret means editing it in GitHub and redeploying.
+- Values are readable in the Lambda console by anyone with access to the AWS account (only the owner today).
+- CI assumes an AWS role through GitHub OIDC; there are no long-lived AWS keys. Jobs run only for the scopes a change touches (`infra`, `api`, `migrations`, `web`), and a weekly `terraform plan` catches drift.
