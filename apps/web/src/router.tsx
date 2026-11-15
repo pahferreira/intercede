@@ -1,4 +1,3 @@
-import type { QueryClient } from "@tanstack/react-query";
 import {
 	createRootRouteWithContext,
 	createRoute,
@@ -13,8 +12,7 @@ import { Home } from "./routes/home";
 import { Pray } from "./routes/pray";
 
 export type RouterContext = {
-	api: ApiClient;
-	queryClient: QueryClient;
+	client: ApiClient;
 };
 
 const rootRoute = createRootRouteWithContext<RouterContext>()({

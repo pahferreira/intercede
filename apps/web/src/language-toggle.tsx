@@ -1,5 +1,5 @@
 import { useLingui } from "@lingui/react";
-import { type Locale, switchLocale } from "./i18n";
+import { type Locale, locales, sourceLocale, switchLocale } from "./i18n";
 
 const languageNames: Record<Locale, string> = {
 	en: "English",
@@ -8,7 +8,7 @@ const languageNames: Record<Locale, string> = {
 
 export function LanguageToggle() {
 	const { i18n } = useLingui();
-	const next: Locale = i18n.locale === "pt-BR" ? "en" : "pt-BR";
+	const next = locales.find((locale) => locale !== i18n.locale) ?? sourceLocale;
 
 	return (
 		<button

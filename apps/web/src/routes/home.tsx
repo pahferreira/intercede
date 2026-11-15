@@ -3,11 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import { useRouteContext } from "@tanstack/react-router";
 
 export function Home() {
-	const { api } = useRouteContext({ from: "__root__" });
+	const { client } = useRouteContext({ from: "__root__" });
 	const health = useQuery({
 		queryKey: ["health"],
 		queryFn: async () => {
-			const response = await api.api.health.$get();
+			const response = await client.api.health.$get();
 			return response.json();
 		},
 	});
