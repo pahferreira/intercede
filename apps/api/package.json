@@ -3,8 +3,12 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
+		"build": "bun build src/handlers/api.ts src/handlers/sweeper.ts --target=node --format=esm --minify --sourcemap=linked --outdir=dist --entry-naming=[name].mjs",
 		"lint": "biome check .",
 		"typecheck": "tsc --noEmit",
 		"test": "bun test"
+	},
+	"dependencies": {
+		"hono": "^4.13.18"
 	}
 }
