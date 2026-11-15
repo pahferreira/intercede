@@ -1,0 +1,32 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2026-11-15 17:52-0300\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: en\n"
+
+#: src/routes/home.tsx:24
+msgid "API status: {status}"
+msgstr "API status: {status}"
+
+#: src/routes/home.tsx:20
+msgid "API unreachable"
+msgstr "API unreachable"
+
+#: src/routes/home.tsx:16
+msgid "Checking the API…"
+msgstr "Checking the API…"
+
+#: src/routes/committed.tsx:6
+msgid "Committed"
+msgstr "Committed"
+
+#: src/routes/follow-up.tsx:6
+msgid "Follow-up"
+msgstr "Follow-up"
+
+#: src/routes/pray.tsx:6
+msgid "Pray"
+msgstr "Pray"

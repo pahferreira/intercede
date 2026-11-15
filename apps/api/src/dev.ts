@@ -7,7 +7,7 @@ import {
 const isDatabaseReachable = createDatabaseProbe(localOrConfiguredDatabaseUrl());
 
 const server = Bun.serve({
-	port: Number(process.env.PORT ?? 3000),
+	port: Number(process.env.API_PORT ?? 3000),
 	fetch: createApp({ isDatabaseReachable }).fetch,
 });
 
