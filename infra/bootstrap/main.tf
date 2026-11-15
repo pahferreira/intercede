@@ -1,15 +1,18 @@
 locals {
-  repository          = "pahferreira/intercede"
-  github_oidc_host    = "token.actions.githubusercontent.com"
-  main_subject        = "repo:${local.repository}:ref:refs/heads/main"
-  pull_request_sub    = "repo:${local.repository}:pull_request"
-  managed_role_prefix = "intercede-"
+  repository           = "pahferreira/intercede"
+  account_id           = data.aws_caller_identity.current.account_id
+  github_oidc_host     = "token.actions.githubusercontent.com"
+  oidc_audience        = "sts.amazonaws.com"
+  main_subject         = "repo:${local.repository}:ref:refs/heads/main"
+  pull_request_subject = "repo:${local.repository}:pull_request"
+  managed_iam_prefix   = "intercede-"
+  read_only_policy_arn = "arn:aws:iam::aws:policy/ReadOnlyAccess"
 }
 
 data "aws_caller_identity" "current" {}
 
 resource "aws_s3_bucket" "state" {
-  bucket = "intercede-tfstate-${data.aws_caller_identity.current.account_id}"
+  bucket = "intercede-tfstate-${local.account_id}"
 
   lifecycle {
     prevent_destroy = true
@@ -63,7 +66,7 @@ resource "aws_s3_bucket_policy" "state" {
 
 resource "aws_iam_openid_connect_provider" "github" {
   url            = "https://${local.github_oidc_host}"
-  client_id_list = ["sts.amazonaws.com"]
+  client_id_list = [local.oidc_audience]
 }
 
 resource "aws_iam_role" "plan" {
@@ -76,8 +79,8 @@ resource "aws_iam_role" "plan" {
       Action    = "sts:AssumeRoleWithWebIdentity"
       Condition = {
         StringEquals = {
-          "${local.github_oidc_host}:aud" = "sts.amazonaws.com"
-          "${local.github_oidc_host}:sub" = [local.main_subject, local.pull_request_sub]
+          "${local.github_oidc_host}:aud" = local.oidc_audience
+          "${local.github_oidc_host}:sub" = [local.main_subject, local.pull_request_subject]
         }
       }
     }]
@@ -86,7 +89,7 @@ resource "aws_iam_role" "plan" {
 
 resource "aws_iam_role_policy_attachment" "plan_read_only" {
   role       = aws_iam_role.plan.name
-  policy_arn = "arn:aws:iam::aws:policy/ReadOnlyAccess"
+  policy_arn = local.read_only_policy_arn
 }
 
 resource "aws_iam_role_policy" "plan_state_lock" {
@@ -112,7 +115,7 @@ resource "aws_iam_role" "apply" {
       Action    = "sts:AssumeRoleWithWebIdentity"
       Condition = {
         StringEquals = {
-          "${local.github_oidc_host}:aud" = "sts.amazonaws.com"
+          "${local.github_oidc_host}:aud" = local.oidc_audience
           "${local.github_oidc_host}:sub" = local.main_subject
         }
       }
@@ -122,12 +125,33 @@ resource "aws_iam_role" "apply" {
 
 resource "aws_iam_role_policy_attachment" "apply_read_only" {
   role       = aws_iam_role.apply.name
-  policy_arn = "arn:aws:iam::aws:policy/ReadOnlyAccess"
+  policy_arn = local.read_only_policy_arn
 }
 
 resource "aws_iam_role_policy_attachment" "apply_power_user" {
   role       = aws_iam_role.apply.name
   policy_arn = "arn:aws:iam::aws:policy/PowerUserAccess"
+}
+
+resource "aws_iam_policy" "workload_boundary" {
+  name = "github-actions-intercede-workload-boundary"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid      = "AllowWithinGrantedPolicies"
+        Effect   = "Allow"
+        Action   = "*"
+        Resource = "*"
+      },
+      {
+        Sid      = "DenyIdentityAndRoleChaining"
+        Effect   = "Deny"
+        Action   = ["iam:*", "sts:AssumeRole", "organizations:*", "account:*"]
+        Resource = "*"
+      },
+    ]
+  })
 }
 
 resource "aws_iam_role_policy" "apply_scoped" {
@@ -141,9 +165,31 @@ resource "aws_iam_role_policy" "apply_scoped" {
         Effect = "Allow"
         Action = "iam:*"
         Resource = [
-          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${local.managed_role_prefix}*",
-          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/${local.managed_role_prefix}*",
+          "arn:aws:iam::${local.account_id}:role/${local.managed_iam_prefix}*",
+          "arn:aws:iam::${local.account_id}:policy/${local.managed_iam_prefix}*",
         ]
+      },
+      {
+        Sid    = "RequireWorkloadBoundary"
+        Effect = "Deny"
+        Action = [
+          "iam:CreateRole",
+          "iam:PutRolePermissionsBoundary",
+          "iam:AttachRolePolicy",
+          "iam:DetachRolePolicy",
+          "iam:PutRolePolicy",
+          "iam:DeleteRolePolicy",
+        ]
+        Resource = "*"
+        Condition = {
+          StringNotEquals = { "iam:PermissionsBoundary" = aws_iam_policy.workload_boundary.arn }
+        }
+      },
+      {
+        Sid      = "KeepWorkloadBoundary"
+        Effect   = "Deny"
+        Action   = ["iam:DeleteRolePermissionsBoundary"]
+        Resource = "*"
       },
       {
         Sid    = "ProtectStateBucketConfiguration"

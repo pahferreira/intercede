@@ -79,3 +79,58 @@ run "apply_role_is_assumable_from_main_only" {
     error_message = "The apply role must require the STS audience."
   }
 }
+
+run "state_bucket_denies_insecure_transport" {
+  command = plan
+
+  assert {
+    condition     = jsondecode(aws_s3_bucket_policy.state.policy).Statement[0].Condition.Bool["aws:SecureTransport"] == "false" && jsondecode(aws_s3_bucket_policy.state.policy).Statement[0].Effect == "Deny"
+    error_message = "The state bucket must deny requests without TLS."
+  }
+}
+
+run "plan_role_writes_only_lock_files" {
+  command = apply
+
+  assert {
+    condition     = jsondecode(aws_iam_role_policy.plan_state_lock.policy).Statement[0].Resource == "${aws_s3_bucket.state.arn}/*.tflock"
+    error_message = "The plan role may write only lock files in the state bucket."
+  }
+}
+
+run "apply_role_can_only_manage_roles_inside_the_workload_boundary" {
+  command = apply
+
+  assert {
+    condition     = aws_iam_policy.workload_boundary.name == "github-actions-intercede-workload-boundary"
+    error_message = "The boundary must sit outside the intercede-* prefix the apply role can edit."
+  }
+
+  assert {
+    condition = anytrue([
+      for statement in jsondecode(aws_iam_policy.workload_boundary.policy).Statement :
+      statement.Effect == "Deny" && contains(statement.Action, "iam:*") && contains(statement.Action, "sts:AssumeRole")
+    ])
+    error_message = "Workload roles must not reach IAM or assume other roles."
+  }
+
+  assert {
+    condition = anytrue([
+      for statement in jsondecode(aws_iam_role_policy.apply_scoped.policy).Statement :
+      statement.Effect == "Deny"
+      && contains(statement.Action, "iam:CreateRole")
+      && contains(statement.Action, "iam:AttachRolePolicy")
+      && contains(statement.Action, "iam:PutRolePolicy")
+      && try(statement.Condition.StringNotEquals["iam:PermissionsBoundary"], "") == aws_iam_policy.workload_boundary.arn
+    ])
+    error_message = "The apply role must not create or grant roles without the workload boundary."
+  }
+
+  assert {
+    condition = anytrue([
+      for statement in jsondecode(aws_iam_role_policy.apply_scoped.policy).Statement :
+      statement.Effect == "Deny" && contains(statement.Action, "iam:DeleteRolePermissionsBoundary")
+    ])
+    error_message = "The apply role must not remove the workload boundary."
+  }
+}
