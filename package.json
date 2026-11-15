@@ -1,11 +1,12 @@
 {
 	"name": "intercede",
 	"private": true,
+	"packageManager": "bun@1.4.4",
 	"workspaces": [
 		"apps/*"
 	],
 	"scripts": {
-		"lint": "biome check biome.json package.json tsconfig.base.json && bun run --filter '*' lint",
+		"lint": "biome check .",
 		"typecheck": "bun run --filter '*' typecheck",
 		"test": "bun run --filter '*' test"
 	},
