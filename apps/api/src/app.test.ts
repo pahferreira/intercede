@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { createApp } from "./app";
 
 test("GET /api/health responds 200 when the database is reachable", async () => {
-	const app = createApp({ checkDatabase: async () => {} });
+	const app = createApp({ isDatabaseReachable: async () => true });
 
 	const response = await app.request("/api/health");
 
@@ -11,11 +11,7 @@ test("GET /api/health responds 200 when the database is reachable", async () => 
 });
 
 test("GET /api/health responds 503 when the database is unreachable", async () => {
-	const app = createApp({
-		checkDatabase: async () => {
-			throw new Error("connection refused");
-		},
-	});
+	const app = createApp({ isDatabaseReachable: async () => false });
 
 	const response = await app.request("/api/health");
 

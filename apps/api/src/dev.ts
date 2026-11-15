@@ -1,11 +1,14 @@
 import { createApp } from "./app";
-import { createDatabase } from "./platform/database";
+import {
+	createDatabaseProbe,
+	localOrConfiguredDatabaseUrl,
+} from "./platform/database";
 
-const { checkDatabase } = createDatabase();
+const isDatabaseReachable = createDatabaseProbe(localOrConfiguredDatabaseUrl());
 
 const server = Bun.serve({
 	port: Number(process.env.PORT ?? 3000),
-	fetch: createApp({ checkDatabase }).fetch,
+	fetch: createApp({ isDatabaseReachable }).fetch,
 });
 
 console.log(`API listening on ${server.url}`);

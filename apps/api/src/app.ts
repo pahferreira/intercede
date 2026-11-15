@@ -1,17 +1,15 @@
 import { Hono } from "hono";
 
 export type AppDependencies = {
-	checkDatabase: () => Promise<void>;
+	isDatabaseReachable: () => Promise<boolean>;
 };
 
-export const createApp = ({ checkDatabase }: AppDependencies) =>
+export const createApp = ({ isDatabaseReachable }: AppDependencies) =>
 	new Hono().basePath("/api").get("/health", async (c) => {
-		try {
-			await checkDatabase();
+		if (await isDatabaseReachable()) {
 			return c.json({ status: "ok", database: "ok" } as const, 200);
-		} catch {
-			return c.json({ status: "error", database: "unreachable" } as const, 503);
 		}
+		return c.json({ status: "error", database: "unreachable" } as const, 503);
 	});
 
 export type AppType = ReturnType<typeof createApp>;

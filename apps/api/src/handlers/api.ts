@@ -1,7 +1,7 @@
 import { streamHandle } from "hono/aws-lambda";
 import { createApp } from "../app";
-import { createDatabase } from "../platform/database";
+import { createDatabaseProbe, requireDatabaseUrl } from "../platform/database";
 
-const { checkDatabase } = createDatabase();
+const isDatabaseReachable = createDatabaseProbe(requireDatabaseUrl());
 
-export const handler = streamHandle(createApp({ checkDatabase }));
+export const handler = streamHandle(createApp({ isDatabaseReachable }));
