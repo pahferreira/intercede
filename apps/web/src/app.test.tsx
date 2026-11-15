@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { app } from "@intercede/api/testing";
+import { createApp } from "@intercede/api/testing";
 import { createMemoryHistory } from "@tanstack/react-router";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { createApiClient } from "./api";
@@ -8,6 +8,7 @@ import { type Locale, switchLocale } from "./i18n";
 
 async function renderAt(path: string, locale: Locale) {
 	await switchLocale(locale);
+	const app = createApp({ isDatabaseReachable: async () => true });
 	const client = createApiClient(app.request);
 	const history = createMemoryHistory({ initialEntries: [path] });
 	return render(<App client={client} history={history} />);
