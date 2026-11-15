@@ -78,6 +78,16 @@ Will suggest a Bible passage to guide an Intercessor's prayer for a committed In
 A Bible passage offered alongside a Commitment.
 _Avoid_: Verse of the day
 
+## Languages
+
+**Language**:
+The language an Intention is written in, `pt` or `en`. Decides which Intercessors it can be suggested to.
+_Avoid_: Locale (for an Intention)
+
+**Locale**:
+The language the interface is shown in, `en` or `pt-BR`. `en` is the source and the default: copy is written in English first and translated to `pt-BR`, even though most Visitors are in Brazil. Picked from the browser on the first visit, falling back to `en`, and kept on the device. Its first subtag (`en`, `pt`) is the matching Language.
+_Avoid_: Language (for the interface)
+
 ## Relationships
 
 - **Intentions → Intercession**: Intentions announces when an Intention is published or archived; Intercession keeps its Catalog in step. Intercession never reads Intentions' data directly.
