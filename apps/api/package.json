@@ -12,9 +12,16 @@
 		"build": "bun build src/handlers/api.ts src/handlers/sweeper.ts --target=node --format=esm --minify --sourcemap=linked --outdir=dist --entry-naming=[name].mjs",
 		"lint": "biome check .",
 		"typecheck": "tsc --noEmit",
-		"test": "bun test"
+		"test": "bun test",
+		"db:generate": "drizzle-kit generate",
+		"db:migrate": "drizzle-kit migrate"
 	},
 	"dependencies": {
-		"hono": "^4.13.18"
+		"drizzle-orm": "^0.45.4",
+		"hono": "^4.13.18",
+		"postgres": "^4.1.1"
+	},
+	"devDependencies": {
+		"drizzle-kit": "^0.31.11"
 	}
 }
