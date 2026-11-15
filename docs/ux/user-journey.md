@@ -4,12 +4,12 @@ The brief for the visual design sessions. It fixes flows, states, rules and copy
 
 ## Routes
 
-| Route | Screen |
-| --- | --- |
-| `/` | Submit screen, or redirect to `/pray` if this browser submitted or skipped in the last 24 h |
-| `/pray` | Entry screen, which becomes the fullscreen chat after the first Entry |
-| `/pray/committed` | Commitment confirmation |
-| `/f/:token` | Follow-up page for a Requester |
+| Route             | Screen                                                                                      |
+| ----------------- | ------------------------------------------------------------------------------------------- |
+| `/`               | Submit screen, or redirect to `/pray` if this browser submitted or skipped in the last 24 h |
+| `/pray`           | Entry screen, which becomes the fullscreen chat after the first Entry                       |
+| `/pray/committed` | Commitment confirmation                                                                     |
+| `/f/:token`       | Follow-up page for a Requester                                                              |
 
 No locale prefix. "Ask for prayer" always opens the submit screen, even within the 24 h window.
 
@@ -61,30 +61,36 @@ The Intention text, its publication date, and "**N people committed to pray for 
 ## Cross-cutting rules
 
 ### Language
+
 - UI language comes from `navigator.language` on first visit (`pt-*` → pt-BR, else en), switchable by a toggle on every screen, kept in `localStorage`.
 - An Intention's language is detected during moderation; the Requester never picks it.
 - Suggestions only include Intentions in the Entry's language.
 
 ### State and privacy
+
 - The chat transcript lives in memory only: refresh or a new tab starts over at the Entry screen. Nothing the Intercessor writes is kept in browser storage.
 - The browser back button inside the chat goes to the Entry screen, not to a previous turn.
 - `localStorage`: UI language, submitted/skipped timestamp, Follow-up Tokens. `sessionStorage`: committed cards only.
 
 ### Errors and limits
-| Situation | Behaviour |
-| --- | --- |
-| Stream fails mid-turn | Inline "Something went wrong" with **Retry**, resending the same Entry; does not use up a Refinement |
+
+| Situation                                       | Behaviour                                                                                                                                 |
+| ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Stream fails mid-turn                           | Inline "Something went wrong" with **Retry**, resending the same Entry; does not use up a Refinement                                      |
 | Search rate limit or daily token budget reached | "You've searched a lot today. Come back later. Meanwhile, the intentions you committed to are waiting for your prayer." Composer disabled |
-| Commit fails | Selection kept; **Retry** (Commitments are idempotent) |
-| Offline | Slim banner; send and commit disabled |
+| Commit fails                                    | Selection kept; **Retry** (Commitments are idempotent)                                                                                    |
+| Offline                                         | Slim banner; send and commit disabled                                                                                                     |
 
 ### PWA
+
 Installable (manifest, icons) with no custom install prompt; only the browser's own. Offline covers the app shell only; nothing for searching or committing.
 
 ### Analytics (PostHog)
+
 No content, only counts and enums: `submit_viewed`, `submit_skipped`, `intention_submitted`, `intention_rejected{reason}`, `entry_sent`, `clarifying_question_shown`, `refinement_sent{n}`, `suggestions_shown{count, fallback}`, `commit_clicked{count}`, `followup_link_copied`, `followup_viewed`.
 
 ### Left to design
+
 Visual design, final copy, and accessibility details.
 
 ## Scope changes from the PRD
