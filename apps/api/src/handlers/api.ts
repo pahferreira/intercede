@@ -1,4 +1,7 @@
 import { streamHandle } from "hono/aws-lambda";
-import { app } from "../app";
+import { createApp } from "../app";
+import { createDatabase } from "../platform/database";
 
-export const handler = streamHandle(app);
+const { checkDatabase } = createDatabase();
+
+export const handler = streamHandle(createApp({ checkDatabase }));

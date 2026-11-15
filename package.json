@@ -8,7 +8,8 @@
 	"scripts": {
 		"lint": "biome check .",
 		"typecheck": "bun run --filter '*' typecheck",
-		"test": "bun run --filter '*' test"
+		"test": "bun run --filter '*' test",
+		"db:migrate": "bun run --filter @intercede/api db:migrate"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.6.7",
