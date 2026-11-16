@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import type { Analytics, OpenAnalytics } from "./platform/analytics";
+import type { Analytics, OpenAnalytics } from "./platform/analytics-port";
 
 export type AppDependencies = {
 	isDatabaseReachable: () => Promise<boolean>;

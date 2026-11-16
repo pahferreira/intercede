@@ -12,7 +12,7 @@
 		"dev": "bun --watch src/dev.ts",
 		"build": "bun build src/handlers/api.ts src/handlers/sweeper.ts --target=node --format=esm --minify --sourcemap=linked --outdir=dist --entry-naming=[name].mjs",
 		"lint": "biome check .",
-		"typecheck": "tsc --noEmit",
+		"typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.test.json",
 		"test": "bun test",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate"
@@ -24,6 +24,7 @@
 		"posthog-node": "^5.74.0"
 	},
 	"devDependencies": {
+		"@types/node": "^24.19.2",
 		"drizzle-kit": "^0.31.11"
 	}
 }

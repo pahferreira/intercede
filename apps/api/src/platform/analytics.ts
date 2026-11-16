@@ -1,21 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { type BeforeSendFn, PostHog, type PostHogOptions } from "posthog-node";
-
-export type LlmGeneration = {
-	model: string;
-	inputTokens: number;
-	outputTokens: number;
-	latencyMs: number;
-	costUsd: number;
-};
-
-export type Analytics = {
-	captureException: (error: unknown) => void;
-	captureLlmGeneration: (generation: LlmGeneration) => void;
-	shutdown: () => Promise<void>;
-};
-
-export type OpenAnalytics = () => Analytics;
+import type { Analytics, OpenAnalytics } from "./analytics-port";
 
 const disabledAnalytics: Analytics = {
 	captureException: () => {},

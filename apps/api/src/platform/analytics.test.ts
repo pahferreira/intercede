@@ -2,10 +2,10 @@ import { expect, test } from "bun:test";
 import type { PostHogOptions } from "posthog-node";
 import {
 	createPostHogAnalytics,
-	type LlmGeneration,
 	postHogSettings,
 	requirePostHogSettings,
 } from "./analytics";
+import type { LlmGeneration } from "./analytics-port";
 
 type SentEvent = { event: string; properties: Record<string, unknown> };
 
