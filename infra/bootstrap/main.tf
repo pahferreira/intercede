@@ -64,9 +64,15 @@ resource "aws_s3_bucket_policy" "state" {
   depends_on = [aws_s3_bucket_public_access_block.state]
 }
 
-resource "aws_iam_openid_connect_provider" "github" {
-  url            = "https://${local.github_oidc_host}"
-  client_id_list = [local.oidc_audience]
+data "aws_iam_openid_connect_provider" "github" {
+  url = "https://${local.github_oidc_host}"
+
+  lifecycle {
+    postcondition {
+      condition     = contains(self.client_id_list, local.oidc_audience)
+      error_message = "The account's GitHub OIDC provider must accept the ${local.oidc_audience} audience."
+    }
+  }
 }
 
 resource "aws_iam_role" "plan" {
@@ -75,7 +81,7 @@ resource "aws_iam_role" "plan" {
     Version = "2012-10-17"
     Statement = [{
       Effect    = "Allow"
-      Principal = { Federated = aws_iam_openid_connect_provider.github.arn }
+      Principal = { Federated = data.aws_iam_openid_connect_provider.github.arn }
       Action    = "sts:AssumeRoleWithWebIdentity"
       Condition = {
         StringEquals = {
@@ -111,7 +117,7 @@ resource "aws_iam_role" "apply" {
     Version = "2012-10-17"
     Statement = [{
       Effect    = "Allow"
-      Principal = { Federated = aws_iam_openid_connect_provider.github.arn }
+      Principal = { Federated = data.aws_iam_openid_connect_provider.github.arn }
       Action    = "sts:AssumeRoleWithWebIdentity"
       Condition = {
         StringEquals = {

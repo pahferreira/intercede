@@ -3,7 +3,7 @@
 One-time stack that the rest of `infra/` depends on. It creates, in `us-east-1`:
 
 - `intercede-tfstate-<account-id>`: the S3 bucket for remote state, versioned, encrypted, private and TLS-only.
-- The GitHub Actions OIDC provider.
+- No GitHub Actions OIDC provider. An account holds only one provider per URL, and this account shares it with other projects, so the stack looks it up rather than owning it. It must already exist and accept the `sts.amazonaws.com` audience; on a fresh account, create it once by hand first.
 - `github-actions-intercede-plan`: assumable from `pahferreira/intercede` on `main` and on pull requests. Read-only, plus writing `*.tflock` lock files in the state bucket.
 - `github-actions-intercede-apply`: assumable only from `main`. Power-user access, IAM limited to roles and policies named `intercede-*`, and no changes to the state bucket's configuration.
 - `github-actions-intercede-workload-boundary`: the permissions boundary every role the apply role creates must carry. It blocks IAM and role chaining, so a workload role can never grant more than the apply role already has.

@@ -6,6 +6,14 @@ mock_provider "aws" {
   }
 }
 
+override_data {
+  target = data.aws_iam_openid_connect_provider.github
+  values = {
+    arn            = "arn:aws:iam::123456789012:oidc-provider/token.actions.githubusercontent.com"
+    client_id_list = ["sts.amazonaws.com"]
+  }
+}
+
 run "state_bucket_is_versioned_and_private" {
   command = plan
 
@@ -30,18 +38,35 @@ run "state_bucket_is_versioned_and_private" {
   }
 }
 
-run "oidc_provider_trusts_github_for_sts" {
+run "roles_trust_the_existing_github_oidc_provider" {
   command = plan
 
   assert {
-    condition     = aws_iam_openid_connect_provider.github.url == "https://token.actions.githubusercontent.com"
-    error_message = "The OIDC provider must be GitHub Actions."
+    condition     = data.aws_iam_openid_connect_provider.github.url == "https://token.actions.githubusercontent.com"
+    error_message = "The roles must trust the GitHub Actions OIDC provider."
   }
 
   assert {
-    condition     = aws_iam_openid_connect_provider.github.client_id_list == toset(["sts.amazonaws.com"])
-    error_message = "The OIDC audience must be STS."
+    condition = alltrue([
+      for role in [aws_iam_role.plan, aws_iam_role.apply] :
+      jsondecode(role.assume_role_policy).Statement[0].Principal.Federated == "arn:aws:iam::123456789012:oidc-provider/token.actions.githubusercontent.com"
+    ])
+    error_message = "Both roles must trust the existing provider's ARN."
   }
+}
+
+run "existing_github_oidc_provider_must_accept_sts" {
+  command = plan
+
+  override_data {
+    target = data.aws_iam_openid_connect_provider.github
+    values = {
+      arn            = "arn:aws:iam::123456789012:oidc-provider/token.actions.githubusercontent.com"
+      client_id_list = ["some-other-audience"]
+    }
+  }
+
+  expect_failures = [data.aws_iam_openid_connect_provider.github]
 }
 
 run "plan_role_is_assumable_from_main_and_pull_requests_only" {
