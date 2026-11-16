@@ -94,8 +94,8 @@ const config: Partial<PostHogConfig> = {
 	rageclick: false,
 	capture_dead_clicks: false,
 	capture_heatmaps: false,
-	capture_pageview: false,
-	capture_pageleave: false,
+	capture_pageview: "history_change",
+	capture_pageleave: true,
 	before_send: (result: CaptureResult | null) =>
 		redactFollowUpTokens(withoutExceptionMessages(result)),
 };

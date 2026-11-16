@@ -29,7 +29,7 @@ test("without a key PostHog is never initialised and events are dropped", () => 
 	expect(posthog.captured).toEqual([]);
 });
 
-test("with a key PostHog sends through /ingest, tracks exceptions and never records sessions or page text", () => {
+test("with a key PostHog sends through /ingest, counts page views and exceptions and never records sessions or page text", () => {
 	const posthog = fakePostHog();
 
 	initAnalytics("phc_test", posthog.client);
@@ -45,13 +45,13 @@ test("with a key PostHog sends through /ingest, tracks exceptions and never reco
 			rageclick: false,
 			capture_dead_clicks: false,
 			capture_heatmaps: false,
-			capture_pageview: false,
-			capture_pageleave: false,
+			capture_pageview: "history_change",
+			capture_pageleave: true,
 		},
 	});
 });
 
-test("the Follow-up Token never leaves the browser in a URL", () => {
+test("a page view of a follow-up page never carries its Follow-up Token", () => {
 	const posthog = fakePostHog();
 	initAnalytics("phc_test", posthog.client);
 	const beforeSend = posthog.inits[0]?.config.before_send;
@@ -61,12 +61,12 @@ test("the Follow-up Token never leaves the browser in a URL", () => {
 
 	const sent = beforeSend({
 		uuid: "0",
-		event: "followup_viewed",
+		event: "$pageview",
 		properties: {
 			$current_url: "https://intercede.pahferreira.dev/f/s3cr3t-token?x=1",
 			$pathname: "/f/s3cr3t-token",
 			$referrer: "https://intercede.pahferreira.dev/f/s3cr3t-token",
-			count: 2,
+			title: "Intercede",
 		},
 	});
 
@@ -74,7 +74,7 @@ test("the Follow-up Token never leaves the browser in a URL", () => {
 		$current_url: "https://intercede.pahferreira.dev/f/:token?x=1",
 		$pathname: "/f/:token",
 		$referrer: "https://intercede.pahferreira.dev/f/:token",
-		count: 2,
+		title: "Intercede",
 	});
 });
 
