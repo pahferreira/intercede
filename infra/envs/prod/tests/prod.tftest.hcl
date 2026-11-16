@@ -161,6 +161,36 @@ run "api_concurrency_of_zero_is_rejected" {
   expect_failures = [var.api_reserved_concurrency]
 }
 
+run "budget_without_thresholds_is_rejected" {
+  command = plan
+
+  variables {
+    budget_alert_thresholds = []
+  }
+
+  expect_failures = [var.budget_alert_thresholds]
+}
+
+run "budget_with_a_non_positive_threshold_is_rejected" {
+  command = plan
+
+  variables {
+    budget_alert_thresholds = [0, 5]
+  }
+
+  expect_failures = [var.budget_alert_thresholds]
+}
+
+run "budget_with_more_than_five_thresholds_is_rejected" {
+  command = plan
+
+  variables {
+    budget_alert_thresholds = [1, 2, 3, 4, 5, 6]
+  }
+
+  expect_failures = [var.budget_alert_thresholds]
+}
+
 run "database_runs_postgres_18_next_to_the_api" {
   command = plan
 
