@@ -8,6 +8,7 @@
 	"scripts": {
 		"prepare": "husky",
 		"lint": "biome check .",
+		"lint:deps": "depcruise apps/api/src --config .dependency-cruiser.cjs",
 		"typecheck": "bun run --filter '*' typecheck",
 		"test": "bun run --filter '*' test",
 		"db:migrate": "bun run --filter @intercede/api db:migrate"
@@ -17,7 +18,9 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.6.7",
+		"@swc/core": "^1.16.22",
 		"@types/bun": "^1.4.4",
+		"dependency-cruiser": "^18.7.2",
 		"husky": "^9.1.7",
 		"lint-staged": "^17.6.1",
 		"typescript": "^7.0.2"
