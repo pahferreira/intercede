@@ -138,6 +138,38 @@ run "budget_thresholds_and_email_come_from_variables" {
   }
 }
 
+run "lambdas_reserve_no_concurrency_by_default" {
+  command = plan
+
+  assert {
+    condition     = aws_lambda_function.api.reserved_concurrent_executions == null && aws_lambda_function.sweeper.reserved_concurrent_executions == null
+    error_message = "Without a reservation set, both Lambdas must stay unreserved so apply works on an account limit of 10."
+  }
+}
+
+run "sweeper_concurrency_is_capped_from_a_variable" {
+  command = plan
+
+  variables {
+    sweeper_reserved_concurrency = 1
+  }
+
+  assert {
+    condition     = aws_lambda_function.sweeper.reserved_concurrent_executions == 1
+    error_message = "The sweeper's reserved concurrency must come from sweeper_reserved_concurrency (ADR-0012)."
+  }
+}
+
+run "sweeper_concurrency_of_zero_is_rejected" {
+  command = plan
+
+  variables {
+    sweeper_reserved_concurrency = 0
+  }
+
+  expect_failures = [var.sweeper_reserved_concurrency]
+}
+
 run "api_concurrency_is_capped_from_a_variable" {
   command = plan
 

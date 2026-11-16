@@ -26,12 +26,23 @@ variable "budget_alert_thresholds" {
 }
 
 variable "api_reserved_concurrency" {
-  description = "Concurrent executions reserved for, and capping, the API Lambda (ADR-0012)."
+  description = "Concurrent executions reserved for, and capping, the API Lambda (ADR-0012). Null leaves it unreserved."
   type        = number
-  default     = 5
+  default     = null
 
   validation {
-    condition     = var.api_reserved_concurrency >= 1 && floor(var.api_reserved_concurrency) == var.api_reserved_concurrency
-    error_message = "api_reserved_concurrency must be a whole number of at least 1; 0 would stop the API."
+    condition     = var.api_reserved_concurrency == null ? true : var.api_reserved_concurrency >= 1 && floor(var.api_reserved_concurrency) == var.api_reserved_concurrency
+    error_message = "api_reserved_concurrency must be null or a whole number of at least 1; 0 would stop the API."
+  }
+}
+
+variable "sweeper_reserved_concurrency" {
+  description = "Concurrent executions reserved for, and capping, the sweeper Lambda (ADR-0012). Null leaves it unreserved."
+  type        = number
+  default     = null
+
+  validation {
+    condition     = var.sweeper_reserved_concurrency == null ? true : var.sweeper_reserved_concurrency >= 1 && floor(var.sweeper_reserved_concurrency) == var.sweeper_reserved_concurrency
+    error_message = "sweeper_reserved_concurrency must be null or a whole number of at least 1; 0 would stop the sweeper."
   }
 }

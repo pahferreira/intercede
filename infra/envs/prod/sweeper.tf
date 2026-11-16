@@ -66,6 +66,8 @@ resource "aws_lambda_function" "sweeper" {
   timeout       = 60
   filename      = data.archive_file.sweeper_placeholder.output_path
 
+  reserved_concurrent_executions = var.sweeper_reserved_concurrency
+
   lifecycle {
     ignore_changes = [filename, environment]
   }
