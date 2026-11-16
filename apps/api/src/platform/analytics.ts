@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { PostHog, type PostHogOptions } from "posthog-node";
+import { type BeforeSendFn, PostHog, type PostHogOptions } from "posthog-node";
 
 export type LlmGeneration = {
 	model: string;
@@ -44,6 +44,23 @@ export const requirePostHogSettings = (env: Env = process.env) => {
 	return settings;
 };
 
+const withoutExceptionMessages: BeforeSendFn = (event) => {
+	const exceptions = event.properties?.$exception_list;
+	if (event.event !== "$exception" || !Array.isArray(exceptions)) {
+		return event;
+	}
+	return {
+		...event,
+		properties: {
+			...event.properties,
+			$exception_list: exceptions.map((exception) => ({
+				...exception,
+				value: "[redacted]",
+			})),
+		},
+	};
+};
+
 export const createPostHogAnalytics = ({
 	key,
 	host,
@@ -58,6 +75,7 @@ export const createPostHogAnalytics = ({
 			fetch,
 			flushAt: 1,
 			flushInterval: 0,
+			before_send: withoutExceptionMessages,
 		});
 		return {
 			captureException: (error) => client.captureException(error),

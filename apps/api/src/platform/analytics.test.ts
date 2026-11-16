@@ -39,6 +39,11 @@ const generation: LlmGeneration = {
 	costUsd: 0.0012,
 };
 
+const userText = {
+	entry: "pray for my sister Maria",
+	name: "my neighbour John Smith",
+};
+
 test("without a key nothing is sent to PostHog", async () => {
 	const server = fakePostHogServer();
 	const openAnalytics = createPostHogAnalytics({
@@ -105,6 +110,33 @@ test("an exception is sent to PostHog error tracking", async () => {
 	await analytics.shutdown();
 
 	expect(server.events().map(({ event }) => event)).toEqual(["$exception"]);
+});
+
+test("an exception is sent with its type and stack but never its message", async () => {
+	const server = fakePostHogServer();
+	const openAnalytics = createPostHogAnalytics({
+		key: "phc_test",
+		host: "https://posthog.test",
+		fetch: server.fetch,
+	});
+
+	const analytics = openAnalytics();
+	analytics.captureException(
+		new TypeError(`Cannot moderate ${userText.entry}`, {
+			cause: new Error(`upstream rejected ${userText.name}`),
+		}),
+	);
+	await analytics.shutdown();
+
+	const [sent] = server.events();
+	const exceptions = sent?.properties.$exception_list as {
+		type: string;
+		stacktrace?: { frames: unknown[] };
+	}[];
+	expect(exceptions.map(({ type }) => type)).toEqual(["TypeError", "Error"]);
+	expect(exceptions[0]?.stacktrace?.frames.length).toBeGreaterThan(0);
+	expect(server.requests.join()).not.toContain("Maria");
+	expect(server.requests.join()).not.toContain("John Smith");
 });
 
 test("PostHog settings default to the US cloud and may have no key", () => {
