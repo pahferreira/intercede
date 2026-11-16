@@ -1,0 +1,105 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "**/*.md"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  TERRAFORM_VERSION: 1.14.8
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: hashicorp/setup-terraform@v4.0.1
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          terraform_wrapper: false
+      - uses: aws-actions/configure-aws-credentials@v6.3.0
+        with:
+          role-to-assume: ${{ vars.AWS_APPLY_ROLE_ARN }}
+          aws-region: us-east-1
+      - uses: ./.github/actions/setup-bun
+
+      - name: Terraform apply
+        id: terraform
+        working-directory: infra/envs/prod
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          TF_VAR_budget_alert_email: ${{ secrets.BUDGET_ALERT_EMAIL }}
+          STATE_BUCKET: ${{ vars.TF_STATE_BUCKET }}
+        run: |
+          terraform init -input=false -backend-config="bucket=$STATE_BUCKET"
+          terraform apply -input=false -auto-approve
+          {
+            echo "api-function=$(terraform output -raw api_function_name)"
+            echo "sweeper-function=$(terraform output -raw sweeper_function_name)"
+            echo "web-bucket=$(terraform output -raw web_bucket_name)"
+            echo "distribution=$(terraform output -raw cloudfront_distribution_id)"
+            echo "site-url=$(terraform output -raw site_url)"
+          } >> "$GITHUB_OUTPUT"
+
+      # Neon's pooler runs PgBouncer in transaction mode, which migrations must bypass.
+      - name: Migrate the database
+        env:
+          POOLED_DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [[ $POOLED_DATABASE_URL != *-pooler.* ]]; then
+            echo "DATABASE_URL must be Neon's pooled connection string" >&2
+            exit 1
+          fi
+          DATABASE_URL=${POOLED_DATABASE_URL/-pooler./.}
+          echo "::add-mask::$DATABASE_URL"
+          DATABASE_URL=$DATABASE_URL bun run db:migrate
+
+      - name: Build the API
+        run: bun run --filter @intercede/api build
+
+      - name: Release the API
+        env:
+          FUNCTION_NAME: ${{ steps.terraform.outputs.api-function }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          POSTHOG_KEY: ${{ secrets.POSTHOG_KEY }}
+        run: .github/scripts/deploy-lambda.sh "$FUNCTION_NAME" api DATABASE_URL POSTHOG_KEY
+
+      - name: Release the sweeper
+        env:
+          FUNCTION_NAME: ${{ steps.terraform.outputs.sweeper-function }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: .github/scripts/deploy-lambda.sh "$FUNCTION_NAME" sweeper DATABASE_URL
+
+      - name: Build the web app
+        env:
+          POSTHOG_KEY: ${{ secrets.POSTHOG_KEY }}
+        run: bun run --filter @intercede/web build
+
+      - name: Publish the web app
+        working-directory: apps/web/dist
+        env:
+          BUCKET: ${{ steps.terraform.outputs.web-bucket }}
+          DISTRIBUTION_ID: ${{ steps.terraform.outputs.distribution }}
+        run: |
+          aws s3 sync assets "s3://$BUCKET/assets" --cache-control "public, max-age=31536000, immutable"
+          aws s3 sync . "s3://$BUCKET" --exclude "assets/*" --cache-control "no-cache" --delete
+          invalidation=$(aws cloudfront create-invalidation --distribution-id "$DISTRIBUTION_ID" --paths "/*" --query Invalidation.Id --output text)
+          aws cloudfront wait invalidation-completed --distribution-id "$DISTRIBUTION_ID" --id "$invalidation"
+
+      - name: Check the site answers
+        env:
+          SITE_URL: ${{ steps.terraform.outputs.site-url }}
+        run: |
+          curl --fail --silent --show-error --retry 5 --retry-all-errors --retry-delay 5 "$SITE_URL/api/health"
+          curl --fail --silent --show-error --retry 5 --retry-all-errors --retry-delay 5 --output /dev/null "$SITE_URL/"

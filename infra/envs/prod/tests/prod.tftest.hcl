@@ -56,6 +56,7 @@ mock_provider "aws" {
   mock_resource "aws_cloudfront_distribution" {
     defaults = {
       arn = "arn:aws:cloudfront::123456789012:distribution/EDFDVBD6EXAMPLE"
+      id  = "EDFDVBD6EXAMPLE"
     }
   }
 }
@@ -572,5 +573,29 @@ run "site_answers_on_its_custom_domain_with_a_us_east_1_certificate" {
       && record.type == type
     ]) && toset(keys(aws_route53_record.site)) == toset(["A", "AAAA"])
     error_message = "intercede.pahferreira.dev must alias the distribution over IPv4 and IPv6."
+  }
+}
+
+run "deploy_reads_its_targets_from_outputs" {
+  command = apply
+
+  assert {
+    condition     = output.api_function_name == "intercede-api" && output.sweeper_function_name == "intercede-sweeper"
+    error_message = "The deploy job ships code to the Lambdas named in the outputs."
+  }
+
+  assert {
+    condition     = output.web_bucket_name == "intercede-web-123456789012"
+    error_message = "The deploy job syncs the SPA to the bucket named in the outputs."
+  }
+
+  assert {
+    condition     = output.cloudfront_distribution_id == "EDFDVBD6EXAMPLE"
+    error_message = "The deploy job invalidates the distribution named in the outputs."
+  }
+
+  assert {
+    condition     = output.site_url == "https://intercede.pahferreira.dev"
+    error_message = "The deploy job checks the site at the URL in the outputs."
   }
 }
