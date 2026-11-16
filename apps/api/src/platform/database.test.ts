@@ -1,16 +1,9 @@
 import { expect, test } from "bun:test";
-import {
-	createDatabase,
-	createDatabaseProbe,
-	requireDatabaseUrl,
-} from "./database";
+import { unreachableDatabase } from "../../test/unreachable-database";
+import { createDatabaseProbe, requireDatabaseUrl } from "./database";
 
 test("database probe reports unreachable when nothing listens on the port", async () => {
-	const isDatabaseReachable = createDatabaseProbe(
-		createDatabase("postgres://intercede:intercede@127.0.0.1:1/intercede", {
-			connectTimeoutSeconds: 1,
-		}),
-	);
+	const isDatabaseReachable = createDatabaseProbe(unreachableDatabase());
 
 	expect(await isDatabaseReachable()).toBe(false);
 });

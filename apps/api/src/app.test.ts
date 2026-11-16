@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
 import { createTestApp } from "../test/app";
-import { createDatabase, createDatabaseProbe } from "./platform/database";
+import { unreachableDatabase } from "../test/unreachable-database";
+import { createDatabaseProbe } from "./platform/database";
 
 function fakeAnalytics() {
 	const calls: string[] = [];
@@ -35,11 +36,7 @@ test("GET /api/health responds 200 when the database is reachable", async () => 
 
 test("GET /api/health responds 503 when the database is unreachable", async () => {
 	const app = createTestApp({
-		isDatabaseReachable: createDatabaseProbe(
-			createDatabase("postgres://intercede:intercede@127.0.0.1:1/intercede", {
-				connectTimeoutSeconds: 1,
-			}),
-		),
+		isDatabaseReachable: createDatabaseProbe(unreachableDatabase()),
 	});
 
 	const response = await app.request("/api/health");
