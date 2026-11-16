@@ -17,20 +17,20 @@ The repository uses GitHub's immutable OIDC subject, so tokens name the owner an
 - Never use the `pull_request_target` trigger: it runs with the `main` subject and could assume the apply role.
 - The plan role is read-only, but that includes Lambda configuration, so PR workflows can read the function's environment (ADR-0010 secrets). Only trusted collaborators should be able to push branches.
 
-## Apply once, locally
+## Apply, locally
 
-CI cannot create the role it would use to run, so a human applies this stack once with their own AWS credentials (an admin of the account):
+CI cannot change the roles it runs as, so a human applies this stack with their own AWS credentials (an admin of the account). Its state lives in the bucket it creates, under `bootstrap/terraform.tfstate`, so every checkout shares it:
 
 ```sh
 cd infra/bootstrap
-terraform init
+terraform init -backend-config="bucket=intercede-tfstate-<account-id>"
 terraform apply
 terraform output
 ```
 
 Record `state_bucket_name`, `plan_role_arn`, `apply_role_arn` and `workload_permissions_boundary_arn` for CI and the prod stack.
 
-This stack keeps its state locally in `terraform.tfstate`, which is gitignored. Keep it somewhere safe; if it is lost, `terraform import` the resources before changing them. The bucket has `prevent_destroy`.
+On a fresh account the bucket doesn't exist yet. Run `terraform init -backend=false` and `terraform apply` with local state first, then move it into the bucket with `terraform init -migrate-state -backend-config="bucket=<state_bucket_name>"` and delete the local `terraform.tfstate`. The bucket is versioned and has `prevent_destroy`; if the state is ever lost, `terraform import` the resources before changing them.
 
 Other stacks use the bucket with native S3 locking:
 
