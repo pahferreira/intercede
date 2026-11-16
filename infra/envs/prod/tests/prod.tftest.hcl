@@ -56,6 +56,7 @@ mock_provider "aws" {
   mock_resource "aws_cloudfront_distribution" {
     defaults = {
       arn = "arn:aws:cloudfront::123456789012:distribution/EDFDVBD6EXAMPLE"
+      id  = "EDFDVBD6EXAMPLE"
     }
   }
 }
@@ -572,5 +573,24 @@ run "site_answers_on_its_custom_domain_with_a_us_east_1_certificate" {
       && record.type == type
     ]) && toset(keys(aws_route53_record.site)) == toset(["A", "AAAA"])
     error_message = "intercede.pahferreira.dev must alias the distribution over IPv4 and IPv6."
+  }
+}
+
+run "deploy_reads_the_function_names_bucket_and_distribution_from_outputs" {
+  command = apply
+
+  assert {
+    condition     = output.api_function_name == aws_lambda_function.api.function_name && output.sweeper_function_name == aws_lambda_function.sweeper.function_name
+    error_message = "The deploy job ships code to the Lambdas named in the outputs."
+  }
+
+  assert {
+    condition     = output.web_bucket_name == aws_s3_bucket.web.bucket
+    error_message = "The deploy job syncs the SPA to the bucket named in the outputs."
+  }
+
+  assert {
+    condition     = output.cloudfront_distribution_id == "EDFDVBD6EXAMPLE"
+    error_message = "The deploy job invalidates the distribution named in the outputs."
   }
 }

@@ -61,37 +61,28 @@ terraform plan -detailed-exitcode
 
 Exit code `0` means no changes. Anything else is drift to fix before closing the ticket.
 
-## Verify
+## Deploy
 
-Until the deploy job exists (#28), ship the API by hand. Take the pooled connection string from the Neon console, then:
+After the first apply, `.github/workflows/deploy.yml` deploys every push to `main` that changes more than Markdown, and runs again on demand from the Actions tab. One job, assuming `AWS_APPLY_ROLE_ARN`, runs in order:
 
-```sh
-export AWS_REGION=us-east-1
-bun run --filter @intercede/api build
-cd apps/api/dist && zip -q /tmp/intercede-api.zip api.mjs api.mjs.map && cd -
-aws lambda update-function-code --function-name intercede-api --zip-file fileb:///tmp/intercede-api.zip
-aws lambda wait function-updated --function-name intercede-api
-aws lambda update-function-configuration --function-name intercede-api \
-  --environment "Variables={DATABASE_URL=<pooled connection string>,POSTHOG_KEY=<key>}"
-curl -i https://intercede.pahferreira.dev/api/health
-```
+1. `terraform apply` on this stack, reading the function names, web bucket and distribution from its outputs.
+2. Drizzle migrations against Neon. `DATABASE_URL` is the pooled connection string; migrations use the direct one, the same URL without `-pooler` in the host.
+3. The API and sweeper builds, each zipped with its source map and shipped with `update-function-code`, then their environment with `update-function-configuration` (ADR-0010): `DATABASE_URL` and `POSTHOG_KEY` for the API, `DATABASE_URL` for the sweeper.
+4. The web build, synced to the bucket (hashed `assets/` cached for a year, everything else `no-cache`), a CloudFront invalidation of `/*`, then removal of assets no page references any more.
+5. A check that `/api/health` and `/` answer on `intercede.pahferreira.dev`.
 
-Expect `200` with `{"status":"ok","database":"ok"}`.
+Every step is safe to re-run. A new run waits for the one in progress, and only the latest waiting run goes ahead.
 
-Ship the sweeper from the same build:
+| Name                 | Kind     | Used for                                      |
+| -------------------- | -------- | --------------------------------------------- |
+| `AWS_APPLY_ROLE_ARN` | variable | The role the job assumes through GitHub OIDC. |
+| `TF_STATE_BUCKET`    | variable | `terraform init`'s backend bucket.            |
+| `NEON_API_KEY`       | secret   | The Neon provider.                            |
+| `BUDGET_ALERT_EMAIL` | secret   | `TF_VAR_budget_alert_email`.                  |
+| `DATABASE_URL`       | secret   | Neon's pooled connection string.              |
+| `POSTHOG_KEY`        | secret   | The API's environment and the web build.      |
 
-```sh
-cd apps/api/dist && zip -q /tmp/intercede-sweeper.zip sweeper.mjs sweeper.mjs.map && cd -
-aws lambda update-function-code --function-name intercede-sweeper --zip-file fileb:///tmp/intercede-sweeper.zip
-aws lambda wait function-updated --function-name intercede-sweeper
-aws lambda update-function-configuration --function-name intercede-sweeper \
-  --environment "Variables={DATABASE_URL=<pooled connection string>}"
-aws logs tail /aws/lambda/intercede-sweeper --since 10m --follow
-```
-
-Within 5 minutes, expect one `sweeper tick: nothing to sweep` line per run.
-
-Run `terraform plan -detailed-exitcode` again: the new code and environment must not show up as changes.
+After a deploy, `terraform plan -detailed-exitcode` must still exit `0`: the new code and environment don't show up as changes.
 
 ## Checks
 
