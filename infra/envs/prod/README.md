@@ -20,7 +20,7 @@ CloudFront signs requests to the Function URL but does not hash the body. A `PUT
 
 ## Secrets in state
 
-Terraform never sets the Lambda's environment. The Neon provider does store the project's default role password and connection URIs in state (`neon_project.main`), because the Neon API returns them on creation. The state bucket is private, encrypted and TLS-only; this stack has no outputs that expose them.
+Terraform never sets the Lambda's environment. The Neon provider does store the project's default role password and connection URIs in state (`neon_project.main`), because the Neon API returns them on creation. The state bucket is private, encrypted and TLS-only; this stack has no outputs that expose them. ADR-0010 allows this exception.
 
 ## Apply
 
