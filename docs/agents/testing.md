@@ -18,3 +18,7 @@ Agreed test seams, so a TDD run without a human in the loop uses these instead o
 - **Screens:** render `<App>` with Testing Library, with an `hc` client built from the real app (`createApiClient(app.request)`, where `app = createApp({ ... })` from `@intercede/api/testing` with its ports stubbed, e.g. `isDatabaseReachable: async () => true`) and a `createMemoryHistory` at the path under test. Set the language with `switchLocale` before rendering.
 - **Assertions:** what the Visitor sees (`screen.findByText`, roles), in both `en` and `pt-BR` whenever copy is involved.
 - **Pure modules** (for example `i18n.ts`): test their exported functions directly, passing collaborators such as the catalog loader as arguments.
+
+## Boundary rules
+
+- `.dependency-cruiser.cjs` rules are tested in `apps/api/src/boundaries.test.ts`, which cruises small fixture trees. Each rule gets a fixture that breaks it and the nearest legitimate shape that must still pass.
