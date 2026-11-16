@@ -17,13 +17,14 @@ Judgement rules for review. Biome, tsc and dependency-cruiser enforce the mechan
 
 ## Scope
 
-- Export only what a caller uses today. Code for a later ticket arrives with that ticket.
+- Export only what a caller uses today, or what the ticket explicitly asks for (e.g. a helper that later slices will call). Code for a later ticket arrives with that ticket.
 - A placeholder file is acceptable only when a tool needs it to run (e.g. drizzle-kit needs one schema file).
 - A closed set of values (locales, statuses, route paths) is declared once; every other site derives from it.
 
 ## Boundaries
 
 - `apps/web` production code imports `@intercede/api` only with `import type` (ADR-0011). Tests reach the running app through `@intercede/api/testing`, never through a relative path into `apps/api/src`.
+- Tooling configs (`vite.config.ts`, `drizzle.config.ts`) may import a settings resolver from `apps/api/src/platform/` by relative path, so the setting stays resolved in one place.
 
 ## Comments
 
