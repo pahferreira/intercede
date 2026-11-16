@@ -3,16 +3,17 @@ import {
 	beginTestTransaction,
 	connectTestDatabase,
 	disconnectTestDatabase,
-	prepareTestDatabase,
-	rollbackTestTransaction,
-	testDatabaseUrl,
 } from "./database";
 
-const url = testDatabaseUrl();
+await connectTestDatabase().catch((error) => {
+	console.error(error.message);
+	process.exit(1);
+});
 
-await prepareTestDatabase(url);
-connectTestDatabase(url);
+let rollbackTestTransaction = async () => {};
 
-beforeEach(beginTestTransaction);
-afterEach(rollbackTestTransaction);
+beforeEach(async () => {
+	rollbackTestTransaction = await beginTestTransaction();
+});
+afterEach(() => rollbackTestTransaction());
 afterAll(disconnectTestDatabase);

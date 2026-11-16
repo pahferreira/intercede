@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { sql } from "drizzle-orm";
-import { prepareTestDatabase, testDatabase } from "./database";
+import { prepareTestDatabase, testDatabase, testDatabaseUrl } from "./database";
+import { unreachableDatabaseUrl } from "./unreachable-database";
 
 test("tests run against intercede_test, never the dev database", async () => {
 	const [row] = await testDatabase().execute<{ name: string }>(
@@ -35,9 +36,34 @@ describe("data written by one test is not visible to the next", () => {
 });
 
 test("preparing the test database fails with the docker instruction when Postgres is unreachable", async () => {
+	await expect(prepareTestDatabase(unreachableDatabaseUrl)).rejects.toThrow(
+		"run `docker compose up -d --wait`",
+	);
+});
+
+test("the test database URL is refused when DATABASE_URL points at a remote host", () => {
+	expect(() =>
+		testDatabaseUrl({
+			DATABASE_URL:
+				"postgres://intercede:intercede@db.example.com:5432/intercede",
+		}),
+	).toThrow("refusing to run tests against db.example.com");
+});
+
+test("preparing the test database is refused on a remote host", async () => {
 	await expect(
 		prepareTestDatabase(
-			"postgres://intercede:intercede@127.0.0.1:1/intercede_test",
+			"postgres://intercede:intercede@db.example.com:5432/intercede_test",
 		),
-	).rejects.toThrow("run `docker compose up -d --wait`");
+	).rejects.toThrow("refusing to run tests against db.example.com");
+});
+
+test("the test database URL is accepted on every local host", () => {
+	for (const host of ["localhost", "127.0.0.1", "[::1]"]) {
+		expect(
+			testDatabaseUrl({
+				DATABASE_URL: `postgres://intercede:intercede@${host}:5432/intercede`,
+			}),
+		).toBe(`postgres://intercede:intercede@${host}:5432/intercede_test`);
+	}
 });

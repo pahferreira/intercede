@@ -24,15 +24,21 @@ export const requireDatabaseUrl = (env: Env = process.env) => {
 	return url;
 };
 
+type DatabaseOptions = {
+	connectTimeoutSeconds?: number;
+	onnotice?: (notice: postgres.Notice) => void;
+};
+
 export const createDatabase = (
 	url: string,
-	{ connectTimeoutSeconds = 5 } = {},
+	{ connectTimeoutSeconds = 5, onnotice }: DatabaseOptions = {},
 ) =>
 	drizzle({
 		client: postgres(url, {
 			max: 1,
 			prepare: false,
 			connect_timeout: connectTimeoutSeconds,
+			onnotice,
 		}),
 	});
 

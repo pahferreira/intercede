@@ -1,8 +1,6 @@
 import { join } from "node:path";
 import { TransactionRollbackError } from "drizzle-orm/errors";
-import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
-import postgres from "postgres";
 import {
 	createDatabase,
 	type Database,
@@ -10,30 +8,45 @@ import {
 } from "../src/platform/database";
 
 const testDatabaseName = "intercede_test";
+const localHosts = new Set(["localhost", "127.0.0.1", "[::1]"]);
+const duplicateDatabaseCode = "42P04";
+const setupConnectTimeoutSeconds = 2;
 
-const withDatabaseName = (url: string, name: string) => {
+const requireLocalUrl = (url: string) => {
 	const parsed = new URL(url);
-	parsed.pathname = `/${name}`;
-	return parsed.toString();
+	if (!localHosts.has(parsed.hostname.toLowerCase())) {
+		throw new Error(
+			`refusing to run tests against ${parsed.hostname}: DATABASE_URL must point at localhost, 127.0.0.1 or ::1`,
+		);
+	}
+	return parsed;
 };
 
-export const testDatabaseUrl = () =>
-	withDatabaseName(localOrConfiguredDatabaseUrl(), testDatabaseName);
+const withDatabaseName = (url: URL, name: string) => {
+	const renamed = new URL(url);
+	renamed.pathname = `/${name}`;
+	return renamed.toString();
+};
 
-const quietClient = (url: string, connectTimeoutSeconds: number) =>
-	postgres(url, {
-		max: 1,
-		connect_timeout: connectTimeoutSeconds,
+export const testDatabaseUrl = (env = process.env) =>
+	withDatabaseName(
+		requireLocalUrl(localOrConfiguredDatabaseUrl(env)),
+		testDatabaseName,
+	);
+
+const createSetupDatabase = (url: string) =>
+	createDatabase(url, {
+		connectTimeoutSeconds: setupConnectTimeoutSeconds,
 		onnotice: () => {},
 	});
 
-const createIfMissing = async (url: string) => {
-	const name = new URL(url).pathname.slice(1);
-	const admin = quietClient(withDatabaseName(url, "postgres"), 2);
+const createIfMissing = async (url: URL) => {
+	const name = url.pathname.slice(1);
+	const admin = createSetupDatabase(withDatabaseName(url, "postgres")).$client;
 	try {
 		await admin`select 1`.catch((cause) => {
 			throw new Error(
-				`Postgres is unreachable at ${new URL(url).host}: run \`docker compose up -d --wait\``,
+				`Postgres is unreachable at ${url.host}: run \`docker compose up -d --wait\``,
 				{ cause },
 			);
 		});
@@ -41,7 +54,7 @@ const createIfMissing = async (url: string) => {
 			await admin`select 1 from pg_database where datname = ${name}`;
 		if (!existing) {
 			await admin.unsafe(`create database "${name}"`).catch((error) => {
-				if (error?.code !== "42P04") throw error;
+				if (error?.code !== duplicateDatabaseCode) throw error;
 			});
 		}
 	} finally {
@@ -50,69 +63,58 @@ const createIfMissing = async (url: string) => {
 };
 
 export const prepareTestDatabase = async (url: string) => {
-	await createIfMissing(url);
-	const client = quietClient(url, 2);
+	await createIfMissing(requireLocalUrl(url));
+	const database = createSetupDatabase(url);
 	try {
-		await migrate(drizzle({ client }), {
+		await migrate(database, {
 			migrationsFolder: join(import.meta.dir, "../drizzle"),
 		});
 	} finally {
-		await client.end();
+		await database.$client.end();
 	}
 };
 
-let connection: ReturnType<typeof createDatabase> | undefined;
-let current: { database: Database; rollback: () => Promise<void> } | undefined;
+let testConnection: ReturnType<typeof createDatabase> | undefined;
+let openTransaction: Database | undefined;
 
-export const connectTestDatabase = (url: string) => {
-	connection = createDatabase(url);
+export const connectTestDatabase = async () => {
+	const url = testDatabaseUrl();
+	await prepareTestDatabase(url);
+	testConnection = createDatabase(url);
 };
 
 export const disconnectTestDatabase = async () => {
-	await connection?.$client.end();
-	connection = undefined;
+	await testConnection?.$client.end();
+	testConnection = undefined;
 };
 
 export const beginTestTransaction = async () => {
-	if (!connection) throw new Error("the test database is not connected");
-	let release = () => {};
-	const released = new Promise<void>((resolve) => {
-		release = resolve;
-	});
-	let opened = (_: Database) => {};
-	const ready = new Promise<Database>((resolve) => {
-		opened = resolve;
-	});
-	const finished = connection
+	if (!testConnection) throw new Error("the test database is not connected");
+	const rollbackRequested = Promise.withResolvers<void>();
+	const transactionOpened = Promise.withResolvers<Database>();
+	const transactionSettled = testConnection
 		.transaction(async (tx) => {
-			opened(tx);
-			await released;
+			transactionOpened.resolve(tx);
+			await rollbackRequested.promise;
 			tx.rollback();
 		})
 		.catch((error) => {
 			if (!(error instanceof TransactionRollbackError)) throw error;
 		});
-	const database = await Promise.race([
-		ready,
-		finished.then(() => {
+	openTransaction = await Promise.race([
+		transactionOpened.promise,
+		transactionSettled.then(() => {
 			throw new Error("the test transaction ended before the test ran");
 		}),
 	]);
-	current = {
-		database,
-		rollback: async () => {
-			release();
-			await finished;
-			current = undefined;
-		},
+	return async () => {
+		rollbackRequested.resolve();
+		await transactionSettled;
+		openTransaction = undefined;
 	};
 };
 
-export const rollbackTestTransaction = async () => {
-	await current?.rollback();
-};
-
 export const testDatabase = () => {
-	if (!current) throw new Error("no test transaction is open");
-	return current.database;
+	if (!openTransaction) throw new Error("no test transaction is open");
+	return openTransaction;
 };
