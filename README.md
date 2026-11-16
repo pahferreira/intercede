@@ -30,3 +30,7 @@ bun run test
 ```
 
 Tests do not need a running database.
+
+## Infrastructure
+
+Terraform lives in `infra/`. Start with `infra/bootstrap`, which a human applies once; see its README.
