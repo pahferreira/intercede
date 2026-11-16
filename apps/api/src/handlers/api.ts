@@ -1,5 +1,6 @@
 import { streamHandle } from "hono/aws-lambda";
 import { createApp } from "../app";
+import { createBedrockModerator, createSubmitIntention } from "../intentions";
 import {
 	createPostHogAnalytics,
 	requirePostHogSettings,
@@ -10,11 +11,17 @@ import {
 	requireDatabaseUrl,
 } from "../platform/database";
 
-const isDatabaseReachable = createDatabaseProbe(
-	createDatabase(requireDatabaseUrl()),
-);
+const database = createDatabase(requireDatabaseUrl());
+const isDatabaseReachable = createDatabaseProbe(database);
 const openAnalytics = createPostHogAnalytics(requirePostHogSettings());
 
 export const handler = streamHandle(
-	createApp({ isDatabaseReachable, openAnalytics }),
+	createApp({
+		isDatabaseReachable,
+		openAnalytics,
+		submitIntention: createSubmitIntention({
+			database,
+			moderate: createBedrockModerator(),
+		}),
+	}),
 );

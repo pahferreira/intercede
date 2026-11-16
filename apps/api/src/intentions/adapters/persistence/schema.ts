@@ -1,0 +1,24 @@
+import { jsonb, pgSchema, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { languages } from "../../domain/intention";
+
+export const intentionsSchema = pgSchema("intentions");
+
+export const intentions = intentionsSchema.table("intentions", {
+	id: uuid().primaryKey().defaultRandom(),
+	text: text().notNull(),
+	language: text({ enum: languages }).notNull(),
+	status: text({ enum: ["published"] }).notNull(),
+	publishedAt: timestamp("published_at", { withTimezone: true })
+		.notNull()
+		.defaultNow(),
+});
+
+export const outbox = intentionsSchema.table("outbox", {
+	id: uuid().primaryKey().defaultRandom(),
+	type: text({ enum: ["IntentionPublished"] }).notNull(),
+	payload: jsonb().notNull(),
+	occurredAt: timestamp("occurred_at", { withTimezone: true })
+		.notNull()
+		.defaultNow(),
+	processedAt: timestamp("processed_at", { withTimezone: true }),
+});

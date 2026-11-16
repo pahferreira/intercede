@@ -1,4 +1,5 @@
 import { createApp } from "./app";
+import { createBedrockModerator, createSubmitIntention } from "./intentions";
 import { createPostHogAnalytics, postHogSettings } from "./platform/analytics";
 import {
 	createDatabase,
@@ -6,14 +7,20 @@ import {
 	localOrConfiguredDatabaseUrl,
 } from "./platform/database";
 
-const isDatabaseReachable = createDatabaseProbe(
-	createDatabase(localOrConfiguredDatabaseUrl()),
-);
+const database = createDatabase(localOrConfiguredDatabaseUrl());
+const isDatabaseReachable = createDatabaseProbe(database);
 const openAnalytics = createPostHogAnalytics(postHogSettings());
 
 const server = Bun.serve({
 	port: Number(process.env.API_PORT ?? 3000),
-	fetch: createApp({ isDatabaseReachable, openAnalytics }).fetch,
+	fetch: createApp({
+		isDatabaseReachable,
+		openAnalytics,
+		submitIntention: createSubmitIntention({
+			database,
+			moderate: createBedrockModerator(),
+		}),
+	}).fetch,
 });
 
 console.log(`API listening on ${server.url}`);
