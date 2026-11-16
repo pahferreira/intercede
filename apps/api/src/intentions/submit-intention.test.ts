@@ -4,9 +4,10 @@ import { createTestApp } from "../../test/app";
 import { testDatabase } from "../../test/database";
 import { intentions, outbox } from "./adapters/persistence/schema";
 import type { Moderate } from "./application/moderate";
+import type { Language } from "./domain/intention";
 
 const publishes =
-	(language: "pt" | "en"): Moderate =>
+	(language: Language): Moderate =>
 	async () => ({ ok: true, value: { publishable: true, language } });
 
 const submit = (app: ReturnType<typeof createTestApp>, text: string) =>

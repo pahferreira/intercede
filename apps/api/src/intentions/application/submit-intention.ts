@@ -5,7 +5,7 @@ import { createPublishIntention } from "../adapters/persistence/intention-store"
 import type { RejectionReason } from "../domain/moderation-verdict";
 import type { Moderate, ModerationUnavailable } from "./moderate";
 
-export type SubmitIntentionError =
+type SubmitIntentionError =
 	| ModerationUnavailable
 	| { kind: "rejected"; reasons: RejectionReason[] };
 
