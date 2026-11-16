@@ -4,9 +4,15 @@ import {
 	createPostHogAnalytics,
 	requirePostHogSettings,
 } from "../platform/analytics";
-import { createDatabaseProbe, requireDatabaseUrl } from "../platform/database";
+import {
+	createDatabase,
+	createDatabaseProbe,
+	requireDatabaseUrl,
+} from "../platform/database";
 
-const isDatabaseReachable = createDatabaseProbe(requireDatabaseUrl());
+const isDatabaseReachable = createDatabaseProbe(
+	createDatabase(requireDatabaseUrl()),
+);
 const openAnalytics = createPostHogAnalytics(requirePostHogSettings());
 
 export const handler = streamHandle(
