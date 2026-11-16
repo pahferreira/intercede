@@ -5,6 +5,8 @@ The production stack, in `us-east-1` (ADR-0009). It creates:
 - `intercede` on Neon: Postgres 18 (ADR-0003) in `aws-us-east-1`, with the `main` branch, the `intercede` role and the `intercede` database. It has `prevent_destroy`.
 - `intercede-api`: the API Lambda on `nodejs24.x` ARM64 (ADR-0002) with an IAM-only Function URL that streams responses. Terraform creates it with placeholder code and ignores `filename` and `environment`; the deploy job ships the code and the secrets (ADR-0010). Its role, `intercede-api`, carries the workload boundary from bootstrap.
 - `/aws/lambda/intercede-api`: the API's log group, kept for 7 days.
+- `intercede-sweeper`: the outbox sweeper Lambda (ADR-0005), same runtime and bundle as the API, created and released the same way. Its role, `intercede-sweeper`, carries the workload boundary and may call Titan Text Embeddings v2 on Bedrock (ADR-0004). It reaches Neon through the `DATABASE_URL` the deploy job injects, so it needs no AWS permission for the database. Its log group, `/aws/lambda/intercede-sweeper`, is kept for 7 days.
+- `intercede-sweeper` on EventBridge Scheduler: invokes the sweeper through the `intercede-sweeper-scheduler` role, which may invoke only that function. It runs on `var.sweeper_schedule_expression`, `rate(5 minutes)` by default, without retries: the next tick picks up whatever a missed one left.
 - `intercede-web-<account-id>`: the private S3 bucket the SPA is served from.
 - One CloudFront distribution on `intercede.pahferreira.dev`:
   - `/api/*` goes to the Function URL through origin access control, uncached.
@@ -12,7 +14,7 @@ The production stack, in `us-east-1` (ADR-0009). It creates:
   - Everything else is the SPA from the bucket through origin access control; paths without a file extension get `index.html`.
 - An ACM certificate in `us-east-1`, validated through DNS, and `A`/`AAAA` alias records in the `pahferreira.dev` zone. The zone is looked up, not owned.
 
-The sweeper (#25) and cost guards (#26) are not here yet.
+Cost guards (#26) are not here yet.
 
 ## Request bodies through Lambda OAC
 
@@ -58,7 +60,22 @@ aws lambda update-function-configuration --function-name intercede-api \
 curl -i https://intercede.pahferreira.dev/api/health
 ```
 
-Expect `200` with `{"status":"ok","database":"ok"}`. Run `terraform plan -detailed-exitcode` again: the new code and environment must not show up as changes.
+Expect `200` with `{"status":"ok","database":"ok"}`.
+
+Ship the sweeper from the same build:
+
+```sh
+cd apps/api/dist && zip -q /tmp/intercede-sweeper.zip sweeper.mjs sweeper.mjs.map && cd -
+aws lambda update-function-code --function-name intercede-sweeper --zip-file fileb:///tmp/intercede-sweeper.zip
+aws lambda wait function-updated --function-name intercede-sweeper
+aws lambda update-function-configuration --function-name intercede-sweeper \
+  --environment "Variables={DATABASE_URL=<pooled connection string>}"
+aws logs tail /aws/lambda/intercede-sweeper --since 10m --follow
+```
+
+Within 5 minutes, expect one `sweeper tick: nothing to sweep` line per run.
+
+Run `terraform plan -detailed-exitcode` again: the new code and environment must not show up as changes.
 
 ## Checks
 
