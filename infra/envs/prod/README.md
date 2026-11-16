@@ -48,6 +48,7 @@ Exit code `0` means no changes. Anything else is drift to fix before closing the
 Until the deploy job exists (#28), ship the API by hand. Take the pooled connection string from the Neon console, then:
 
 ```sh
+export AWS_REGION=us-east-1
 bun run --filter @intercede/api build
 cd apps/api/dist && zip -q /tmp/intercede-api.zip api.mjs api.mjs.map && cd -
 aws lambda update-function-code --function-name intercede-api --zip-file fileb:///tmp/intercede-api.zip
