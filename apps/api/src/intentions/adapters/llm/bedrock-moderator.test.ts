@@ -24,7 +24,7 @@ const claudeAnswers = (verdict: unknown) => () =>
 		id: "msg_test",
 		type: "message",
 		role: "assistant",
-		model: "anthropic.claude-haiku-5-5",
+		model: "global.anthropic.claude-haiku-5-5",
 		content: [{ type: "text", text: JSON.stringify(verdict) }],
 		stop_reason: "end_turn",
 		stop_sequence: null,
@@ -49,8 +49,10 @@ function recordingAnalytics() {
 const moderatorFor = (bedrock: ReturnType<typeof fakeBedrock>) =>
 	createBedrockModerator({
 		awsRegion: "us-east-1",
-		awsAccessKey: "AKIATEST",
-		awsSecretAccessKey: "secret",
+		providerChainResolver: async () => async () => ({
+			accessKeyId: "AKIATEST",
+			secretAccessKey: "secret",
+		}),
 		maxRetries: 0,
 		fetch: bedrock.fetch,
 	});
@@ -68,10 +70,9 @@ test("a publishable text comes back with the language Claude detected", async ()
 		ok: true,
 		value: { publishable: true, language: "pt" },
 	});
-	expect(bedrock.requests[0]?.url).toStartWith(
-		"https://bedrock-mantle.us-east-1.api.aws/anthropic/",
+	expect(bedrock.requests[0]?.url).toBe(
+		"https://bedrock-runtime.us-east-1.amazonaws.com/model/global.anthropic.claude-haiku-5-5/invoke",
 	);
-	expect(bedrock.requests[0]?.body.model).toBe("anthropic.claude-haiku-5-5");
 	expect(JSON.stringify(bedrock.requests[0]?.body.messages)).toContain(
 		"Pela saúde da minha mãe",
 	);
@@ -102,7 +103,7 @@ test("each moderation reports its token counts and cost, never its content", asy
 
 	expect(generations).toEqual([
 		{
-			model: "anthropic.claude-haiku-5-5",
+			model: "global.anthropic.claude-haiku-5-5",
 			inputTokens: 400,
 			outputTokens: 20,
 			latencyMs: expect.any(Number),
