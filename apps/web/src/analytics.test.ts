@@ -78,6 +78,44 @@ test("the Follow-up Token never leaves the browser in a URL", () => {
 	});
 });
 
+test("an exception keeps its type and stack but never its message", () => {
+	const posthog = fakePostHog();
+	initAnalytics("phc_test", posthog.client);
+	const beforeSend = posthog.inits[0]?.config.before_send;
+	if (typeof beforeSend !== "function") {
+		throw new Error("before_send is not configured");
+	}
+	const frames = [
+		{ platform: "web:javascript", filename: "app.js", lineno: 3, colno: 7 },
+	];
+
+	const sent = beforeSend({
+		uuid: "0",
+		event: "$exception",
+		properties: {
+			$exception_message: "Cannot parse pray for my sister Maria",
+			$exception_list: [
+				{
+					type: "TypeError",
+					value: "Cannot parse pray for my sister Maria",
+					mechanism: { handled: false, type: "onerror" },
+					stacktrace: { type: "raw", frames },
+				},
+			],
+		},
+	});
+
+	expect(JSON.stringify(sent)).not.toContain("Maria");
+	expect(sent?.properties.$exception_list).toEqual([
+		{
+			type: "TypeError",
+			value: "[redacted]",
+			mechanism: { handled: false, type: "onerror" },
+			stacktrace: { type: "raw", frames },
+		},
+	]);
+});
+
 test("events carry only their allowlisted counts and enums", () => {
 	const posthog = fakePostHog();
 	initAnalytics("phc_test", posthog.client);

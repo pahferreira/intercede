@@ -64,6 +64,28 @@ function redactFollowUpTokens<T>(value: T): T {
 	return value;
 }
 
+function withoutExceptionMessages(
+	result: CaptureResult | null,
+): CaptureResult | null {
+	if (result?.event !== "$exception") {
+		return result;
+	}
+	const { $exception_message, $exception_list, ...properties } =
+		result.properties;
+	return {
+		...result,
+		properties: {
+			...properties,
+			$exception_list: Array.isArray($exception_list)
+				? $exception_list.map((exception) => ({
+						...exception,
+						value: "[redacted]",
+					}))
+				: $exception_list,
+		},
+	};
+}
+
 const config: Partial<PostHogConfig> = {
 	api_host: "/ingest",
 	capture_exceptions: true,
@@ -74,7 +96,8 @@ const config: Partial<PostHogConfig> = {
 	capture_heatmaps: false,
 	capture_pageview: false,
 	capture_pageleave: false,
-	before_send: (result: CaptureResult | null) => redactFollowUpTokens(result),
+	before_send: (result: CaptureResult | null) =>
+		redactFollowUpTokens(withoutExceptionMessages(result)),
 };
 
 const discard: PostHogClient["capture"] = () => {};
