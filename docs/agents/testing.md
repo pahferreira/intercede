@@ -2,6 +2,8 @@
 
 Agreed test seams, so a TDD run without a human in the loop uses these instead of choosing its own.
 
+**Run tests** with `bun run test` from the repo root, or `bun test` inside `apps/api` or `apps/web`: each app's `bunfig.toml` preloads its `test/setup.ts`.
+
 ## Third-party SDKs
 
 - Run the real SDK and fake only its network layer (`fetch`), as `apps/api/src/platform/analytics.test.ts` does with `posthog-node`.

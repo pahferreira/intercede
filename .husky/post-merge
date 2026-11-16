@@ -1,0 +1,1 @@
+sh scripts/sync-install.sh ORIG_HEAD HEAD
