@@ -19,7 +19,7 @@ resource "aws_cloudwatch_log_group" "api" {
 
 resource "aws_iam_role" "api" {
   name                 = local.api_function_name
-  permissions_boundary = local.workload_boundary_arn
+  permissions_boundary = data.aws_iam_policy.workload_boundary.arn
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{

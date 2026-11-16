@@ -6,6 +6,21 @@ locals {
   all_methods              = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
   posthog_host             = "us.i.posthog.com"
   posthog_assets_host      = "us-assets.i.posthog.com"
+  api_origin_host          = split("/", aws_lambda_function_url.api.function_url)[2]
+  custom_origins = {
+    (local.api_origin_id) = {
+      domain_name              = local.api_origin_host
+      origin_access_control_id = aws_cloudfront_origin_access_control.api.id
+    }
+    (local.posthog_origin_id) = {
+      domain_name              = local.posthog_host
+      origin_access_control_id = null
+    }
+    (local.posthog_assets_origin_id) = {
+      domain_name              = local.posthog_assets_host
+      origin_access_control_id = null
+    }
+  }
 }
 
 resource "aws_cloudfront_function" "strip_ingest_prefix" {
@@ -69,40 +84,20 @@ resource "aws_cloudfront_distribution" "site" {
     origin_access_control_id = aws_cloudfront_origin_access_control.web.id
   }
 
-  origin {
-    origin_id                = local.api_origin_id
-    domain_name              = split("/", aws_lambda_function_url.api.function_url)[2]
-    origin_access_control_id = aws_cloudfront_origin_access_control.api.id
+  dynamic "origin" {
+    for_each = local.custom_origins
 
-    custom_origin_config {
-      http_port              = 80
-      https_port             = 443
-      origin_protocol_policy = "https-only"
-      origin_ssl_protocols   = ["TLSv1.2"]
-    }
-  }
+    content {
+      origin_id                = origin.key
+      domain_name              = origin.value.domain_name
+      origin_access_control_id = origin.value.origin_access_control_id
 
-  origin {
-    origin_id   = local.posthog_origin_id
-    domain_name = local.posthog_host
-
-    custom_origin_config {
-      http_port              = 80
-      https_port             = 443
-      origin_protocol_policy = "https-only"
-      origin_ssl_protocols   = ["TLSv1.2"]
-    }
-  }
-
-  origin {
-    origin_id   = local.posthog_assets_origin_id
-    domain_name = local.posthog_assets_host
-
-    custom_origin_config {
-      http_port              = 80
-      https_port             = 443
-      origin_protocol_policy = "https-only"
-      origin_ssl_protocols   = ["TLSv1.2"]
+      custom_origin_config {
+        http_port              = 80
+        https_port             = 443
+        origin_protocol_policy = "https-only"
+        origin_ssl_protocols   = ["TLSv1.2"]
+      }
     }
   }
 

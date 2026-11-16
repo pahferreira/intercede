@@ -4,7 +4,6 @@ data "aws_route53_zone" "main" {
 }
 
 resource "aws_acm_certificate" "site" {
-  region            = "us-east-1"
   domain_name       = local.domain_name
   validation_method = "DNS"
 
@@ -27,27 +26,16 @@ resource "aws_route53_record" "certificate_validation" {
 }
 
 resource "aws_acm_certificate_validation" "site" {
-  region                  = "us-east-1"
   certificate_arn         = aws_acm_certificate.site.arn
   validation_record_fqdns = [aws_route53_record.certificate_validation.fqdn]
 }
 
-resource "aws_route53_record" "site_ipv4" {
+resource "aws_route53_record" "site" {
+  for_each = toset(["A", "AAAA"])
+
   zone_id = data.aws_route53_zone.main.zone_id
   name    = local.domain_name
-  type    = "A"
-
-  alias {
-    name                   = aws_cloudfront_distribution.site.domain_name
-    zone_id                = aws_cloudfront_distribution.site.hosted_zone_id
-    evaluate_target_health = false
-  }
-}
-
-resource "aws_route53_record" "site_ipv6" {
-  zone_id = data.aws_route53_zone.main.zone_id
-  name    = local.domain_name
-  type    = "AAAA"
+  type    = each.key
 
   alias {
     name                   = aws_cloudfront_distribution.site.domain_name

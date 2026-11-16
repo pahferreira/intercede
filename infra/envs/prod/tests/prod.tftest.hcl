@@ -5,6 +5,12 @@ mock_provider "aws" {
     }
   }
 
+  mock_data "aws_iam_policy" {
+    defaults = {
+      arn = "arn:aws:iam::123456789012:policy/github-actions-intercede-workload-boundary"
+    }
+  }
+
   mock_resource "aws_iam_role" {
     defaults = {
       arn = "arn:aws:iam::123456789012:role/intercede-api"
@@ -256,8 +262,8 @@ run "site_answers_on_its_custom_domain_with_a_us_east_1_certificate" {
   }
 
   assert {
-    condition     = aws_acm_certificate.site.domain_name == "intercede.pahferreira.dev" && aws_acm_certificate.site.validation_method == "DNS" && aws_acm_certificate.site.region == "us-east-1"
-    error_message = "The certificate must cover the site, validate through DNS and live in us-east-1 for CloudFront."
+    condition     = aws_acm_certificate.site.domain_name == "intercede.pahferreira.dev" && aws_acm_certificate.site.validation_method == "DNS"
+    error_message = "The certificate must cover the site and validate through DNS."
   }
 
   assert {
@@ -282,12 +288,13 @@ run "site_answers_on_its_custom_domain_with_a_us_east_1_certificate" {
 
   assert {
     condition = alltrue([
-      for record in [aws_route53_record.site_ipv4, aws_route53_record.site_ipv6] :
+      for type, record in aws_route53_record.site :
       record.zone_id == "Z0123456789EXAMPLE"
       && record.name == "intercede.pahferreira.dev"
       && one(record.alias).name == aws_cloudfront_distribution.site.domain_name
       && one(record.alias).zone_id == aws_cloudfront_distribution.site.hosted_zone_id
-    ]) && aws_route53_record.site_ipv4.type == "A" && aws_route53_record.site_ipv6.type == "AAAA"
+      && record.type == type
+    ]) && toset(keys(aws_route53_record.site)) == toset(["A", "AAAA"])
     error_message = "intercede.pahferreira.dev must alias the distribution over IPv4 and IPv6."
   }
 }

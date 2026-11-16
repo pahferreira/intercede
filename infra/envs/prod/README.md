@@ -14,6 +14,10 @@ The production stack, in `us-east-1` (ADR-0009). It creates:
 
 The sweeper (#25) and cost guards (#26) are not here yet.
 
+## Request bodies through Lambda OAC
+
+CloudFront signs requests to the Function URL but does not hash the body. A `PUT` or `POST` with a body is rejected unless the client sends `x-amz-content-sha256` with the SHA-256 hex digest of the body. Every write endpoint added under `/api/*` must have its client send that header.
+
 ## Secrets in state
 
 Terraform never sets the Lambda's environment. The Neon provider does store the project's default role password and connection URIs in state (`neon_project.main`), because the Neon API returns them on creation. The state bucket is private, encrypted and TLS-only; this stack has no outputs that expose them.
