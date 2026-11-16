@@ -12,17 +12,17 @@ msgstr ""
 msgid "{0, plural, one {<0><1># person</1> committed to pray for this</0>} other {<2><3># people</3> committed to pray for this</2>}}"
 msgstr "{0, plural, one {<0><1># person</1> committed to pray for this</0>} other {<2><3># people</3> committed to pray for this</2>}}"
 
-#: src/routes/home.tsx:24
-msgid "API status: {status}"
-msgstr "API status: {status}"
+#: src/routes/submit.tsx:91
+msgid "A place where you can share your faith around the world"
+msgstr "A place where you can share your faith around the world"
 
-#: src/routes/home.tsx:20
-msgid "API unreachable"
-msgstr "API unreachable"
+#: src/routes/pray.tsx:11
+msgid "Ask for prayer"
+msgstr "Ask for prayer"
 
-#: src/routes/home.tsx:16
-msgid "Checking the API…"
-msgstr "Checking the API…"
+#: src/routes/submit.tsx:113
+msgid "Between {minLength} and {maxLength} characters."
+msgstr "Between {minLength} and {maxLength} characters."
 
 #: src/ui/SuggestionCard.tsx:51
 msgid "Commit to pray for this intention"
@@ -36,11 +36,19 @@ msgstr "Committed"
 msgid "Follow-up"
 msgstr "Follow-up"
 
+#: src/routes/submit.tsx:74
+msgid "Keep it respectful: leave out insults and offensive language."
+msgstr "Keep it respectful: leave out insults and offensive language."
+
 #: src/language-toggle.tsx:13
 msgid "Language"
 msgstr "Language"
 
-#: src/routes/pray.tsx:6
+#: src/routes/submit.tsx:75
+msgid "Leave out links, ads and repeated text."
+msgstr "Leave out links, ads and repeated text."
+
+#: src/routes/pray.tsx:8
 msgid "Pray"
 msgstr "Pray"
 
@@ -52,6 +60,10 @@ msgstr "Published {published}"
 msgid "Send"
 msgstr "Send"
 
+#: src/routes/submit.tsx:76
+msgid "Share something you'd like others to pray for."
+msgstr "Share something you'd like others to pray for."
+
 #: src/ui/SuggestionCard.tsx:80
 msgid "Show less"
 msgstr "Show less"
@@ -60,6 +72,46 @@ msgstr "Show less"
 msgid "Show more"
 msgstr "Show more"
 
+#: src/routes/submit.tsx:133
+msgid "Skip"
+msgstr "Skip"
+
+#: src/routes/submit.tsx:128
+msgid "Something went wrong. Please try again."
+msgstr "Something went wrong. Please try again."
+
+#: src/routes/submit.tsx:142
+msgid "Submit"
+msgstr "Submit"
+
+#: src/routes/submit.tsx:102
+msgid "Submit your prayer intention"
+msgstr "Submit your prayer intention"
+
+#: src/routes/submit.tsx:140
+msgid "Submitting…"
+msgstr "Submitting…"
+
 #: src/ui/IntentionCard.tsx:37
 msgid "This intention is no longer being suggested"
 msgstr "This intention is no longer being suggested"
+
+#: src/routes/submit.tsx:73
+msgid "Use initials instead of full names, and leave out contact details."
+msgstr "Use initials instead of full names, and leave out contact details."
+
+#: src/routes/submit.tsx:120
+msgid "We couldn't check your intention right now. Please try again in a moment."
+msgstr "We couldn't check your intention right now. Please try again in a moment."
+
+#: src/routes/submit.tsx:87
+msgid "Welcome to"
+msgstr "Welcome to"
+
+#: src/routes/submit.tsx:112
+msgid "Your intention can't be published yet:"
+msgstr "Your intention can't be published yet:"
+
+#: src/routes/submit.tsx:105
+msgid "Your prayer intention"
+msgstr "Your prayer intention"

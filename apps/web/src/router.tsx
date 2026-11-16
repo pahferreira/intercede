@@ -4,13 +4,15 @@ import {
 	createRouter,
 	lazyRouteComponent,
 	type RouterHistory,
+	redirect,
 } from "@tanstack/react-router";
 import type { ApiClient } from "./api";
 import { Layout } from "./layout";
 import { Committed } from "./routes/committed";
 import { FollowUp } from "./routes/follow-up";
-import { Home } from "./routes/home";
 import { Pray } from "./routes/pray";
+import { Submit } from "./routes/submit";
+import { submittedOrSkippedRecently } from "./submit-gate";
 
 export type RouterContext = {
 	client: ApiClient;
@@ -20,10 +22,17 @@ const rootRoute = createRootRouteWithContext<RouterContext>()({
 	component: Layout,
 });
 
-const homeRoute = createRoute({
+const submitRoute = createRoute({
 	getParentRoute: () => rootRoute,
 	path: "/",
-	component: Home,
+	validateSearch: (search): { ask?: true } =>
+		search.ask === true || search.ask === "true" ? { ask: true } : {},
+	beforeLoad: ({ search }) => {
+		if (!search.ask && submittedOrSkippedRecently()) {
+			throw redirect({ to: "/pray" });
+		}
+	},
+	component: Submit,
 });
 
 const prayRoute = createRoute({
@@ -58,7 +67,7 @@ const devRoutes = import.meta.env.DEV
 	: [];
 
 const routeTree = rootRoute.addChildren([
-	homeRoute,
+	submitRoute,
 	prayRoute,
 	committedRoute,
 	followUpRoute,
