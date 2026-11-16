@@ -10,6 +10,9 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  TERRAFORM_VERSION: 1.14.8
+
 jobs:
   changes:
     runs-on: ubuntu-24.04
@@ -22,6 +25,7 @@ jobs:
       api: ${{ steps.filter.outputs.api }}
       migrations: ${{ steps.filter.outputs.migrations }}
       web: ${{ steps.filter.outputs.web }}
+      typescript: ${{ steps.filter.outputs.typescript }}
       postgres-image: ${{ steps.postgres.outputs.image }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -54,6 +58,11 @@ jobs:
             web:
               - *workspace
               - apps/web/**
+            typescript:
+              - *workspace
+              - apps/api/**
+              - apps/web/**
+              - .dependency-cruiser.cjs
       - id: postgres
         run: |
           image=$(yq -e '.services.postgres.image' docker-compose.yml)
@@ -61,7 +70,7 @@ jobs:
 
   lint:
     needs: changes
-    if: needs.changes.outputs.api == 'true' || needs.changes.outputs.web == 'true'
+    if: needs.changes.outputs.typescript == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -91,7 +100,7 @@ jobs:
 
   typecheck-web:
     needs: changes
-    if: needs.changes.outputs.api == 'true' || needs.changes.outputs.web == 'true'
+    if: needs.changes.outputs.typescript == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -132,7 +141,7 @@ jobs:
 
   test-web:
     needs: changes
-    if: needs.changes.outputs.api == 'true' || needs.changes.outputs.web == 'true'
+    if: needs.changes.outputs.typescript == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -156,7 +165,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
         with:
-          terraform_version: 1.14.8
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
           terraform_wrapper: false
       - run: terraform fmt -check -recursive
       - run: terraform init -backend=false -input=false
@@ -182,7 +191,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
         with:
-          terraform_version: 1.14.8
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
           terraform_wrapper: false
       - uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
         with:
@@ -194,27 +203,30 @@ jobs:
       - id: plan
         run: |
           set +e
-          terraform plan -input=false -no-color -detailed-exitcode > plan.txt 2>&1
+          terraform plan -input=false -lock=false -no-color -detailed-exitcode > plan.txt 2>&1
           status=$?
           set -e
           cat plan.txt
-          echo "status=$status" >> "$GITHUB_OUTPUT"
+          case "$status" in
+            0) summary="No changes." failed=false ;;
+            2) summary="Changes to apply." failed=false ;;
+            *) summary="The plan failed." failed=true ;;
+          esac
+          {
+            echo "summary=$summary"
+            echo "failed=$failed"
+          } >> "$GITHUB_OUTPUT"
       - env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-          STATUS: ${{ steps.plan.outputs.status }}
+          SUMMARY: ${{ steps.plan.outputs.summary }}
         run: |
-          case "$STATUS" in
-            0) summary="No changes." ;;
-            2) summary="Changes to apply." ;;
-            *) summary="The plan failed." ;;
-          esac
           {
             echo "### Terraform plan: \`infra/envs/prod\`"
             echo
-            echo "$summary Commit $HEAD_SHA."
+            echo "$SUMMARY Commit $HEAD_SHA."
             echo
             echo "<details><summary>Plan output</summary>"
             echo
@@ -224,6 +236,6 @@ jobs:
             echo
             echo "</details>"
           } > comment.md
-          gh pr comment "$PR_NUMBER" --body-file comment.md --edit-last --create-if-none
-      - if: steps.plan.outputs.status != '0' && steps.plan.outputs.status != '2'
+          "$GITHUB_WORKSPACE/.github/scripts/upsert-pr-comment.sh" "$PR_NUMBER" "<!-- intercede-terraform-plan -->" comment.md
+      - if: steps.plan.outputs.failed == 'true'
         run: exit 1
