@@ -8,7 +8,14 @@ import { type Locale, switchLocale } from "./i18n";
 
 async function renderAt(path: string, locale: Locale) {
 	await switchLocale(locale);
-	const app = createApp({ isDatabaseReachable: async () => true });
+	const app = createApp({
+		isDatabaseReachable: async () => true,
+		openAnalytics: () => ({
+			captureException: () => {},
+			captureLlmGeneration: () => {},
+			shutdown: async () => {},
+		}),
+	});
 	const client = createApiClient(app.request);
 	const history = createMemoryHistory({ initialEntries: [path] });
 	return render(<App client={client} history={history} />);
