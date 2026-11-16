@@ -76,6 +76,20 @@ override_resource {
   }
 }
 
+override_resource {
+  target = aws_lambda_function.sweeper
+  values = {
+    arn = "arn:aws:lambda:us-east-1:123456789012:function:intercede-sweeper"
+  }
+}
+
+override_resource {
+  target = aws_iam_role.sweeper_scheduler
+  values = {
+    arn = "arn:aws:iam::123456789012:role/intercede-sweeper-scheduler"
+  }
+}
+
 run "database_runs_postgres_18_next_to_the_api" {
   command = plan
 
@@ -127,6 +141,126 @@ run "api_runs_on_node_24_arm64_without_secrets_from_terraform" {
     condition     = aws_cloudwatch_log_group.api.name == "/aws/lambda/intercede-api" && aws_cloudwatch_log_group.api.retention_in_days == 7
     error_message = "The API's log group must keep logs for 7 days."
   }
+}
+
+run "sweeper_runs_on_node_24_arm64_without_secrets_from_terraform" {
+  command = plan
+
+  assert {
+    condition     = aws_lambda_function.sweeper.function_name == "intercede-sweeper" && aws_lambda_function.sweeper.runtime == "nodejs24.x" && aws_lambda_function.sweeper.architectures == tolist(["arm64"])
+    error_message = "The sweeper must be its own function on nodejs24.x ARM64, apart from the API (ADR-0002)."
+  }
+
+  assert {
+    condition     = aws_lambda_function.sweeper.handler == "sweeper.handler"
+    error_message = "The handler must match the bundle the build emits (dist/sweeper.mjs)."
+  }
+
+  assert {
+    condition     = length(aws_lambda_function.sweeper.environment) == 0
+    error_message = "Terraform must not set the sweeper's environment; the deploy job injects secrets such as the Neon URL (ADR-0010)."
+  }
+
+  assert {
+    condition     = aws_iam_role.sweeper.permissions_boundary == "arn:aws:iam::123456789012:policy/github-actions-intercede-workload-boundary" && startswith(aws_iam_role.sweeper.name, "intercede-")
+    error_message = "The sweeper role must be named intercede-* and carry the workload boundary, or the apply role is denied."
+  }
+
+  assert {
+    condition     = aws_cloudwatch_log_group.sweeper.name == "/aws/lambda/intercede-sweeper" && aws_cloudwatch_log_group.sweeper.retention_in_days == 7
+    error_message = "The sweeper's log group must keep logs for 7 days."
+  }
+}
+
+run "sweeper_may_embed_with_titan_v2_only" {
+  command = apply
+
+  assert {
+    condition = jsondecode(aws_iam_role_policy.sweeper_bedrock.policy).Statement == [{
+      Effect   = "Allow"
+      Action   = "bedrock:InvokeModel"
+      Resource = "arn:aws:bedrock:us-east-1::foundation-model/amazon.titan-embed-text-v2:0"
+    }]
+    error_message = "The sweeper may call Titan Text Embeddings v2 on Bedrock and no other model (ADR-0004, ADR-0005)."
+  }
+
+  assert {
+    condition     = aws_iam_role_policy.sweeper_bedrock.role == aws_iam_role.sweeper.id
+    error_message = "The Bedrock policy must be on the sweeper's role."
+  }
+}
+
+run "sweeper_runs_every_5_minutes_by_default" {
+  command = apply
+
+  assert {
+    condition     = aws_scheduler_schedule.sweeper.schedule_expression == "rate(5 minutes)" && aws_scheduler_schedule.sweeper.state == "ENABLED"
+    error_message = "The sweeper must run every 5 minutes unless the variable says otherwise (ADR-0005)."
+  }
+
+  assert {
+    condition     = one(aws_scheduler_schedule.sweeper.target).arn == aws_lambda_function.sweeper.arn && one(aws_scheduler_schedule.sweeper.target).role_arn == aws_iam_role.sweeper_scheduler.arn
+    error_message = "The schedule must invoke the sweeper through its own role."
+  }
+
+  assert {
+    condition     = one(aws_scheduler_schedule.sweeper.flexible_time_window).mode == "OFF"
+    error_message = "The schedule must fire on time, not within a flexible window."
+  }
+
+  assert {
+    condition     = one(one(aws_scheduler_schedule.sweeper.target).retry_policy).maximum_retry_attempts == 0
+    error_message = "A missed tick must not be retried; the next tick re-dispatches anything left over."
+  }
+}
+
+run "scheduler_role_may_only_invoke_the_sweeper" {
+  command = apply
+
+  assert {
+    condition     = aws_iam_role.sweeper_scheduler.permissions_boundary == "arn:aws:iam::123456789012:policy/github-actions-intercede-workload-boundary" && startswith(aws_iam_role.sweeper_scheduler.name, "intercede-")
+    error_message = "The scheduler role must be named intercede-* and carry the workload boundary, or the apply role is denied."
+  }
+
+  assert {
+    condition = alltrue([
+      for statement in jsondecode(aws_iam_role.sweeper_scheduler.assume_role_policy).Statement :
+      statement.Principal.Service == "scheduler.amazonaws.com" && statement.Condition.StringEquals["aws:SourceAccount"] == "123456789012"
+    ])
+    error_message = "Only EventBridge Scheduler in this account may assume the scheduler role."
+  }
+
+  assert {
+    condition = jsondecode(aws_iam_role_policy.sweeper_scheduler_invoke.policy).Statement == [{
+      Effect   = "Allow"
+      Action   = "lambda:InvokeFunction"
+      Resource = aws_lambda_function.sweeper.arn
+    }]
+    error_message = "The scheduler role may invoke the sweeper and nothing else."
+  }
+}
+
+run "sweeper_frequency_comes_from_a_variable" {
+  command = plan
+
+  variables {
+    sweeper_schedule_expression = "rate(1 minute)"
+  }
+
+  assert {
+    condition     = aws_scheduler_schedule.sweeper.schedule_expression == "rate(1 minute)"
+    error_message = "The schedule must follow sweeper_schedule_expression."
+  }
+}
+
+run "sweeper_frequency_must_be_a_schedule_expression" {
+  command = plan
+
+  variables {
+    sweeper_schedule_expression = "5 minutes"
+  }
+
+  expect_failures = [var.sweeper_schedule_expression]
 }
 
 run "api_is_reachable_only_through_cloudfront_without_caching" {
