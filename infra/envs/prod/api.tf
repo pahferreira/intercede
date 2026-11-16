@@ -53,6 +53,8 @@ resource "aws_lambda_function" "api" {
   timeout       = 30
   filename      = data.archive_file.api_placeholder.output_path
 
+  reserved_concurrent_executions = var.api_reserved_concurrency
+
   lifecycle {
     ignore_changes = [filename, environment]
   }

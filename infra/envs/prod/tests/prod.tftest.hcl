@@ -62,6 +62,10 @@ mock_provider "aws" {
 
 mock_provider "neon" {}
 
+variables {
+  budget_alert_email = "alerts@example.com"
+}
+
 override_resource {
   target = aws_cloudfront_function.strip_ingest_prefix
   values = {
@@ -88,6 +92,135 @@ override_resource {
   values = {
     arn = "arn:aws:iam::123456789012:role/intercede-sweeper-scheduler"
   }
+}
+
+run "budget_emails_at_the_adr_0012_thresholds_by_default" {
+  command = plan
+
+  assert {
+    condition     = aws_budgets_budget.monthly.budget_type == "COST" && aws_budgets_budget.monthly.time_unit == "MONTHLY"
+    error_message = "The budget must track the account's monthly cost."
+  }
+
+  assert {
+    condition     = aws_budgets_budget.monthly.limit_amount == "10" && aws_budgets_budget.monthly.limit_unit == "USD"
+    error_message = "The budget's limit must be the highest alert threshold, $10."
+  }
+
+  assert {
+    condition = toset([
+      for n in aws_budgets_budget.monthly.notification :
+      n.threshold if n.threshold_type == "ABSOLUTE_VALUE" && n.notification_type == "ACTUAL" && n.comparison_operator == "GREATER_THAN" && n.subscriber_email_addresses == toset(["alerts@example.com"])
+    ]) == toset([1, 5, 10])
+    error_message = "Actual spend above $1, $5 and $10 must email the alert address (ADR-0012)."
+  }
+}
+
+run "budget_thresholds_and_email_come_from_variables" {
+  command = plan
+
+  variables {
+    budget_alert_thresholds = [2, 20]
+    budget_alert_email      = "ops@example.com"
+  }
+
+  assert {
+    condition     = aws_budgets_budget.monthly.limit_amount == "20"
+    error_message = "The budget's limit must follow the highest threshold."
+  }
+
+  assert {
+    condition = toset([
+      for n in aws_budgets_budget.monthly.notification :
+      n.threshold if n.subscriber_email_addresses == toset(["ops@example.com"])
+    ]) == toset([2, 20])
+    error_message = "The alerts must follow budget_alert_thresholds and budget_alert_email."
+  }
+}
+
+run "lambdas_reserve_no_concurrency_by_default" {
+  command = plan
+
+  assert {
+    condition     = aws_lambda_function.api.reserved_concurrent_executions == null && aws_lambda_function.sweeper.reserved_concurrent_executions == null
+    error_message = "Without a reservation set, both Lambdas must stay unreserved so apply works on an account limit of 10."
+  }
+}
+
+run "sweeper_concurrency_is_capped_from_a_variable" {
+  command = plan
+
+  variables {
+    sweeper_reserved_concurrency = 1
+  }
+
+  assert {
+    condition     = aws_lambda_function.sweeper.reserved_concurrent_executions == 1
+    error_message = "The sweeper's reserved concurrency must come from sweeper_reserved_concurrency (ADR-0012)."
+  }
+}
+
+run "sweeper_concurrency_of_zero_is_rejected" {
+  command = plan
+
+  variables {
+    sweeper_reserved_concurrency = 0
+  }
+
+  expect_failures = [var.sweeper_reserved_concurrency]
+}
+
+run "api_concurrency_is_capped_from_a_variable" {
+  command = plan
+
+  variables {
+    api_reserved_concurrency = 3
+  }
+
+  assert {
+    condition     = aws_lambda_function.api.reserved_concurrent_executions == 3
+    error_message = "The API's reserved concurrency must come from api_reserved_concurrency (ADR-0012)."
+  }
+}
+
+run "api_concurrency_of_zero_is_rejected" {
+  command = plan
+
+  variables {
+    api_reserved_concurrency = 0
+  }
+
+  expect_failures = [var.api_reserved_concurrency]
+}
+
+run "budget_without_thresholds_is_rejected" {
+  command = plan
+
+  variables {
+    budget_alert_thresholds = []
+  }
+
+  expect_failures = [var.budget_alert_thresholds]
+}
+
+run "budget_with_a_non_positive_threshold_is_rejected" {
+  command = plan
+
+  variables {
+    budget_alert_thresholds = [0, 5]
+  }
+
+  expect_failures = [var.budget_alert_thresholds]
+}
+
+run "budget_with_more_than_five_thresholds_is_rejected" {
+  command = plan
+
+  variables {
+    budget_alert_thresholds = [1, 2, 3, 4, 5, 6]
+  }
+
+  expect_failures = [var.budget_alert_thresholds]
 }
 
 run "database_runs_postgres_18_next_to_the_api" {
