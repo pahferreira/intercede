@@ -13,3 +13,7 @@ output "web_bucket_name" {
 output "cloudfront_distribution_id" {
   value = aws_cloudfront_distribution.site.id
 }
+
+output "site_url" {
+  value = "https://${local.domain_name}"
+}

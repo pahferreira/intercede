@@ -65,10 +65,10 @@ Exit code `0` means no changes. Anything else is drift to fix before closing the
 
 After the first apply, `.github/workflows/deploy.yml` deploys every push to `main` that changes more than Markdown, and runs again on demand from the Actions tab. One job, assuming `AWS_APPLY_ROLE_ARN`, runs in order:
 
-1. `terraform apply` on this stack, reading the function names, web bucket and distribution from its outputs.
-2. Drizzle migrations against Neon. `DATABASE_URL` is the pooled connection string; migrations use the direct one, the same URL without `-pooler` in the host.
-3. The API and sweeper builds, each zipped with its source map and shipped with `update-function-code`, then their environment with `update-function-configuration` (ADR-0010): `DATABASE_URL` and `POSTHOG_KEY` for the API, `DATABASE_URL` for the sweeper.
-4. The web build, synced to the bucket (hashed `assets/` cached for a year, everything else `no-cache`), a CloudFront invalidation of `/*`, then removal of assets no page references any more.
+1. `terraform apply` on this stack, reading the function names, web bucket, distribution and site URL from its outputs.
+2. Drizzle migrations against Neon. `DATABASE_URL` is the pooled connection string; migrations use the direct one, the same URL without `-pooler` in the host. The job fails if the secret has no `-pooler` host.
+3. The API and sweeper builds, each zipped with its source map and shipped after their environment, so new code never starts without a setting it requires. The environment goes through `update-function-configuration` (ADR-0010): `DATABASE_URL` and `POSTHOG_KEY` for the API, `DATABASE_URL` for the sweeper.
+4. The web build, synced to the bucket (hashed `assets/` cached for a year, everything else `no-cache`), then a CloudFront invalidation of `/*`. Old hashed assets stay, so pages already open keep loading their chunks.
 5. A check that `/api/health` and `/` answer on `intercede.pahferreira.dev`.
 
 Every step is safe to re-run. A new run waits for the one in progress, and only the latest waiting run goes ahead.
