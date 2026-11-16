@@ -6,14 +6,20 @@
 		"apps/*"
 	],
 	"scripts": {
+		"prepare": "husky",
 		"lint": "biome check .",
 		"typecheck": "bun run --filter '*' typecheck",
 		"test": "bun run --filter '*' test",
 		"db:migrate": "bun run --filter @intercede/api db:migrate"
 	},
+	"lint-staged": {
+		"*": "biome check --write --no-errors-on-unmatched"
+	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.6.7",
 		"@types/bun": "^1.4.4",
+		"husky": "^9.1.7",
+		"lint-staged": "^17.6.1",
 		"typescript": "^7.0.2"
 	}
 }
