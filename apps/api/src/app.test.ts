@@ -1,5 +1,7 @@
 import { expect, test } from "bun:test";
-import { type AppDependencies, createApp } from "./app";
+import { createTestApp } from "../test/app";
+import { unreachableDatabase } from "../test/unreachable-database";
+import { createDatabaseProbe } from "./platform/database";
 
 function fakeAnalytics() {
 	const calls: string[] = [];
@@ -23,16 +25,8 @@ function fakeAnalytics() {
 	};
 }
 
-function appWith(dependencies: Partial<AppDependencies> = {}) {
-	return createApp({
-		isDatabaseReachable: async () => true,
-		openAnalytics: fakeAnalytics().openAnalytics,
-		...dependencies,
-	});
-}
-
 test("GET /api/health responds 200 when the database is reachable", async () => {
-	const app = appWith();
+	const app = createTestApp();
 
 	const response = await app.request("/api/health");
 
@@ -41,7 +35,9 @@ test("GET /api/health responds 200 when the database is reachable", async () => 
 });
 
 test("GET /api/health responds 503 when the database is unreachable", async () => {
-	const app = appWith({ isDatabaseReachable: async () => false });
+	const app = createTestApp({
+		isDatabaseReachable: createDatabaseProbe(unreachableDatabase()),
+	});
 
 	const response = await app.request("/api/health");
 
@@ -54,7 +50,7 @@ test("GET /api/health responds 503 when the database is unreachable", async () =
 
 test("analytics are shut down before a response is returned", async () => {
 	const analytics = fakeAnalytics();
-	const app = appWith({ openAnalytics: analytics.openAnalytics });
+	const app = createTestApp({ openAnalytics: analytics.openAnalytics });
 
 	await app.request("/api/health");
 
@@ -64,7 +60,7 @@ test("analytics are shut down before a response is returned", async () => {
 test("an unexpected error is reported to analytics and answered with 500", async () => {
 	const analytics = fakeAnalytics();
 	const failure = new Error("boom");
-	const app = appWith({
+	const app = createTestApp({
 		openAnalytics: analytics.openAnalytics,
 		isDatabaseReachable: async () => {
 			throw failure;

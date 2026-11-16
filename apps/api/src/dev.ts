@@ -1,11 +1,14 @@
 import { createApp } from "./app";
 import { createPostHogAnalytics, postHogSettings } from "./platform/analytics";
 import {
+	createDatabase,
 	createDatabaseProbe,
 	localOrConfiguredDatabaseUrl,
 } from "./platform/database";
 
-const isDatabaseReachable = createDatabaseProbe(localOrConfiguredDatabaseUrl());
+const isDatabaseReachable = createDatabaseProbe(
+	createDatabase(localOrConfiguredDatabaseUrl()),
+);
 const openAnalytics = createPostHogAnalytics(postHogSettings());
 
 const server = Bun.serve({

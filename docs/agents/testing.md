@@ -10,6 +10,9 @@ Agreed test seams, so a TDD run without a human in the loop uses these instead o
 ## apps/api
 
 - Endpoint tests follow ADR-0013: `app.request(...)` against the real local Postgres, faking only external services.
+- **App:** build it with `createTestApp(overrides)` from `apps/api/test/app.ts`; it wires the real adapters onto the per-test transaction.
+- **Persistence adapters:** build them from `testDatabase()` (`apps/api/test/database.ts`), never a fresh `createDatabase`, so the per-test rollback reaches them.
+- **Database down:** use `unreachableDatabase()` from `apps/api/test/unreachable-database.ts`. A probe that throws is the one allowed database fake, since the real probe catches every error.
 
 ## apps/web
 

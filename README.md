@@ -29,7 +29,7 @@ bun run typecheck
 bun run test
 ```
 
-Tests do not need a running database.
+Tests need the local Postgres (`docker compose up -d --wait`). They create and migrate a separate `intercede_test` database on it, so the dev `intercede` database is never touched, and roll back each test's writes. The Compose project is named `intercede`, so every worktree shares one container; stop it with `docker compose down` when you are done.
 
 ## Infrastructure
 
