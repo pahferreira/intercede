@@ -138,6 +138,15 @@ run "budget_thresholds_and_email_come_from_variables" {
   }
 }
 
+run "budget_email_stays_out_of_public_plan_output" {
+  command = plan
+
+  assert {
+    condition     = issensitive(var.budget_alert_email)
+    error_message = "budget_alert_email must be sensitive, since CI posts the plan on a public pull request."
+  }
+}
+
 run "lambdas_reserve_no_concurrency_by_default" {
   command = plan
 
