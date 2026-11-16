@@ -116,3 +116,25 @@ test("free text is dropped where a count or an enum is expected", () => {
 		{ event: "commit_clicked", properties: {} },
 	]);
 });
+
+test("events reach a client whose capture depends on its own instance", () => {
+	class StatefulPostHog {
+		loaded = false;
+		captured: string[] = [];
+		init() {
+			this.loaded = true;
+		}
+		capture(event: string) {
+			if (!this.loaded) {
+				throw new Error("PostHog is not loaded");
+			}
+			this.captured.push(event);
+		}
+	}
+	const client = new StatefulPostHog();
+	initAnalytics("phc_test", client);
+
+	track("entry_sent", {});
+
+	expect(client.captured).toEqual(["entry_sent"]);
+});

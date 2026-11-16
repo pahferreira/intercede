@@ -106,7 +106,7 @@ export function initAnalytics(key: string | undefined, client: PostHogClient) {
 		return;
 	}
 	client.init(key, config);
-	capture = client.capture;
+	capture = client.capture.bind(client);
 }
 
 export function track<E extends EventName>(event: E, props: EventProps<E>) {
