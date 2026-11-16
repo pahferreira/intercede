@@ -3,7 +3,7 @@
 The production stack, in `us-east-1` (ADR-0009). It creates:
 
 - `intercede` on Neon: Postgres 18 (ADR-0003) in `aws-us-east-1`, with the `main` branch, the `intercede` role and the `intercede` database. It has `prevent_destroy`.
-- `intercede-api`: the API Lambda on `nodejs24.x` ARM64 (ADR-0002) with an IAM-only Function URL that streams responses. Terraform creates it with placeholder code and ignores `filename` and `environment`; the deploy job ships the code and the secrets (ADR-0010). Its role, `intercede-api`, carries the workload boundary from bootstrap.
+- `intercede-api`: the API Lambda on `nodejs24.x` ARM64 (ADR-0002) with an IAM-only Function URL that streams responses. Terraform creates it with placeholder code and ignores `filename` and `environment`; the deploy job ships the code and the secrets (ADR-0010). Its role, `intercede-api`, carries the workload boundary from bootstrap. Its reserved concurrency caps how many requests run at once (ADR-0012).
 - `/aws/lambda/intercede-api`: the API's log group, kept for 7 days.
 - `intercede-sweeper`: the outbox sweeper Lambda (ADR-0005), same runtime and bundle as the API, created and released the same way. Its role, `intercede-sweeper`, carries the workload boundary and may call Titan Text Embeddings v2 on Bedrock (ADR-0004). It reaches Neon through the `DATABASE_URL` the deploy job injects, so it needs no AWS permission for the database. Its log group, `/aws/lambda/intercede-sweeper`, is kept for 7 days.
 - `intercede-sweeper` on EventBridge Scheduler: invokes the sweeper through the `intercede-sweeper-scheduler` role, which may invoke only that function. It runs on `var.sweeper_schedule_expression`, `rate(5 minutes)` by default, without retries: the next tick picks up whatever a missed one left.
@@ -13,8 +13,22 @@ The production stack, in `us-east-1` (ADR-0009). It creates:
   - `/ingest/*` goes to PostHog (`/ingest/static/*` to its assets host), uncached and without the `/ingest` prefix.
   - Everything else is the SPA from the bucket through origin access control; paths without a file extension get `index.html`.
 - An ACM certificate in `us-east-1`, validated through DNS, and `A`/`AAAA` alias records in the `pahferreira.dev` zone. The zone is looked up, not owned.
+- `intercede-monthly`: an AWS Budgets cost budget that emails when the month's actual spend passes each alert threshold (ADR-0012).
 
-Cost guards (#26) are not here yet.
+## Variables
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `budget_alert_email` | none, required | Address AWS Budgets emails at each threshold. |
+| `budget_alert_thresholds` | `[1, 5, 10]` | Monthly spend in USD that triggers an email (ADR-0012). The highest is the budget's limit. |
+| `api_reserved_concurrency` | `5` | Concurrent executions reserved for, and capping, the API Lambda. Must be at least 1. |
+| `sweeper_schedule_expression` | `rate(5 minutes)` | How often EventBridge Scheduler runs the sweeper, as a `rate()` or `cron()` expression. |
+
+Pass `budget_alert_email` as `TF_VAR_budget_alert_email` (or `-var`) to every `plan` and `apply`, so the address stays out of the repository.
+
+Lambda refuses a reservation that leaves fewer than 10 unreserved executions in the account. New accounts can start with a concurrency limit of 10, which leaves no room to reserve any; check `aws lambda get-account-settings` and request a quota increase before the first apply if `ConcurrentExecutions` is that low.
+
+Budgets evaluates spend a few times a day, so an alert can arrive hours after the threshold is crossed.
 
 ## Request bodies through Lambda OAC
 
@@ -30,6 +44,7 @@ A human applies this stack the first time, with their own AWS credentials and a 
 
 ```sh
 export NEON_API_KEY=<neon api key>
+export TF_VAR_budget_alert_email=<alert address>
 cd infra/envs/prod
 terraform init -backend-config="bucket=<state_bucket_name>"
 terraform apply
