@@ -1,24 +1,31 @@
+const sourceRoot = "^apps/api/src/";
+const nonContextFolders = ["platform", "handlers"];
+
+const notNonContext = `(?!${nonContextFolders.map((folder) => `${folder}/`).join("|")})`;
+const context = `${sourceRoot}${notNonContext}([^/]+)/`;
+const anyContext = `${sourceRoot}[^/]+/`;
+
 module.exports = {
 	forbidden: [
 		{
 			name: "context-via-index",
 			severity: "error",
-			from: { path: "^apps/api/src/([^/]+)" },
+			from: { path: `${sourceRoot}([^/]+)` },
 			to: {
-				path: "^apps/api/src/(?!platform/|handlers/)[^/]+/",
-				pathNot: ["^apps/api/src/$1/", "^apps/api/src/[^/]+/index\\.ts$"],
+				path: context,
+				pathNot: [`${sourceRoot}$1/`, `${anyContext}index\\.ts$`],
 			},
 		},
 		{
 			name: "domain-not-adapters",
 			severity: "error",
-			from: { path: "^apps/api/src/[^/]+/domain/" },
-			to: { path: "^apps/api/src/[^/]+/adapters/" },
+			from: { path: `${anyContext}domain/` },
+			to: { path: `${anyContext}adapters/` },
 		},
 		{
 			name: "domain-no-framework",
 			severity: "error",
-			from: { path: "^apps/api/src/[^/]+/domain/" },
+			from: { path: `${anyContext}domain/` },
 			to: {
 				dependencyTypes: [
 					"core",
@@ -32,14 +39,28 @@ module.exports = {
 			},
 		},
 		{
+			name: "domain-platform-result-only",
+			severity: "error",
+			from: { path: `${anyContext}domain/` },
+			to: {
+				path: `${sourceRoot}platform/`,
+				pathNot: `${sourceRoot}platform/result\\.ts$`,
+			},
+		},
+		{
 			name: "no-foreign-persistence",
 			severity: "error",
-			from: { path: "^apps/api/src/(?!platform/|handlers/)([^/]+)/" },
+			from: { path: context },
 			to: {
-				path: "^apps/api/src/[^/]+/adapters/persistence/",
-				pathNot: "^apps/api/src/$1/",
-				reachable: true,
+				path: `${anyContext}adapters/persistence/`,
+				pathNot: `${sourceRoot}$1/`,
 			},
+		},
+		{
+			name: "index-not-persistence",
+			severity: "error",
+			from: { path: `${context}index\\.ts$` },
+			to: { path: `${sourceRoot}$1/adapters/persistence/` },
 		},
 	],
 	options: {
