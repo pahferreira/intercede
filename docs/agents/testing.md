@@ -2,6 +2,11 @@
 
 Agreed test seams, so a TDD run without a human in the loop uses these instead of choosing its own.
 
+## Third-party SDKs
+
+- Run the real SDK and fake only its network layer (`fetch`), as `apps/api/src/platform/analytics.test.ts` does with `posthog-node`.
+- Where the real SDK can't run in tests, the fake is a class whose methods read `this`, so a method passed around detached from its client fails the way the real one does.
+
 ## apps/api
 
 - Endpoint tests follow ADR-0013: `app.request(...)` against the real local Postgres, faking only external services.

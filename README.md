@@ -19,6 +19,8 @@ Locally, the API and migrations connect to `postgres://intercede:intercede@local
 
 To reset the database, run `docker compose down -v`.
 
+Analytics stay off unless `POSTHOG_KEY` is set; the API and the web app read the same variable. `POSTHOG_HOST` defaults to `https://us.i.posthog.com`.
+
 ## Checks
 
 ```sh

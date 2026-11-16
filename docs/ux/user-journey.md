@@ -87,7 +87,15 @@ Installable (manifest, icons) with no custom install prompt; only the browser's 
 
 ### Analytics (PostHog)
 
-No content, only counts and enums: `submit_viewed`, `submit_skipped`, `intention_submitted`, `intention_rejected{reason}`, `entry_sent`, `clarifying_question_shown`, `refinement_sent{n}`, `suggestions_shown{count, fallback}`, `commit_clicked{count}`, `followup_link_copied`, `followup_viewed`.
+No user text ever leaves in an event, through any channel:
+
+- **Funnel events** go through `track` and carry only counts and enums: `submit_viewed`, `submit_skipped`, `intention_submitted`, `intention_rejected{reason}`, `entry_sent`, `clarifying_question_shown`, `refinement_sent{n}`, `suggestions_shown{count, fallback}`, `commit_clicked{count}`, `followup_link_copied`, `followup_viewed`.
+- **Page views and page leaves** are captured, including client-side route changes, so visitors, sessions, bounce rate and referrers are counted.
+- **Exceptions** are captured on the web and the API with their type and stack, never their message.
+- **URLs** in any event have the Follow-up Token replaced: `/f/<token>` becomes `/f/:token`.
+- **LLM calls** report provider, model, token counts, latency and cost, never the prompt or the output.
+- **Off:** click autocapture, rage and dead clicks, heatmaps and session replay, since each records on-screen text such as Intentions.
+- **Consent** for the analytics cookie is open: #64.
 
 ### Left to design
 
