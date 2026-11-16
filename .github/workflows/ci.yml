@@ -1,0 +1,241 @@
+name: CI
+
+on:
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  TERRAFORM_VERSION: 1.14.8
+
+jobs:
+  changes:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      infra: ${{ steps.filter.outputs.infra }}
+      api: ${{ steps.filter.outputs.api }}
+      migrations: ${{ steps.filter.outputs.migrations }}
+      web: ${{ steps.filter.outputs.web }}
+      typescript: ${{ steps.filter.outputs.typescript }}
+      postgres-image: ${{ steps.postgres.outputs.image }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - id: filter
+        uses: dorny/paths-filter@v4.0.3
+        with:
+          predicate-quantifier: some-with-excludes
+          filters: |
+            ci: &ci
+              - .github/**
+              - '!**/*.md'
+            workspace: &workspace
+              - *ci
+              - package.json
+              - bun.lock
+              - biome.json
+              - tsconfig.base.json
+            infra:
+              - *ci
+              - infra/**
+            api:
+              - *workspace
+              - apps/api/**
+              - .dependency-cruiser.cjs
+              - docker-compose.yml
+            migrations:
+              - *ci
+              - apps/api/drizzle/**
+              - apps/api/drizzle.config.ts
+            web:
+              - *workspace
+              - apps/web/**
+            typescript:
+              - *workspace
+              - apps/api/**
+              - apps/web/**
+              - .dependency-cruiser.cjs
+      - id: postgres
+        run: |
+          image=$(yq -e '.services.postgres.image' docker-compose.yml)
+          echo "image=$image" >> "$GITHUB_OUTPUT"
+
+  lint:
+    needs: changes
+    if: needs.changes.outputs.typescript == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: ./.github/actions/setup-bun
+      - run: bun run lint
+
+  dependency-cruiser:
+    needs: changes
+    if: needs.changes.outputs.api == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: ./.github/actions/setup-bun
+      - run: bun run lint:deps
+
+  typecheck-api:
+    needs: changes
+    if: needs.changes.outputs.api == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: ./.github/actions/setup-bun
+      - run: bun run --filter @intercede/api typecheck
+
+  typecheck-web:
+    needs: changes
+    if: needs.changes.outputs.typescript == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: ./.github/actions/setup-bun
+      - run: bun run --filter @intercede/web typecheck
+
+  test-api:
+    needs: changes
+    if: needs.changes.outputs.api == 'true' || needs.changes.outputs.migrations == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: ${{ needs.changes.outputs.postgres-image }}
+        env:
+          POSTGRES_USER: intercede
+          POSTGRES_PASSWORD: intercede
+          POSTGRES_DB: intercede
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U intercede -d intercede"
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 15
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: ./.github/actions/setup-bun
+      - name: Tests fail with the docker instruction when Postgres is down
+        env:
+          DATABASE_URL: postgres://intercede:intercede@127.0.0.1:1/intercede
+        run: .github/scripts/assert-tests-need-postgres.sh bun run --filter @intercede/api test
+      - name: Tests
+        env:
+          DATABASE_URL: postgres://intercede:intercede@localhost:5432/intercede
+        run: bun run --filter @intercede/api test
+
+  test-web:
+    needs: changes
+    if: needs.changes.outputs.typescript == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: ./.github/actions/setup-bun
+      - run: bun run --filter @intercede/web test
+
+  terraform-checks:
+    needs: changes
+    if: needs.changes.outputs.infra == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        stack: [bootstrap, envs/prod]
+    defaults:
+      run:
+        working-directory: infra/${{ matrix.stack }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: hashicorp/setup-terraform@v4.0.1
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          terraform_wrapper: false
+      - run: terraform fmt -check -recursive
+      - run: terraform init -backend=false -input=false
+      - run: terraform validate
+      - run: terraform test
+
+  terraform-plan:
+    needs: changes
+    if: needs.changes.outputs.infra == 'true' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write
+      pull-requests: write
+    defaults:
+      run:
+        working-directory: infra/envs/prod
+    env:
+      NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+      TF_VAR_budget_alert_email: ${{ secrets.BUDGET_ALERT_EMAIL }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: hashicorp/setup-terraform@v4.0.1
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          terraform_wrapper: false
+      - uses: aws-actions/configure-aws-credentials@v6.3.0
+        with:
+          role-to-assume: ${{ vars.AWS_PLAN_ROLE_ARN }}
+          aws-region: us-east-1
+      - env:
+          STATE_BUCKET: ${{ vars.TF_STATE_BUCKET }}
+        run: terraform init -input=false -backend-config="bucket=$STATE_BUCKET"
+      - id: plan
+        run: |
+          set +e
+          terraform plan -input=false -lock=false -no-color -detailed-exitcode > plan.txt 2>&1
+          status=$?
+          set -e
+          cat plan.txt
+          case "$status" in
+            0) summary="No changes." failed=false ;;
+            2) summary="Changes to apply." failed=false ;;
+            *) summary="The plan failed." failed=true ;;
+          esac
+          {
+            echo "summary=$summary"
+            echo "failed=$failed"
+          } >> "$GITHUB_OUTPUT"
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          SUMMARY: ${{ steps.plan.outputs.summary }}
+        run: |
+          {
+            echo "### Terraform plan: \`infra/envs/prod\`"
+            echo
+            echo "$SUMMARY Commit $HEAD_SHA."
+            echo
+            echo "<details><summary>Plan output</summary>"
+            echo
+            echo '```'
+            tail -c 60000 plan.txt
+            echo '```'
+            echo
+            echo "</details>"
+          } > comment.md
+          "$GITHUB_WORKSPACE/.github/scripts/upsert-pr-comment.sh" "$PR_NUMBER" "<!-- intercede-terraform-plan -->" comment.md
+      - if: steps.plan.outputs.failed == 'true'
+        run: exit 1

@@ -17,15 +17,15 @@ The production stack, in `us-east-1` (ADR-0009). It creates:
 
 ## Variables
 
-| Variable | Default | Purpose |
-| --- | --- | --- |
-| `budget_alert_email` | none, required | Address AWS Budgets emails at each threshold. |
-| `budget_alert_thresholds` | `[1, 5, 10]` | Monthly spend in USD that triggers an email (ADR-0012). The highest is the budget's limit. At most 5, the AWS Budgets limit on notifications per budget. |
-| `api_reserved_concurrency` | `null` | Concurrent executions reserved for, and capping, the API Lambda. Null leaves it unreserved; otherwise at least 1. |
-| `sweeper_reserved_concurrency` | `null` | Concurrent executions reserved for, and capping, the sweeper Lambda. Null leaves it unreserved; otherwise at least 1. |
-| `sweeper_schedule_expression` | `rate(5 minutes)` | How often EventBridge Scheduler runs the sweeper, as a `rate()` or `cron()` expression. |
+| Variable                       | Default           | Purpose                                                                                                                                                  |
+| ------------------------------ | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `budget_alert_email`           | none, required    | Address AWS Budgets emails at each threshold.                                                                                                            |
+| `budget_alert_thresholds`      | `[1, 5, 10]`      | Monthly spend in USD that triggers an email (ADR-0012). The highest is the budget's limit. At most 5, the AWS Budgets limit on notifications per budget. |
+| `api_reserved_concurrency`     | `null`            | Concurrent executions reserved for, and capping, the API Lambda. Null leaves it unreserved; otherwise at least 1.                                        |
+| `sweeper_reserved_concurrency` | `null`            | Concurrent executions reserved for, and capping, the sweeper Lambda. Null leaves it unreserved; otherwise at least 1.                                    |
+| `sweeper_schedule_expression`  | `rate(5 minutes)` | How often EventBridge Scheduler runs the sweeper, as a `rate()` or `cron()` expression.                                                                  |
 
-Pass `budget_alert_email` as `TF_VAR_budget_alert_email` (or `-var`) to every `plan` and `apply`, so the address stays out of the repository.
+Pass `budget_alert_email` as `TF_VAR_budget_alert_email` (or `-var`) to every `plan` and `apply`, so the address stays out of the repository. The variable is sensitive, so plans, including the one CI posts on public pull requests, don't print it.
 
 Both reservations default to null because Lambda refuses a reservation that leaves fewer than 10 unreserved executions in the account, and new accounts start with a limit of 10, which leaves nothing to reserve: until it is raised, the account limit is the cap. Once Service Quotas raises "Concurrent executions" (`L-B99A9384`), set `api_reserved_concurrency = 5` and `sweeper_reserved_concurrency = 1`, keeping their sum at least 10 below `aws lambda get-account-settings`' `ConcurrentExecutions`.
 

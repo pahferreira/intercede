@@ -74,8 +74,8 @@ run "plan_role_is_assumable_from_main_and_pull_requests_only" {
 
   assert {
     condition = toset(jsondecode(aws_iam_role.plan.assume_role_policy).Statement[0].Condition.StringEquals["token.actions.githubusercontent.com:sub"]) == toset([
-      "repo:pahferreira/intercede:ref:refs/heads/main",
-      "repo:pahferreira/intercede:pull_request",
+      "repo:pahferreira@28626385/intercede@1457058709:ref:refs/heads/main",
+      "repo:pahferreira@28626385/intercede@1457058709:pull_request",
     ])
     error_message = "The plan role must trust only main and pull requests of pahferreira/intercede."
   }
@@ -95,7 +95,7 @@ run "apply_role_is_assumable_from_main_only" {
   command = apply
 
   assert {
-    condition     = jsondecode(aws_iam_role.apply.assume_role_policy).Statement[0].Condition.StringEquals["token.actions.githubusercontent.com:sub"] == "repo:pahferreira/intercede:ref:refs/heads/main"
+    condition     = jsondecode(aws_iam_role.apply.assume_role_policy).Statement[0].Condition.StringEquals["token.actions.githubusercontent.com:sub"] == "repo:pahferreira@28626385/intercede@1457058709:ref:refs/heads/main"
     error_message = "The apply role must trust only main of pahferreira/intercede."
   }
 

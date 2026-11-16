@@ -12,6 +12,7 @@ variable "sweeper_schedule_expression" {
 variable "budget_alert_email" {
   description = "Address AWS Budgets emails when monthly spend crosses a threshold."
   type        = string
+  sensitive   = true
 }
 
 variable "budget_alert_thresholds" {
