@@ -1,10 +1,10 @@
 locals {
-  repository           = "pahferreira/intercede"
+  repository_subject   = "repo:pahferreira@28626385/intercede@1457058709"
   account_id           = data.aws_caller_identity.current.account_id
   github_oidc_host     = "token.actions.githubusercontent.com"
   oidc_audience        = "sts.amazonaws.com"
-  main_subject         = "repo:${local.repository}:ref:refs/heads/main"
-  pull_request_subject = "repo:${local.repository}:pull_request"
+  main_subject         = "${local.repository_subject}:ref:refs/heads/main"
+  pull_request_subject = "${local.repository_subject}:pull_request"
   managed_iam_prefix   = "intercede-"
   read_only_policy_arn = "arn:aws:iam::aws:policy/ReadOnlyAccess"
 }
