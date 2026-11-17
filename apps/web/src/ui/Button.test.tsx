@@ -1,6 +1,6 @@
 import { expect, mock, test } from "bun:test";
 import { fireEvent, render, screen } from "@testing-library/react";
-import { Button } from "./button";
+import { Button } from "./Button";
 
 test("a loading button is busy and named by its loading label", () => {
 	render(

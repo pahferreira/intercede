@@ -21,8 +21,8 @@ import lockupOnDark from "../assets/logos/intercede-lockup-on-dark.svg";
 import lockupOnLight from "../assets/logos/intercede-lockup-on-light.svg";
 import markOnDark from "../assets/logos/intercede-mark-on-dark.svg";
 import markOnLight from "../assets/logos/intercede-mark-on-light.svg";
-import { Button } from "../ui/button";
-import { Link } from "../ui/link";
+import { Button } from "../ui/Button";
+import { Link } from "../ui/Link";
 
 const colours = [
 	{ name: "violet", className: "bg-violet" },
