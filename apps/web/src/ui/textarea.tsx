@@ -10,7 +10,7 @@ type TextareaProps = {
 	minLength: number;
 	maxLength: number;
 	hint?: string;
-	hints?: readonly string[];
+	moderationHints?: readonly string[];
 	submitting?: boolean;
 };
 
@@ -23,15 +23,15 @@ export function Textarea({
 	minLength,
 	maxLength,
 	hint,
-	hints = [],
+	moderationHints = [],
 	submitting = false,
 }: TextareaProps) {
 	const id = useId();
 	const hintId = `${id}-hint`;
-	const hintsId = `${id}-hints`;
-	const rejected = hints.length > 0;
+	const moderationHintsId = `${id}-moderation-hints`;
+	const rejected = moderationHints.length > 0;
 	const outsideLimits = value.length < minLength || value.length > maxLength;
-	const describedBy = [hint && hintId, rejected && hintsId]
+	const describedBy = [hint && hintId, rejected && moderationHintsId]
 		.filter(Boolean)
 		.join(" ");
 
@@ -51,7 +51,7 @@ export function Textarea({
 				readOnly={submitting}
 				aria-invalid={rejected || undefined}
 				aria-describedby={describedBy || undefined}
-				className="field-sizing-content min-h-42 resize-y rounded-lg border-2 border-line-strong bg-violet-raised p-space-4 text-body-lg text-ivory outline-none transition duration-fast ease-out placeholder:text-ivory-subtle hover:border-ivory-muted focus:border-ivory focus:ring-4 focus:ring-ivory-tint aria-invalid:border-notice read-only:cursor-progress read-only:opacity-60 motion-reduce:transition-none"
+				className="field-sizing-content min-h-42 resize-y rounded-lg border-2 border-line-strong bg-violet-raised p-space-4 text-body-lg text-ivory outline-none transition duration-fast ease-out placeholder:text-ivory-subtle hover:not-read-only:border-ivory-muted focus:border-ivory focus:ring-4 focus:ring-ivory-tint aria-invalid:border-notice read-only:cursor-progress read-only:opacity-60 motion-reduce:transition-none"
 			/>
 			<div className="flex justify-between gap-space-4 text-small">
 				<span id={hintId} className="text-ivory-subtle">
@@ -64,8 +64,11 @@ export function Textarea({
 				</span>
 			</div>
 			{rejected && (
-				<ul id={hintsId} className="flex flex-col gap-space-2 text-small">
-					{hints.map((reason) => (
+				<ul
+					id={moderationHintsId}
+					className="flex flex-col gap-space-2 text-small"
+				>
+					{moderationHints.map((reason) => (
 						<li key={reason} className="flex gap-space-2">
 							<IconAlertCircle
 								aria-hidden

@@ -140,23 +140,25 @@ const faithIcons = [
 
 const buttonVariants = ["primary", "secondary"] as const;
 
+const textareaSample = "Please pray for my mother's surgery on Thursday.";
+
 const textareaStates = [
 	{ name: "textarea-rest", value: "" },
 	{
 		name: "textarea-filled",
-		value: "Please pray for my mother's surgery on Thursday.",
+		value: textareaSample,
 	},
 	{ name: "textarea-outside-limits", value: "Pray" },
 	{
 		name: "textarea-submitting",
-		value: "Please pray for my mother's surgery on Thursday.",
+		value: textareaSample,
 		submitting: true,
 	},
 	{
 		name: "textarea-rejected",
 		value:
 			"Please pray for João Carlos Silva, he lives at Rua das Flores 120 and is very sick.",
-		hints: [
+		moderationHints: [
 			"Use initials instead of full names.",
 			"Leave out addresses and contact details.",
 		],

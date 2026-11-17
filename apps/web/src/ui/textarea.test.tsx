@@ -24,7 +24,7 @@ test("a rejected field is invalid and described by its hints", () => {
 			onChange={() => {}}
 			minLength={10}
 			maxLength={1000}
-			hints={[
+			moderationHints={[
 				"Use initials instead of full names.",
 				"Leave out addresses and contact details.",
 			]}
