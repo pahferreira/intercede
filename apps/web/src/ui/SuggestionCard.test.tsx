@@ -3,7 +3,7 @@ import { i18n } from "@lingui/core";
 import { I18nProvider } from "@lingui/react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { type Locale, switchLocale } from "../i18n";
-import { SuggestionCard } from "./suggestion-card";
+import { SuggestionCard } from "./SuggestionCard";
 
 const lineHeight = 28;
 

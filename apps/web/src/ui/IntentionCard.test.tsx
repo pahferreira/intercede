@@ -3,7 +3,7 @@ import { i18n } from "@lingui/core";
 import { I18nProvider } from "@lingui/react";
 import { render, screen } from "@testing-library/react";
 import { type Locale, switchLocale } from "../i18n";
-import { IntentionCard } from "./intention-card";
+import { IntentionCard } from "./IntentionCard";
 
 const text =
 	"Pray for my brother R., who is far from God and far from home. That he feels loved wherever he is.";

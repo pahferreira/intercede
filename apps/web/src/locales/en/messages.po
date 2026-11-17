@@ -7,9 +7,10 @@ msgstr ""
 "X-Generator: @lingui/cli\n"
 "Language: en\n"
 
-#: src/ui/intention-card.tsx:26
-msgid "{commitments, plural, one {<0><1># person</1> committed to pray for this</0>} other {<2><3># people</3> committed to pray for this</2>}}"
-msgstr "{commitments, plural, one {<0><1># person</1> committed to pray for this</0>} other {<2><3># people</3> committed to pray for this</2>}}"
+#. placeholder {0}: props.commitments
+#: src/ui/IntentionCard.tsx:21
+msgid "{0, plural, one {<0><1># person</1> committed to pray for this</0>} other {<2><3># people</3> committed to pray for this</2>}}"
+msgstr "{0, plural, one {<0><1># person</1> committed to pray for this</0>} other {<2><3># people</3> committed to pray for this</2>}}"
 
 #: src/routes/home.tsx:24
 msgid "API status: {status}"
@@ -23,7 +24,7 @@ msgstr "API unreachable"
 msgid "Checking the API…"
 msgstr "Checking the API…"
 
-#: src/ui/suggestion-card.tsx:54
+#: src/ui/SuggestionCard.tsx:51
 msgid "Commit to pray for this intention"
 msgstr "Commit to pray for this intention"
 
@@ -43,18 +44,18 @@ msgstr "Language"
 msgid "Pray"
 msgstr "Pray"
 
-#: src/ui/intention-card.tsx:25
+#: src/ui/IntentionCard.tsx:20
 msgid "Published {published}"
 msgstr "Published {published}"
 
-#: src/ui/suggestion-card.tsx:83
+#: src/ui/SuggestionCard.tsx:80
 msgid "Show less"
 msgstr "Show less"
 
-#: src/ui/suggestion-card.tsx:83
+#: src/ui/SuggestionCard.tsx:80
 msgid "Show more"
 msgstr "Show more"
 
-#: src/ui/intention-card.tsx:42
+#: src/ui/IntentionCard.tsx:37
 msgid "This intention is no longer being suggested"
 msgstr "This intention is no longer being suggested"

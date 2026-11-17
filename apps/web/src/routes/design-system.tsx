@@ -22,9 +22,9 @@ import lockupOnLight from "../assets/logos/intercede-lockup-on-light.svg";
 import markOnDark from "../assets/logos/intercede-mark-on-dark.svg";
 import markOnLight from "../assets/logos/intercede-mark-on-light.svg";
 import { Button } from "../ui/Button";
-import { IntentionCard } from "../ui/intention-card";
+import { IntentionCard } from "../ui/IntentionCard";
 import { Link } from "../ui/Link";
-import { SuggestionCard } from "../ui/suggestion-card";
+import { SuggestionCard } from "../ui/SuggestionCard";
 import { Textarea } from "../ui/Textarea";
 
 const colours = [

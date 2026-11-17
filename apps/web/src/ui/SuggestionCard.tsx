@@ -1,5 +1,6 @@
 import { useLingui } from "@lingui/react/macro";
 import { IconCheck } from "@tabler/icons-react";
+import { clsx } from "clsx";
 import { useId, useLayoutEffect, useRef, useState } from "react";
 
 const clampedLines = 3;
@@ -16,12 +17,7 @@ type SuggestionCardProps = {
 	onCheckedChange: (checked: boolean) => void;
 };
 
-export function SuggestionCard({
-	text,
-	whyNote,
-	checked,
-	onCheckedChange,
-}: SuggestionCardProps) {
+export function SuggestionCard(props: SuggestionCardProps) {
 	const { t } = useLingui();
 	const textId = useId();
 	const textRef = useRef<HTMLParagraphElement>(null);
@@ -42,18 +38,19 @@ export function SuggestionCard({
 
 	return (
 		<article
-			className={`flex gap-space-3 rounded-lg border-2 bg-violet-raised p-space-4 shadow-sm transition duration-base ease-out hover:-translate-y-px hover:shadow-md motion-reduce:transition-none ${
-				checked
+			className={clsx(
+				"flex gap-space-3 rounded-lg border-2 bg-violet-raised p-space-4 shadow-sm transition duration-base ease-out hover:-translate-y-px hover:shadow-md motion-reduce:transition-none",
+				props.checked
 					? "border-flame bg-linear-to-b from-flame-tint to-flame-tint"
-					: "border-line hover:border-line-strong"
-			}`}
+					: "border-line hover:border-line-strong",
+			)}
 		>
 			<label className="relative -m-space-2 flex size-control-md shrink-0 cursor-pointer items-center justify-center">
 				<input
 					type="checkbox"
 					aria-label={t`Commit to pray for this intention`}
-					checked={checked}
-					onChange={(event) => onCheckedChange(event.target.checked)}
+					checked={props.checked}
+					onChange={(event) => props.onCheckedChange(event.target.checked)}
 					className="peer size-space-5 cursor-pointer appearance-none rounded-sm border-2 border-line-strong bg-violet transition-colors duration-fast ease-out checked:border-flame checked:bg-flame hover:border-ivory checked:hover:border-flame"
 				/>
 				<IconCheck
@@ -65,11 +62,12 @@ export function SuggestionCard({
 				<p
 					id={textId}
 					ref={textRef}
-					className={`overflow-hidden text-body-lg transition-[max-height] [interpolate-size:allow-keywords] duration-slow ease-in-out motion-reduce:transition-none ${
-						expanded ? "max-h-max" : "max-h-clamp-3"
-					}`}
+					className={clsx(
+						"overflow-hidden text-body-lg transition-[max-height] [interpolate-size:allow-keywords] duration-slow ease-in-out motion-reduce:transition-none",
+						expanded ? "max-h-max" : "max-h-clamp-3",
+					)}
 				>
-					{text}
+					{props.text}
 				</p>
 				{overflows && (
 					<button
@@ -82,7 +80,7 @@ export function SuggestionCard({
 						{expanded ? t`Show less` : t`Show more`}
 					</button>
 				)}
-				<p className="text-small text-ivory-muted">{whyNote}</p>
+				<p className="text-small text-ivory-muted">{props.whyNote}</p>
 			</div>
 		</article>
 	);
