@@ -2,6 +2,8 @@
 
 The brief for the visual design sessions. It fixes flows, states, rules and copy intent; layout, typography and final wording belong to the design. Terms follow `GLOSSARY.md`. Rough wireframes are in `wireframes/`.
 
+**Final design:** the [Intercede screens](https://claude.ai/artifact/GmiXXnWm8SmPG6p3jxa1dA) in Claude Design, with page Mobile (390 px) and page Desktop (1440 px). They supersede `wireframes/` for layout and copy. Each section below names its screens. Read a screen with the Artifact tool: `read` with `path: "project/<Screen>.dc.html"`. Screens hard-code colours and load fonts from Google Fonts; take layout and copy from them, and styles from the Tailwind theme and `apps/web/src/ui/` components ([design system](https://claude.ai/artifact/JzVJJ5rhZi4k13uWySQyeW), #77).
+
 ## Routes
 
 | Route             | Screen                                                                                      |
@@ -15,6 +17,8 @@ No locale prefix. "Ask for prayer" always opens the submit screen, even within t
 
 ## 1. Submit screen (`/`) — [wireframe](wireframes/01-submit.png)
 
+Design: `Main`, `Submit-Rejected` · `Desktop-Submit`, `Desktop-Submit-Rejected`. The app shell (header, EN/PT segmented language toggle) follows `Main` and `Desktop-Submit` on every screen.
+
 Hero ("Welcome to Intercede", tagline), heading "Submit your pray intention", textarea (10–1000 characters), **Skip** and **Submit**. The language toggle is visible.
 
 - **Submitting:** Turnstile runs invisibly; the button shows a spinner and the textarea is locked while moderation runs (~1–3 s).
@@ -27,11 +31,15 @@ Hero ("Welcome to Intercede", tagline), heading "Submit your pray intention", te
 
 ## 2. Entry screen (`/pray`) — [wireframe](wireframes/02-entry.png)
 
+Design: `Entry-Published` · `Desktop-Entry-Published`. Reached by Skip, the Entry screen is the same without the success confirmation.
+
 Same hero, heading "What's in your heart to pray for today?", textarea, **Start**. Turnstile runs invisibly on Start.
 
 **Success confirmation** (only after publishing): a dismissible notice at the top: "Published ✓ — Intention #a3f9" with a **Copy** button for the follow-up URL `/f/<Follow-up Token>`. The short label is display only; the URL carries the token, never the Intention id. The token is also kept in `localStorage`. The notice stays until dismissed.
 
 ## 3. Fullscreen chat (`/pray`) — [wireframe](wireframes/03-chat.png)
+
+Design: `Chat-Searching`, `Chat-Clarify` · `Desktop-Chat-Searching`, `Desktop-Chat-Clarify`.
 
 After Start the screen becomes a fullscreen chat, like a typical AI agent.
 
@@ -43,6 +51,8 @@ After Start the screen becomes a fullscreen chat, like a typical AI agent.
 
 ## 4. Suggestions — [wireframe](wireframes/04-suggestions.png)
 
+Design: `Chat-Suggestions`, `Chat-NoMatch` · `Desktop-Chat-Suggestions`, `Desktop-Chat-NoMatch`.
+
 Up to 5 Suggestion cards appear in the thread under the note.
 
 - **Card:** the first ~3 lines of the Intention, tap the card body to expand; the "why it fits" note in smaller muted text; a checkbox on the left. Only the checkbox selects, so expanding never commits.
@@ -52,9 +62,13 @@ Up to 5 Suggestion cards appear in the thread under the note.
 
 ## 5. Commitment confirmation (`/pray/committed`)
 
+Design: `Committed` · `Desktop-Committed`.
+
 "You committed to pray for these intentions:", the committed Intentions as full-text cards, and "Have a good prayer". Two quiet actions: **New search**, and **Ask for prayer** (only if this Visitor skipped submitting today). The committed cards are kept in `sessionStorage` so a refresh does not lose them.
 
 ## 6. Follow-up page (`/f/:token`)
+
+Design: `FollowUp` · `Desktop-FollowUp`.
 
 The Intention text, its publication date, and "**N people committed to pray for this**" (committed, not prayed). If Archived: "This intention is no longer being suggested", count still shown. Unknown token: a neutral "Link not found". One call to action: **Pray for someone too** → `/pray`.
 
@@ -73,6 +87,8 @@ The Intention text, its publication date, and "**N people committed to pray for 
 - `localStorage`: UI language, submitted/skipped timestamp, Follow-up Tokens. `sessionStorage`: committed cards only.
 
 ### Errors and limits
+
+Design: `Chat-Errors`, `Chat-Limit` · `Desktop-Chat-Errors`, `Desktop-Chat-Limit`.
 
 | Situation                                       | Behaviour                                                                                                                                 |
 | ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
@@ -96,10 +112,6 @@ No user text ever leaves in an event, through any channel:
 - **LLM calls** report provider, model, token counts, latency and cost, never the prompt or the output.
 - **Off:** click autocapture, rage and dead clicks, heatmaps and session replay, since each records on-screen text such as Intentions.
 - **Consent** for the analytics cookie is open: #64.
-
-### Left to design
-
-Visual design, final copy, and accessibility details.
 
 ## Scope changes from the PRD
 
