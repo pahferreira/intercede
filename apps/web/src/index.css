@@ -266,6 +266,10 @@
 	max-height: 3lh;
 }
 
+@utility pb-safe-* {
+	padding-bottom: calc(--value(--spacing-*) + env(safe-area-inset-bottom));
+}
+
 @layer base {
 	body {
 		@apply bg-violet text-body text-ivory;

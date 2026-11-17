@@ -92,6 +92,11 @@ test.each([
 	"intention",
 	"intention-one-commitment",
 	"intention-archived",
+	"message-box-empty",
+	"message-box-ready",
+	"message-box-scrolling",
+	"message-box-offline",
+	"message-box-search-limit",
 ])("shows the %s token", async (name) => {
 	await switchLocale("en");
 	renderWithRouter(

@@ -24,6 +24,7 @@ import markOnLight from "../assets/logos/intercede-mark-on-light.svg";
 import { Button } from "../ui/Button";
 import { IntentionCard } from "../ui/IntentionCard";
 import { Link } from "../ui/Link";
+import { MessageBox } from "../ui/message-box";
 import { SuggestionCard } from "../ui/SuggestionCard";
 import { Textarea } from "../ui/Textarea";
 
@@ -117,6 +118,28 @@ const logos = [
 		name: "intercede-lockup-on-light",
 		src: lockupOnLight,
 		ground: "bg-ivory",
+	},
+] as const;
+
+const messageBoxStates = [
+	{ name: "message-box-empty", initialValue: "" },
+	{ name: "message-box-ready", initialValue: "Please pray for my mother." },
+	{
+		name: "message-box-scrolling",
+		initialValue: Array.from(
+			{ length: 10 },
+			(_, line) => `Line ${line + 1} of a long intention.`,
+		).join("\n"),
+	},
+	{
+		name: "message-box-offline",
+		initialValue: "",
+		disabledReason: "You're offline. Reconnect to keep searching.",
+	},
+	{
+		name: "message-box-search-limit",
+		initialValue: "",
+		disabledReason: "You've searched a lot today. Come back later.",
 	},
 ] as const;
 
@@ -254,6 +277,25 @@ function SuggestionSample(props: {
 	);
 }
 
+function MessageBoxDemo({
+	initialValue,
+	disabledReason,
+}: {
+	initialValue: string;
+	disabledReason?: string;
+}) {
+	const [value, setValue] = useState(initialValue);
+	return (
+		<MessageBox
+			value={value}
+			onChange={setValue}
+			onSubmit={() => setValue("")}
+			placeholder="Tell me more, or refine your search…"
+			disabledReason={disabledReason}
+		/>
+	);
+}
+
 export function DesignSystem() {
 	return (
 		<div className="mx-auto flex max-w-column-chat flex-col gap-space-6 py-space-5">
@@ -370,6 +412,20 @@ export function DesignSystem() {
 								commitments={commitments}
 								archived={archived}
 							/>
+						</Token>
+					))}
+				</div>
+			</Section>
+
+			<Section title="MessageBox">
+				<p className="text-small text-ivory-muted">
+					Type to enable Send; Enter sends, Shift+Enter breaks a line. Focus a
+					composer to see its halo.
+				</p>
+				<div className="flex flex-col gap-space-5">
+					{messageBoxStates.map(({ name, ...props }) => (
+						<Token key={name} name={name}>
+							<MessageBoxDemo {...props} />
 						</Token>
 					))}
 				</div>
