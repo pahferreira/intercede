@@ -1,6 +1,9 @@
 import { expect, test } from "bun:test";
+import { i18n } from "@lingui/core";
+import { I18nProvider } from "@lingui/react";
 import { screen } from "@testing-library/react";
 import { renderWithRouter } from "../../test/render-with-router";
+import { switchLocale } from "../i18n";
 import { DesignSystem } from "./design-system";
 
 test.each([
@@ -83,8 +86,19 @@ test.each([
 	"textarea-outside-limits",
 	"textarea-submitting",
 	"textarea-rejected",
+	"suggestion",
+	"suggestion-checked",
+	"suggestion-long",
+	"intention",
+	"intention-one-commitment",
+	"intention-archived",
 ])("shows the %s token", async (name) => {
-	renderWithRouter(<DesignSystem />);
+	await switchLocale("en");
+	renderWithRouter(
+		<I18nProvider i18n={i18n}>
+			<DesignSystem />
+		</I18nProvider>,
+	);
 
 	expect(await screen.findByRole("figure", { name })).toBeDefined();
 });

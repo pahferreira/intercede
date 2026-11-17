@@ -262,7 +262,15 @@
 	font-family: var(--font-text);
 }
 
+@utility max-h-clamp-3 {
+	max-height: 3lh;
+}
+
 @layer base {
+	:root {
+		interpolate-size: allow-keywords;
+	}
+
 	body {
 		@apply bg-violet text-body text-ivory;
 	}
