@@ -1,64 +1,84 @@
 import type { ReactNode } from "react";
 
 const colours = [
-	["violet", "bg-violet"],
-	["violet-raised", "bg-violet-raised"],
-	["violet-sunken", "bg-violet-sunken"],
-	["line", "bg-line"],
-	["line-strong", "bg-line-strong"],
-	["ivory", "bg-ivory"],
-	["ivory-muted", "bg-ivory-muted"],
-	["ivory-subtle", "bg-ivory-subtle"],
-	["ivory-tint", "bg-ivory-tint"],
-	["ivory-tint-strong", "bg-ivory-tint-strong"],
-	["flame", "bg-flame"],
-	["flame-hover", "bg-flame-hover"],
-	["flame-pressed", "bg-flame-pressed"],
-	["flame-tint", "bg-flame-tint"],
-	["on-flame", "bg-on-flame"],
-	["on-ivory", "bg-on-ivory"],
-	["success", "bg-success"],
-	["notice", "bg-notice"],
-	["danger", "bg-danger"],
-	["focus-ring", "bg-focus-ring"],
+	{ name: "violet", className: "bg-violet" },
+	{ name: "violet-raised", className: "bg-violet-raised" },
+	{ name: "violet-sunken", className: "bg-violet-sunken" },
+	{ name: "line", className: "bg-line" },
+	{ name: "line-strong", className: "bg-line-strong" },
+	{ name: "ivory", className: "bg-ivory" },
+	{ name: "ivory-muted", className: "bg-ivory-muted" },
+	{ name: "ivory-subtle", className: "bg-ivory-subtle" },
+	{ name: "ivory-tint", className: "bg-ivory-tint" },
+	{ name: "ivory-tint-strong", className: "bg-ivory-tint-strong" },
+	{ name: "flame", className: "bg-flame" },
+	{ name: "flame-hover", className: "bg-flame-hover" },
+	{ name: "flame-pressed", className: "bg-flame-pressed" },
+	{ name: "flame-tint", className: "bg-flame-tint" },
+	{ name: "on-flame", className: "bg-on-flame" },
+	{ name: "on-ivory", className: "bg-on-ivory" },
+	{ name: "success", className: "bg-success" },
+	{ name: "notice", className: "bg-notice" },
+	{ name: "danger", className: "bg-danger" },
+	{ name: "focus-ring", className: "bg-focus-ring" },
 ] as const;
 
 const typeStyles = [
-	["display-xl", "text-display-xl", "Intercede"],
-	["display", "text-display", "Intercede"],
-	["eyebrow", "text-eyebrow", "Welcome to"],
-	["title", "text-title", "What's in your heart to pray for today?"],
-	["heading", "text-heading", "You committed to pray for these intentions"],
-	[
-		"body-lg",
-		"text-body-lg",
-		"Please pray for my mother's surgery on Thursday.",
-	],
-	["body", "text-body", "These are still waiting for prayer."],
-	["label", "text-label", "I commit!"],
-	["small", "text-small", "Fits because you mentioned family health."],
-	["caption", "text-caption uppercase", "Intention #A3F9"],
+	{ name: "display-xl", className: "text-display-xl", sample: "Intercede" },
+	{ name: "display", className: "text-display", sample: "Intercede" },
+	{ name: "eyebrow", className: "text-eyebrow", sample: "Welcome to" },
+	{
+		name: "title",
+		className: "text-title",
+		sample: "What's in your heart to pray for today?",
+	},
+	{
+		name: "heading",
+		className: "text-heading",
+		sample: "You committed to pray for these intentions",
+	},
+	{
+		name: "body-lg",
+		className: "text-body-lg",
+		sample: "Please pray for my mother's surgery on Thursday.",
+	},
+	{
+		name: "body",
+		className: "text-body",
+		sample: "These are still waiting for prayer.",
+	},
+	{ name: "label", className: "text-label", sample: "I commit!" },
+	{
+		name: "small",
+		className: "text-small",
+		sample: "Fits because you mentioned family health.",
+	},
+	{
+		name: "caption",
+		className: "text-caption uppercase",
+		sample: "Intention #A3F9",
+	},
 ] as const;
 
 const shadows = [
-	["shadow-sm", "shadow-sm"],
-	["shadow-md", "shadow-md"],
-	["shadow-lg", "shadow-lg"],
-	["shadow-flame", "shadow-flame"],
+	{ name: "shadow-sm", className: "shadow-sm" },
+	{ name: "shadow-md", className: "shadow-md" },
+	{ name: "shadow-lg", className: "shadow-lg" },
+	{ name: "shadow-flame", className: "shadow-flame" },
 ] as const;
 
 const radii = [
-	["radius-sm", "rounded-sm"],
-	["radius-md", "rounded-md"],
-	["radius-lg", "rounded-lg"],
+	{ name: "radius-sm", className: "rounded-sm" },
+	{ name: "radius-md", className: "rounded-md" },
+	{ name: "radius-lg", className: "rounded-lg" },
 ] as const;
 
 const motions = [
-	["duration-fast", "duration-fast ease-out"],
-	["duration-base", "duration-base ease-out"],
-	["duration-slow", "duration-slow ease-out"],
-	["ease-out", "duration-slow ease-out"],
-	["ease-in-out", "duration-slow ease-in-out"],
+	{ name: "duration-fast", className: "duration-fast ease-out" },
+	{ name: "duration-base", className: "duration-base ease-out" },
+	{ name: "duration-slow", className: "duration-slow ease-out" },
+	{ name: "ease-out", className: "duration-slow ease-out" },
+	{ name: "ease-in-out", className: "duration-slow ease-in-out" },
 ] as const;
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
@@ -86,7 +106,7 @@ export function DesignSystem() {
 
 			<Section title="Colour">
 				<div className="grid grid-cols-2 gap-space-4 md:grid-cols-4">
-					{colours.map(([name, className]) => (
+					{colours.map(({ name, className }) => (
 						<Token key={name} name={name}>
 							<div
 								className={`h-control-lg rounded-md border-2 border-line ${className}`}
@@ -98,7 +118,7 @@ export function DesignSystem() {
 
 			<Section title="Type">
 				<div className="flex flex-col gap-space-5">
-					{typeStyles.map(([name, className, sample]) => (
+					{typeStyles.map(({ name, className, sample }) => (
 						<Token key={name} name={name}>
 							<p className={className}>{sample}</p>
 						</Token>
@@ -108,7 +128,7 @@ export function DesignSystem() {
 
 			<Section title="Shadow">
 				<div className="grid grid-cols-2 gap-space-5 md:grid-cols-4">
-					{shadows.map(([name, className]) => (
+					{shadows.map(({ name, className }) => (
 						<Token key={name} name={name}>
 							<div
 								className={`h-control-lg rounded-lg bg-violet-raised ${className}`}
@@ -120,7 +140,7 @@ export function DesignSystem() {
 
 			<Section title="Radius">
 				<div className="grid grid-cols-3 gap-space-4">
-					{radii.map(([name, className]) => (
+					{radii.map(({ name, className }) => (
 						<Token key={name} name={name}>
 							<div
 								className={`h-control-lg border-2 border-line-strong bg-violet-raised ${className}`}
@@ -135,7 +155,7 @@ export function DesignSystem() {
 					Hover a row to play its transition.
 				</p>
 				<div className="flex flex-col gap-space-3">
-					{motions.map(([name, className]) => (
+					{motions.map(({ name, className }) => (
 						<Token key={name} name={name}>
 							<div className="group rounded-md border-2 border-line p-space-1">
 								<div

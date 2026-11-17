@@ -23,13 +23,6 @@ test.each([
 	"notice",
 	"danger",
 	"focus-ring",
-])("shows the %s colour swatch", (name) => {
-	render(<DesignSystem />);
-
-	expect(screen.getByRole("figure", { name })).toBeDefined();
-});
-
-test.each([
 	"display-xl",
 	"display",
 	"eyebrow",
@@ -40,13 +33,6 @@ test.each([
 	"label",
 	"small",
 	"caption",
-])("shows the %s type style", (name) => {
-	render(<DesignSystem />);
-
-	expect(screen.getByRole("figure", { name })).toBeDefined();
-});
-
-test.each([
 	"shadow-sm",
 	"shadow-md",
 	"shadow-lg",
