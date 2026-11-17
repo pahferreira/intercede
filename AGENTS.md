@@ -12,6 +12,10 @@ Default vocabulary: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-
 
 Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`. When a ticket can only be built by working around an ADR, stop and report the conflict.
 
+### UI designs
+
+Before building or changing a screen, read its board in the [Intercede Design artifact](https://claude.ai/artifact/GmiXXnWm8SmPG6p3jxa1dA): `<Screen>.dc.html` is mobile, `Desktop-<Screen>.dc.html` is desktop, and `project/ds/intercede/tokens.json` holds the tokens.
+
 ### Testing
 
 Before writing tests, read `docs/agents/testing.md` for the agreed test seams.

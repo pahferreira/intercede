@@ -57,6 +57,61 @@
 			"plugins": ["./biome-plugins/component-props.grit"]
 		},
 		{
+			"includes": [
+				"apps/web/src/**/*.tsx",
+				"!apps/web/src/**/use*.tsx",
+				"!apps/web/src/**/*.test.tsx"
+			],
+			"plugins": ["./biome-plugins/hooks-only-in-custom-hooks.grit"]
+		},
+		{
+			"includes": [
+				"apps/web/src/hooks/**",
+				"apps/web/src/**/use*.ts",
+				"apps/web/src/**/use*.tsx"
+			],
+			"linter": {
+				"rules": {
+					"style": {
+						"useFilenamingConvention": {
+							"level": "error",
+							"options": {
+								"filenameCases": ["camelCase"]
+							}
+						}
+					}
+				}
+			}
+		},
+		{
+			"includes": [
+				"apps/web/src/routes/use*.ts",
+				"apps/web/src/routes/use*.tsx"
+			],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"patterns": [
+									{
+										"group": ["@tabler/icons-react"],
+										"importNamePattern": ".*Filled",
+										"message": "Use Tabler's outline icons only."
+									},
+									{
+										"group": ["../hooks/*"],
+										"message": "Call shared hooks from the route component, not from its route hook."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		},
+		{
 			"includes": ["apps/web/src/ui/**"],
 			"plugins": ["./biome-plugins/ui-classname-clsx.grit"],
 			"linter": {

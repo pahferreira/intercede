@@ -1,72 +1,23 @@
 import { Trans, useLingui } from "@lingui/react/macro";
-import { useMutation } from "@tanstack/react-query";
-import { useNavigate, useRouteContext } from "@tanstack/react-router";
-import type { InferResponseType } from "hono/client";
-import { useEffect, useRef, useState } from "react";
-import { track } from "../analytics";
-import type { ApiClient } from "../api";
-import { rememberSubmitOrSkip } from "../submit-gate";
+import { useState } from "react";
+import {
+	type RejectionReason,
+	useSubmissionIntention,
+} from "../hooks/useSubmissionIntention";
 import { Button } from "../ui/Button";
 import { Textarea } from "../ui/Textarea";
-
-type PostIntention = ApiClient["api"]["intentions"]["$post"];
-type Submission = InferResponseType<PostIntention, 201 | 422 | 503>;
-type RejectionReason = InferResponseType<PostIntention, 422>["reasons"][number];
+import { useSubmitRoute } from "./useSubmitRoute";
 
 const minLength = 10;
 const maxLength = 1000;
 
 export function Submit() {
 	const { t } = useLingui();
-	const { client } = useRouteContext({ from: "__root__" });
-	const navigate = useNavigate();
 	const [text, setText] = useState("");
-	const viewed = useRef(false);
-
-	useEffect(() => {
-		if (viewed.current) return;
-		viewed.current = true;
-		track("submit_viewed", {});
-	}, []);
-
-	const leave = () => {
-		rememberSubmitOrSkip();
-		return navigate({ to: "/pray" });
-	};
-
-	const submission = useMutation({
-		mutationFn: async (intention: string): Promise<Submission> => {
-			const response = await client.api.intentions.$post({
-				json: { text: intention },
-			});
-			if (
-				response.status === 201 ||
-				response.status === 422 ||
-				response.status === 503
-			) {
-				return response.json();
-			}
-			throw new Error(`unexpected status ${response.status}`);
-		},
-		onSuccess: (result) => {
-			if (result.status === "published") {
-				track("intention_submitted", {});
-				return leave();
-			}
-			if (result.status === "rejected") {
-				for (const reason of result.reasons) {
-					track("intention_rejected", { reason });
-				}
-			}
-		},
-	});
-
-	const skip = () => {
-		track("submit_skipped", {});
-		return leave();
-	};
-
+	const { leave, skip } = useSubmitRoute();
+	const submission = useSubmissionIntention({ onPublished: leave });
 	const result = submission.data;
+
 	const outsideLimits =
 		text.trim().length < minLength || text.length > maxLength;
 	const rejectionHints: Record<RejectionReason, string> = {

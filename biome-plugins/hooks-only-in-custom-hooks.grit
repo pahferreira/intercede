@@ -1,0 +1,11 @@
+language js
+
+JsCallExpression(callee=$callee) where {
+	$callee <: or {
+		`useEffect`,
+		`React.useEffect`,
+		`useMutation`,
+		`useQuery`
+	},
+	register_diagnostic(span=$callee, message="Call useEffect, useMutation and useQuery from a custom hook in a `use*` file, not from a component.")
+}

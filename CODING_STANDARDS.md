@@ -34,12 +34,20 @@ Judgement rules for review. Biome, tsc and dependency-cruiser enforce the mechan
 
 - `apps/web` styles come from the design system theme in `apps/web/src/index.css`: no arbitrary colour, font, size, shadow or radius values (`text-[15px]`, `bg-[#fff]`, inline `style`).
 - Bordered controls use `border-2`.
+- A screen follows its mobile board below `md` and its `Desktop-*` board at `md` and up: column width (`max-w-column-form` / `max-w-column-chat`), the `display-xl` hero and the spacing.
 
 ## UI components
 
 Rules for the shared components in `apps/web/src/ui/`. Biome enforces PascalCase file names and `clsx` class composition there.
 
 - Read props through `props.x`. Destructure only the props that need a default value.
+
+## Custom hooks
+
+Biome enforces camelCase hook file names, keeps `useEffect`, `useMutation` and `useQuery` out of components, and keeps `apps/web/src/hooks/` imports out of route hooks.
+
+- A hook reused across screens lives in `apps/web/src/hooks/`, such as `useSubmissionIntention` owning the intention submission mutation.
+- A route's own logic (effects, navigation, analytics) lives in a `use<Route>Route` hook beside the route, so the component only handles rendering and the visitor's interaction.
 
 ## Naming
 
