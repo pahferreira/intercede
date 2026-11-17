@@ -28,3 +28,13 @@ test.each([
 
 	expect(onClick).not.toHaveBeenCalled();
 });
+
+test("an idle button that can load is named by its label", () => {
+	render(
+		<Button variant="primary" loading={false} loadingLabel="Submitting">
+			Submit
+		</Button>,
+	);
+
+	expect(screen.getByRole("button", { name: "Submit" })).toBeDefined();
+});

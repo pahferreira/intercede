@@ -18,14 +18,17 @@ const sizes = {
 	lg: "h-control-lg px-space-6",
 } as const;
 
+const stacked = "col-start-1 row-start-1 flex items-center gap-space-2";
+
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 	variant: keyof typeof variants;
 	size?: keyof typeof sizes;
 	block?: boolean;
 	icon?: Icon;
-	loading?: boolean;
-	loadingLabel?: ReactNode;
-};
+} & (
+		| { loading?: never; loadingLabel?: never }
+		| { loading: boolean; loadingLabel: ReactNode }
+	);
 
 export function Button({
 	variant,
@@ -74,16 +77,19 @@ export function Button({
 		>
 			<span
 				aria-hidden={loading || undefined}
-				className={`col-start-1 row-start-1 flex items-center gap-space-2 ${loading ? "invisible" : ""}`}
+				className={`${stacked} ${loading ? "invisible" : ""}`}
 			>
 				{LeadingIcon && <LeadingIcon aria-hidden size={20} />}
 				{children}
 			</span>
-			{loading && (
-				<span className="col-start-1 row-start-1 flex items-center gap-space-2">
+			{loadingLabel !== undefined && (
+				<span
+					aria-hidden={!loading || undefined}
+					className={`${stacked} ${loading ? "" : "invisible"}`}
+				>
 					<span
 						aria-hidden
-						className="size-5 animate-spin rounded-full border-2 border-current border-r-transparent"
+						className="size-5 animate-spin rounded-full border-2 border-current border-r-transparent motion-reduce:animate-spin-slow"
 					/>
 					{loadingLabel}
 				</span>
