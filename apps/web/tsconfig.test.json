@@ -8,6 +8,7 @@
 		"src/**/*.test.tsx",
 		"src/env.d.ts",
 		"test",
+		"scripts",
 		"vite.config.ts",
 		"lingui.config.ts"
 	],

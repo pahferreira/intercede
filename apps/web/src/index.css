@@ -62,6 +62,7 @@
 
 	--control-md: 44px;
 	--control-lg: 52px;
+	--icon: 20px;
 	--column-form: 560px;
 	--column-chat: 720px;
 
@@ -95,6 +96,8 @@
 	--blur-*: initial;
 	--container-*: initial;
 	--breakpoint-*: initial;
+	--spacing: initial;
+	--spacing-*: initial;
 
 	--breakpoint-md: 768px;
 
@@ -122,6 +125,7 @@
 	--font-display: var(--font-display);
 	--font-text: var(--font-text);
 
+	--spacing-0: 0px;
 	--spacing-space-1: var(--space-1);
 	--spacing-space-2: var(--space-2);
 	--spacing-space-3: var(--space-3);
@@ -132,6 +136,7 @@
 	--spacing-space-8: var(--space-8);
 	--spacing-control-md: var(--control-md);
 	--spacing-control-lg: var(--control-lg);
+	--spacing-icon: var(--icon);
 
 	--container-column-form: var(--column-form);
 	--container-column-chat: var(--column-chat);
