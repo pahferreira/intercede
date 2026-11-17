@@ -21,6 +21,8 @@ import lockupOnDark from "../assets/logos/intercede-lockup-on-dark.svg";
 import lockupOnLight from "../assets/logos/intercede-lockup-on-light.svg";
 import markOnDark from "../assets/logos/intercede-mark-on-dark.svg";
 import markOnLight from "../assets/logos/intercede-mark-on-light.svg";
+import { Button } from "../ui/button";
+import { Link } from "../ui/link";
 
 const colours = [
 	{ name: "violet", className: "bg-violet" },
@@ -135,6 +137,8 @@ const faithIcons = [
 	{ name: "IconHeartHandshake", Icon: IconHeartHandshake },
 ] as const;
 
+const buttonVariants = ["primary", "secondary"] as const;
+
 function Section({ title, children }: { title: string; children: ReactNode }) {
 	return (
 		<section className="flex flex-col gap-space-4">
@@ -197,6 +201,56 @@ export function DesignSystem() {
 				<IconGrid icons={interfaceIcons} />
 				<h3 className="text-label">Faith</h3>
 				<IconGrid icons={faithIcons} />
+			</Section>
+
+			<Section title="Button">
+				<p className="text-small text-ivory-muted">
+					Hover lifts 1px (none with reduced motion), press darkens, Tab shows
+					the focus ring.
+				</p>
+				{buttonVariants.map((variant) => (
+					<div key={variant} className="flex flex-col gap-space-4">
+						<h3 className="text-label">{variant}</h3>
+						<div className="flex flex-wrap items-end gap-space-4">
+							<Token name={`${variant} md`}>
+								<Button variant={variant}>Submit</Button>
+							</Token>
+							<Token name={`${variant} lg`}>
+								<Button variant={variant} size="lg">
+									I commit!
+								</Button>
+							</Token>
+							<Token name={`${variant} icon`}>
+								<Button variant={variant} icon={IconCopy}>
+									Copy link
+								</Button>
+							</Token>
+							<Token name={`${variant} loading`}>
+								<Button variant={variant} loading loadingLabel="Submitting">
+									Submit
+								</Button>
+							</Token>
+							<Token name={`${variant} disabled`}>
+								<Button variant={variant} disabled>
+									Start
+								</Button>
+							</Token>
+						</div>
+						<Token name={`${variant} block`}>
+							<Button variant={variant} size="lg" block>
+								Pray for someone too
+							</Button>
+						</Token>
+					</div>
+				))}
+			</Section>
+
+			<Section title="Link">
+				<Token name="link">
+					<p>
+						<Link to="/design-system">Ask for prayer</Link>
+					</p>
+				</Token>
 			</Section>
 
 			<Section title="Colour">

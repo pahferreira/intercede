@@ -1,6 +1,20 @@
 import { expect, test } from "bun:test";
+import {
+	createMemoryHistory,
+	createRootRoute,
+	createRouter,
+	RouterProvider,
+} from "@tanstack/react-router";
 import { render, screen } from "@testing-library/react";
 import { DesignSystem } from "./design-system";
+
+function renderDesignSystem() {
+	const router = createRouter({
+		routeTree: createRootRoute({ component: DesignSystem }),
+		history: createMemoryHistory({ initialEntries: ["/design-system"] }),
+	});
+	render(<RouterProvider router={router} />);
+}
 
 test.each([
 	"violet",
@@ -64,8 +78,21 @@ test.each([
 	"IconFlame",
 	"IconPray",
 	"IconHeartHandshake",
-])("shows the %s token", (name) => {
-	render(<DesignSystem />);
+	"primary md",
+	"primary lg",
+	"primary icon",
+	"primary loading",
+	"primary disabled",
+	"primary block",
+	"secondary md",
+	"secondary lg",
+	"secondary icon",
+	"secondary loading",
+	"secondary disabled",
+	"secondary block",
+	"link",
+])("shows the %s token", async (name) => {
+	renderDesignSystem();
 
-	expect(screen.getByRole("figure", { name })).toBeDefined();
+	expect(await screen.findByRole("figure", { name })).toBeDefined();
 });
