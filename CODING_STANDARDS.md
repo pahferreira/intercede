@@ -30,10 +30,15 @@ Judgement rules for review. Biome, tsc and dependency-cruiser enforce the mechan
 
 - Write a comment only when the code cannot carry the reason: a workaround, an external constraint, a non-obvious invariant. One line.
 
+## Styling
+
+- `apps/web` styles come from the design system theme in `apps/web/src/index.css`: no arbitrary colour, font, size, shadow or radius values (`text-[15px]`, `bg-[#fff]`, inline `style`).
+- Bordered controls use `border-2`.
+
 ## Naming
 
 - Domain names use the terms in `GLOSSARY.md`.
 
 ## Language
 
-- Identifiers, docs and source copy are in English. Visitor-facing copy goes through Lingui with `en` as the source locale, and every message ships with its `pt-BR` translation in the same change, as polished as the English.
+- Identifiers, docs and source copy are in English. Visitor-facing copy goes through Lingui with `en` as the source locale, and every message ships with its `pt-BR` translation in the same change, as polished as the English. The dev-only `/design-system` route's own labels are exempt.

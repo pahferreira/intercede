@@ -22,6 +22,7 @@ Agreed test seams, so a TDD run without a human in the loop uses these instead o
 - **Lingui in tests:** `bun test` skips Vite plugins, so `apps/web/test/lingui-plugin.ts` compiles Lingui macros and `.po` catalogs for the test run. Keep it in step with the Lingui settings in `vite.config.ts`.
 - **Screens:** render `<App>` with Testing Library, with an `hc` client built from the real app (`createApiClient(app.request)`, where `app = createApp({ ... })` from `@intercede/api/testing` with its ports stubbed, e.g. `isDatabaseReachable: async () => true`) and a `createMemoryHistory` at the path under test. Set the language with `switchLocale` before rendering.
 - **Assertions:** what the Visitor sees (`screen.findByText`, roles), in both `en` and `pt-BR` whenever copy is involved.
+- **Components:** render the component directly with Testing Library and assert its behaviour through roles and visible text, as `apps/web/src/routes/design-system.test.tsx` does. No snapshots and no assertions on class names or styles.
 - **Pure modules** (for example `i18n.ts`): test their exported functions directly, passing collaborators such as the catalog loader as arguments.
 
 ## Boundary rules

@@ -1,1 +1,258 @@
 @import "tailwindcss";
+
+@font-face {
+	font-family: "Commissioner";
+	src: url("./assets/fonts/Commissioner-Flair-Variable.woff2") format("woff2");
+	font-weight: 100 900;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "Onest";
+	src: url("./assets/fonts/Onest-Variable.woff2") format("woff2");
+	font-weight: 100 900;
+	font-style: normal;
+	font-display: swap;
+}
+
+:root {
+	--violet: #2b2140;
+	--violet-raised: #372a52;
+	--violet-sunken: #221a33;
+	--line: #4a3c6b;
+	--line-strong: #8a7bae;
+	--ivory: #fbf5e6;
+	--ivory-muted: #c2b8d4;
+	--ivory-subtle: #a498bc;
+	--ivory-tint: #fbf5e614;
+	--ivory-tint-strong: #fbf5e629;
+	--flame: #ffb627;
+	--flame-hover: #ffc453;
+	--flame-pressed: #e9a115;
+	--flame-tint: #ffb62722;
+	--on-flame: var(--violet);
+	--on-ivory: var(--violet);
+	--success: #8fd6a8;
+	--notice: #9cc8f0;
+	--danger: #ff9a8c;
+	--focus-ring: var(--ivory);
+
+	--font-display:
+		"Commissioner", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+		sans-serif;
+	--font-text:
+		"Onest", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+	--flair: 100;
+
+	--space-1: 4px;
+	--space-2: 8px;
+	--space-3: 12px;
+	--space-4: 16px;
+	--space-5: 24px;
+	--space-6: 32px;
+	--space-7: 48px;
+	--space-8: 72px;
+
+	--radius-sm: 6px;
+	--radius-md: 12px;
+	--radius-lg: 18px;
+
+	--border: 2px;
+
+	--control-md: 44px;
+	--control-lg: 52px;
+	--column-form: 560px;
+	--column-chat: 720px;
+
+	--shadow-sm: 0 1px 2px rgba(14, 8, 26, 0.32), 0 2px 6px rgba(14, 8, 26, 0.24);
+	--shadow-md:
+		0 2px 4px rgba(14, 8, 26, 0.3), 0 10px 24px rgba(14, 8, 26, 0.38);
+	--shadow-lg:
+		0 4px 8px rgba(14, 8, 26, 0.3), 0 24px 56px rgba(14, 8, 26, 0.48);
+	--shadow-flame: 0 6px 22px rgba(255, 182, 39, 0.28);
+
+	--duration-fast: 120ms;
+	--duration-base: 200ms;
+	--duration-slow: 320ms;
+
+	--ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+	--ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+@theme inline reference {
+	--color-*: initial;
+	--font-*: initial;
+	--font-weight-*: initial;
+	--text-*: initial;
+	--shadow-*: initial;
+	--inset-shadow-*: initial;
+	--drop-shadow-*: initial;
+	--text-shadow-*: initial;
+	--ease-*: initial;
+	--animate-*: initial;
+	--radius-*: initial;
+	--blur-*: initial;
+	--container-*: initial;
+	--breakpoint-*: initial;
+
+	--breakpoint-md: 768px;
+
+	--color-violet: var(--violet);
+	--color-violet-raised: var(--violet-raised);
+	--color-violet-sunken: var(--violet-sunken);
+	--color-line: var(--line);
+	--color-line-strong: var(--line-strong);
+	--color-ivory: var(--ivory);
+	--color-ivory-muted: var(--ivory-muted);
+	--color-ivory-subtle: var(--ivory-subtle);
+	--color-ivory-tint: var(--ivory-tint);
+	--color-ivory-tint-strong: var(--ivory-tint-strong);
+	--color-flame: var(--flame);
+	--color-flame-hover: var(--flame-hover);
+	--color-flame-pressed: var(--flame-pressed);
+	--color-flame-tint: var(--flame-tint);
+	--color-on-flame: var(--on-flame);
+	--color-on-ivory: var(--on-ivory);
+	--color-success: var(--success);
+	--color-notice: var(--notice);
+	--color-danger: var(--danger);
+	--color-focus-ring: var(--focus-ring);
+
+	--font-display: var(--font-display);
+	--font-text: var(--font-text);
+
+	--spacing-space-1: var(--space-1);
+	--spacing-space-2: var(--space-2);
+	--spacing-space-3: var(--space-3);
+	--spacing-space-4: var(--space-4);
+	--spacing-space-5: var(--space-5);
+	--spacing-space-6: var(--space-6);
+	--spacing-space-7: var(--space-7);
+	--spacing-space-8: var(--space-8);
+	--spacing-control-md: var(--control-md);
+	--spacing-control-lg: var(--control-lg);
+
+	--container-column-form: var(--column-form);
+	--container-column-chat: var(--column-chat);
+
+	--radius-sm: var(--radius-sm);
+	--radius-md: var(--radius-md);
+	--radius-lg: var(--radius-lg);
+
+	--shadow-sm: var(--shadow-sm);
+	--shadow-md: var(--shadow-md);
+	--shadow-lg: var(--shadow-lg);
+	--shadow-flame: var(--shadow-flame);
+
+	--transition-duration-fast: var(--duration-fast);
+	--transition-duration-base: var(--duration-base);
+	--transition-duration-slow: var(--duration-slow);
+
+	--ease-out: var(--ease-out);
+	--ease-in-out: var(--ease-in-out);
+
+	--text-display-xl: 64px;
+	--text-display-xl--line-height: 68px;
+	--text-display-xl--font-weight: 700;
+	--text-display-xl--letter-spacing: -0.02em;
+	--text-display: 44px;
+	--text-display--line-height: 48px;
+	--text-display--font-weight: 700;
+	--text-display--letter-spacing: -0.02em;
+	--text-eyebrow: 17px;
+	--text-eyebrow--line-height: 24px;
+	--text-eyebrow--font-weight: 500;
+	--text-eyebrow--letter-spacing: 0;
+	--text-title: 28px;
+	--text-title--line-height: 34px;
+	--text-title--font-weight: 600;
+	--text-title--letter-spacing: -0.01em;
+	--text-heading: 21px;
+	--text-heading--line-height: 28px;
+	--text-heading--font-weight: 600;
+	--text-heading--letter-spacing: 0;
+	--text-body-lg: 18px;
+	--text-body-lg--line-height: 28px;
+	--text-body-lg--font-weight: 400;
+	--text-body-lg--letter-spacing: 0;
+	--text-body: 16px;
+	--text-body--line-height: 24px;
+	--text-body--font-weight: 400;
+	--text-body--letter-spacing: 0;
+	--text-label: 16px;
+	--text-label--line-height: 20px;
+	--text-label--font-weight: 700;
+	--text-label--letter-spacing: 0;
+	--text-small: 14px;
+	--text-small--line-height: 20px;
+	--text-small--font-weight: 450;
+	--text-small--letter-spacing: 0;
+	--text-caption: 12px;
+	--text-caption--line-height: 16px;
+	--text-caption--font-weight: 700;
+	--text-caption--letter-spacing: 0.04em;
+
+	--default-font-family: var(--font-text);
+	--default-mono-font-family: var(--font-text);
+}
+
+@theme inline {
+	--default-transition-duration: var(--duration-base);
+	--default-transition-timing-function: var(--ease-out);
+}
+
+@utility text-display-xl {
+	font-family: var(--font-display);
+	font-variation-settings: "FLAR" var(--flair);
+}
+
+@utility text-display {
+	font-family: var(--font-display);
+	font-variation-settings: "FLAR" var(--flair);
+}
+
+@utility text-title {
+	font-family: var(--font-display);
+	font-variation-settings: "FLAR" var(--flair);
+}
+
+@utility text-heading {
+	font-family: var(--font-display);
+	font-variation-settings: "FLAR" var(--flair);
+}
+
+@utility text-eyebrow {
+	font-family: var(--font-text);
+}
+
+@utility text-body-lg {
+	font-family: var(--font-text);
+}
+
+@utility text-body {
+	font-family: var(--font-text);
+}
+
+@utility text-label {
+	font-family: var(--font-text);
+}
+
+@utility text-small {
+	font-family: var(--font-text);
+}
+
+@utility text-caption {
+	font-family: var(--font-text);
+}
+
+@layer base {
+	body {
+		@apply bg-violet text-body text-ivory;
+	}
+
+	:focus-visible {
+		outline: var(--border) solid var(--focus-ring);
+		outline-offset: 2px;
+	}
+}
