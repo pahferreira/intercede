@@ -21,7 +21,7 @@ export function LanguageToggle() {
 						aria-label={languages[locale].name}
 						aria-pressed={selected}
 						onClick={() => switchLocale(locale)}
-						className={`border-2 border-line-strong px-space-4 text-small first:rounded-l-md last:rounded-r-md not-first:border-l-0 font-bold transition-colors duration-fast ease-out ${
+						className={`border-2 border-line-strong px-space-4 text-label first:rounded-l-md last:rounded-r-md not-first:border-l-0 transition-colors duration-fast ease-out ${
 							selected
 								? "bg-ivory text-on-ivory"
 								: "text-ivory-muted hover:bg-ivory-tint"
