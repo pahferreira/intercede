@@ -37,11 +37,9 @@ Judgement rules for review. Biome, tsc and dependency-cruiser enforce the mechan
 
 ## UI components
 
-These rules apply to the shared components in `apps/web/src/ui/`.
+Rules for the shared components in `apps/web/src/ui/`. Biome enforces PascalCase file names and `clsx` class composition there.
 
-- Each component lives in a PascalCase file named after it (`Button.tsx`, `Button.test.tsx`).
 - Read props through `props.x`. Destructure only the props that need a default value.
-- Compose class names with `clsx`, not template strings or array joins.
 
 ## Naming
 

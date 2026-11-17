@@ -1,20 +1,7 @@
 import { expect, test } from "bun:test";
-import {
-	createMemoryHistory,
-	createRootRoute,
-	createRouter,
-	RouterProvider,
-} from "@tanstack/react-router";
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
+import { renderWithRouter } from "../../test/render-with-router";
 import { DesignSystem } from "./design-system";
-
-function renderDesignSystem() {
-	const router = createRouter({
-		routeTree: createRootRoute({ component: DesignSystem }),
-		history: createMemoryHistory({ initialEntries: ["/design-system"] }),
-	});
-	render(<RouterProvider router={router} />);
-}
 
 test.each([
 	"violet",
@@ -92,7 +79,7 @@ test.each([
 	"secondary block",
 	"link",
 ])("shows the %s token", async (name) => {
-	renderDesignSystem();
+	renderWithRouter(<DesignSystem />);
 
 	expect(await screen.findByRole("figure", { name })).toBeDefined();
 });

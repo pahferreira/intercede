@@ -1,0 +1,9 @@
+language js
+
+`className={$value}` where {
+	$value <: or {
+		JsTemplateExpression(),
+		`$_.join($_)`
+	},
+	register_diagnostic(span=$value, message="Compose UI component classes with clsx.")
+}
