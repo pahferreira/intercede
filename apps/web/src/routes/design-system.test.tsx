@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
+import { renderWithRouter } from "../../test/render-with-router";
 import { DesignSystem } from "./design-system";
 
 test.each([
@@ -64,8 +65,21 @@ test.each([
 	"IconFlame",
 	"IconPray",
 	"IconHeartHandshake",
-])("shows the %s token", (name) => {
-	render(<DesignSystem />);
+	"primary md",
+	"primary lg",
+	"primary icon",
+	"primary loading",
+	"primary disabled",
+	"primary block",
+	"secondary md",
+	"secondary lg",
+	"secondary icon",
+	"secondary loading",
+	"secondary disabled",
+	"secondary block",
+	"link",
+])("shows the %s token", async (name) => {
+	renderWithRouter(<DesignSystem />);
 
-	expect(screen.getByRole("figure", { name })).toBeDefined();
+	expect(await screen.findByRole("figure", { name })).toBeDefined();
 });

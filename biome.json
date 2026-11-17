@@ -50,5 +50,23 @@
 				"organizeImports": "on"
 			}
 		}
-	}
+	},
+	"overrides": [
+		{
+			"includes": ["apps/web/src/ui/**"],
+			"plugins": ["./biome-plugins/ui-classname-clsx.grit"],
+			"linter": {
+				"rules": {
+					"style": {
+						"useFilenamingConvention": {
+							"level": "error",
+							"options": {
+								"filenameCases": ["PascalCase"]
+							}
+						}
+					}
+				}
+			}
+		}
+	]
 }

@@ -35,6 +35,12 @@ Judgement rules for review. Biome, tsc and dependency-cruiser enforce the mechan
 - `apps/web` styles come from the design system theme in `apps/web/src/index.css`: no arbitrary colour, font, size, shadow or radius values (`text-[15px]`, `bg-[#fff]`, inline `style`).
 - Bordered controls use `border-2`.
 
+## UI components
+
+Rules for the shared components in `apps/web/src/ui/`. Biome enforces PascalCase file names and `clsx` class composition there.
+
+- Read props through `props.x`. Destructure only the props that need a default value.
+
 ## Naming
 
 - Domain names use the terms in `GLOSSARY.md`.

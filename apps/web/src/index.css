@@ -200,6 +200,15 @@
 @theme inline {
 	--default-transition-duration: var(--duration-base);
 	--default-transition-timing-function: var(--ease-out);
+
+	--animate-spin: spin 800ms linear infinite;
+	--animate-spin-slow: spin 2400ms linear infinite;
+
+	@keyframes spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
 }
 
 @utility text-display-xl {
