@@ -11,9 +11,11 @@ type AppProps = {
 	history?: RouterHistory;
 };
 
-export function App({ client, history }: AppProps) {
+export function App(props: AppProps) {
 	const [queryClient] = useState(() => new QueryClient());
-	const [router] = useState(() => createAppRouter({ client }, history));
+	const [router] = useState(() =>
+		createAppRouter({ client: props.client }, props.history),
+	);
 
 	return (
 		<I18nProvider i18n={i18n}>

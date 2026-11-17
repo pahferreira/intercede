@@ -1,0 +1,22 @@
+language js
+
+or {
+	JsFunctionDeclaration(id=$name, parameters=$params) where {
+		$name <: r"^[A-Z].*",
+		$params <: contains JsObjectBindingPattern(),
+		register_diagnostic(span=$params, message="Take props as `props` and read them with `props.x`; destructure only props that need a default.")
+	},
+	JsVariableDeclarator(id=$name, initializer=JsInitializerClause(expression=JsArrowFunctionExpression(parameters=$params))) where {
+		$name <: r"^[A-Z].*",
+		$params <: contains JsObjectBindingPattern(),
+		register_diagnostic(span=$params, message="Take props as `props` and read them with `props.x`; destructure only props that need a default.")
+	},
+	JsVariableDeclarator(id=$pattern, initializer=JsInitializerClause(expression=`props`)) where {
+		$pattern <: contains or {
+			JsObjectBindingPatternShorthandProperty(init=.),
+			JsObjectBindingPatternProperty(init=.),
+			JsObjectBindingPatternRest()
+		},
+		register_diagnostic(span=$pattern, message="Destructure from `props` only to give a default; read the rest with `props.x`.")
+	}
+}

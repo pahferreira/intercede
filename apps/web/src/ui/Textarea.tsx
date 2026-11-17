@@ -15,24 +15,20 @@ type TextareaProps = {
 	submitting?: boolean;
 };
 
-export function Textarea({
-	label,
-	labelStyle = "label",
-	placeholder,
-	value,
-	onChange,
-	minLength,
-	maxLength,
-	hint,
-	moderationHints = [],
-	submitting = false,
-}: TextareaProps) {
+export function Textarea(props: TextareaProps) {
+	const {
+		labelStyle = "label",
+		moderationHints = [],
+		submitting = false,
+	} = props;
 	const id = useId();
 	const hintId = `${id}-hint`;
 	const moderationHintsId = `${id}-moderation-hints`;
 	const rejected = moderationHints.length > 0;
-	const outsideLimits = value.length < minLength || value.length > maxLength;
-	const describedBy = [hint && hintId, rejected && moderationHintsId]
+	const outsideLimits =
+		props.value.length < props.minLength ||
+		props.value.length > props.maxLength;
+	const describedBy = [props.hint && hintId, rejected && moderationHintsId]
 		.filter(Boolean)
 		.join(" ");
 
@@ -42,13 +38,13 @@ export function Textarea({
 				htmlFor={id}
 				className={labelStyle === "title" ? "text-title" : "text-label"}
 			>
-				{label}
+				{props.label}
 			</label>
 			<textarea
 				id={id}
-				placeholder={placeholder}
-				value={value}
-				onChange={(event) => onChange(event.target.value)}
+				placeholder={props.placeholder}
+				value={props.value}
+				onChange={(event) => props.onChange(event.target.value)}
 				readOnly={submitting}
 				aria-invalid={rejected || undefined}
 				aria-describedby={describedBy || undefined}
@@ -56,7 +52,7 @@ export function Textarea({
 			/>
 			<div className="flex justify-between gap-space-4 text-small">
 				<span id={hintId} className="text-ivory-subtle">
-					{hint}
+					{props.hint}
 				</span>
 				<span
 					className={clsx(
@@ -64,7 +60,7 @@ export function Textarea({
 						outsideLimits ? "text-notice" : "text-ivory-muted",
 					)}
 				>
-					{value.length} / {maxLength}
+					{props.value.length} / {props.maxLength}
 				</span>
 			</div>
 			{rejected && (

@@ -165,32 +165,32 @@ const textareaStates = [
 	},
 ] as const;
 
-function Section({ title, children }: { title: string; children: ReactNode }) {
+function Section(props: { title: string; children: ReactNode }) {
 	return (
 		<section className="flex flex-col gap-space-4">
-			<h2 className="text-heading">{title}</h2>
-			{children}
+			<h2 className="text-heading">{props.title}</h2>
+			{props.children}
 		</section>
 	);
 }
 
-function Token({ name, children }: { name: string; children: ReactNode }) {
+function Token(props: { name: string; children: ReactNode }) {
 	return (
-		<figure aria-label={name} className="flex flex-col gap-space-2">
-			{children}
-			<figcaption className="text-small text-ivory-muted">{name}</figcaption>
+		<figure aria-label={props.name} className="flex flex-col gap-space-2">
+			{props.children}
+			<figcaption className="text-small text-ivory-muted">
+				{props.name}
+			</figcaption>
 		</figure>
 	);
 }
 
-function IconGrid({
-	icons,
-}: {
+function IconGrid(props: {
 	icons: ReadonlyArray<{ name: string; Icon: Icon }>;
 }) {
 	return (
 		<div className="grid grid-cols-2 gap-space-4 md:grid-cols-4">
-			{icons.map(({ name, Icon }) => (
+			{props.icons.map(({ name, Icon }) => (
 				<Token key={name} name={name}>
 					<Icon aria-hidden />
 				</Token>
