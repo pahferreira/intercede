@@ -25,7 +25,7 @@ export function SuggestionCard({
 	const { t } = useLingui();
 	const textId = useId();
 	const textRef = useRef<HTMLParagraphElement>(null);
-	const [clamps, setClamps] = useState(false);
+	const [overflows, setOverflows] = useState(false);
 	const [expanded, setExpanded] = useState(false);
 
 	useLayoutEffect(() => {
@@ -33,7 +33,7 @@ export function SuggestionCard({
 		if (!element) {
 			return;
 		}
-		const measure = () => setClamps(overflowsClamp(element));
+		const measure = () => setOverflows(overflowsClamp(element));
 		measure();
 		const observer = new ResizeObserver(measure);
 		observer.observe(element);
@@ -58,21 +58,20 @@ export function SuggestionCard({
 				/>
 				<IconCheck
 					aria-hidden
-					size={20}
-					className="pointer-events-none absolute scale-0 text-on-flame transition-transform duration-fast ease-out peer-checked:scale-100 motion-reduce:transition-none"
+					className="pointer-events-none absolute size-space-4 scale-0 text-on-flame transition-transform duration-fast ease-out peer-checked:scale-100 motion-reduce:transition-none"
 				/>
 			</label>
 			<div className="flex min-w-0 flex-1 flex-col gap-space-2">
 				<p
 					id={textId}
 					ref={textRef}
-					className={`overflow-hidden text-body-lg transition-[max-height] duration-slow ease-in-out motion-reduce:transition-none ${
+					className={`overflow-hidden text-body-lg transition-[max-height] [interpolate-size:allow-keywords] duration-slow ease-in-out motion-reduce:transition-none ${
 						expanded ? "max-h-max" : "max-h-clamp-3"
 					}`}
 				>
 					{text}
 				</p>
-				{clamps && (
+				{overflows && (
 					<button
 						type="button"
 						aria-expanded={expanded}
