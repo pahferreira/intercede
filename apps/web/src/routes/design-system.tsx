@@ -15,7 +15,7 @@ import {
 	IconWifiOff,
 	IconX,
 } from "@tabler/icons-react";
-import type { ReactNode } from "react";
+import { type ComponentProps, type ReactNode, useState } from "react";
 import appIcon from "../assets/logos/intercede-app-icon.svg";
 import lockupOnDark from "../assets/logos/intercede-lockup-on-dark.svg";
 import lockupOnLight from "../assets/logos/intercede-lockup-on-light.svg";
@@ -23,6 +23,7 @@ import markOnDark from "../assets/logos/intercede-mark-on-dark.svg";
 import markOnLight from "../assets/logos/intercede-mark-on-light.svg";
 import { Button } from "../ui/Button";
 import { Link } from "../ui/Link";
+import { Textarea } from "../ui/textarea";
 
 const colours = [
 	{ name: "violet", className: "bg-violet" },
@@ -139,6 +140,29 @@ const faithIcons = [
 
 const buttonVariants = ["primary", "secondary"] as const;
 
+const textareaStates = [
+	{ name: "textarea-rest", value: "" },
+	{
+		name: "textarea-filled",
+		value: "Please pray for my mother's surgery on Thursday.",
+	},
+	{ name: "textarea-outside-limits", value: "Pray" },
+	{
+		name: "textarea-submitting",
+		value: "Please pray for my mother's surgery on Thursday.",
+		submitting: true,
+	},
+	{
+		name: "textarea-rejected",
+		value:
+			"Please pray for João Carlos Silva, he lives at Rua das Flores 120 and is very sick.",
+		hints: [
+			"Use initials instead of full names.",
+			"Leave out addresses and contact details.",
+		],
+	},
+] as const;
+
 function Section({ title, children }: { title: string; children: ReactNode }) {
 	return (
 		<section className="flex flex-col gap-space-4">
@@ -171,6 +195,15 @@ function IconGrid({
 			))}
 		</div>
 	);
+}
+
+function TextareaDemo(
+	props: Omit<ComponentProps<typeof Textarea>, "onChange" | "value"> & {
+		value: string;
+	},
+) {
+	const [value, setValue] = useState(props.value);
+	return <Textarea {...props} value={value} onChange={setValue} />;
 }
 
 export function DesignSystem() {
@@ -251,6 +284,27 @@ export function DesignSystem() {
 						<Link to="/design-system">Ask for prayer</Link>
 					</p>
 				</Token>
+			</Section>
+
+			<Section title="Textarea">
+				<p className="text-small text-ivory-muted">
+					Hover or focus a field to see those states.
+				</p>
+				<div className="flex flex-col gap-space-5">
+					{textareaStates.map(({ name, ...state }) => (
+						<Token key={name} name={name}>
+							<TextareaDemo
+								label="Submit your prayer intention"
+								labelStyle="title"
+								placeholder="Share what you'd like others to pray for. No names needed."
+								hint="Anonymous. 10 to 1000 characters."
+								minLength={10}
+								maxLength={1000}
+								{...state}
+							/>
+						</Token>
+					))}
+				</div>
 			</Section>
 
 			<Section title="Colour">
