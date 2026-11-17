@@ -82,7 +82,7 @@ export function Button({
 				>
 					<span
 						aria-hidden
-						className="size-5 animate-spin rounded-full border-2 border-current border-r-transparent motion-reduce:animate-spin-slow"
+						className="size-icon animate-spin rounded-full border-2 border-current border-r-transparent motion-reduce:animate-spin-slow"
 					/>
 					{props.loadingLabel}
 				</span>
