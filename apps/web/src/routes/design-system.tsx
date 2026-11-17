@@ -162,7 +162,7 @@ function IconGrid({
 		<div className="grid grid-cols-2 gap-space-4 md:grid-cols-4">
 			{icons.map(({ name, Icon }) => (
 				<Token key={name} name={name}>
-					<Icon size={24} stroke={2} aria-hidden />
+					<Icon aria-hidden />
 				</Token>
 			))}
 		</div>
