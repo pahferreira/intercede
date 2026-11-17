@@ -102,7 +102,7 @@ test("the card speaks Portuguese", async () => {
 
 	expect(
 		screen.getByRole("checkbox", {
-			name: "Comprometer-me a orar por esta intenção",
+			name: "Comprometer-me a rezar por esta intenção",
 		}),
 	).toBeDefined();
 	fireEvent.click(screen.getByRole("button", { name: "Mostrar mais" }));

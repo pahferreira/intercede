@@ -66,7 +66,7 @@ test("the meta line speaks Portuguese", async () => {
 	expect(screen.getByText("Publicada em 12 de nov. de 2026")).toBeDefined();
 	expect(
 		screen.getByText(
-			textContent("7 pessoas se comprometeram a orar por esta intenção"),
+			textContent("7 pessoas se comprometeram a rezar por esta intenção"),
 		),
 	).toBeDefined();
 	expect(
@@ -79,7 +79,7 @@ test("one commitment reads in the Portuguese singular", async () => {
 
 	expect(
 		screen.getByText(
-			textContent("1 pessoa se comprometeu a orar por esta intenção"),
+			textContent("1 pessoa se comprometeu a rezar por esta intenção"),
 		),
 	).toBeDefined();
 });
@@ -89,7 +89,7 @@ test("no commitments read in the Portuguese plural", async () => {
 
 	expect(
 		screen.getByText(
-			textContent("0 pessoas se comprometeram a orar por esta intenção"),
+			textContent("0 pessoas se comprometeram a rezar por esta intenção"),
 		),
 	).toBeDefined();
 });
