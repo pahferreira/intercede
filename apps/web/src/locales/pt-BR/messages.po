@@ -12,7 +12,7 @@ msgstr ""
 msgid "{0, plural, one {<0><1># person</1> committed to pray for this</0>} other {<2><3># people</3> committed to pray for this</2>}}"
 msgstr "{0, plural, =0 {<2><3># pessoas</3> se comprometeram a rezar por esta intenção</2>} one {<0><1># pessoa</1> se comprometeu a rezar por esta intenção</0>} other {<2><3># pessoas</3> se comprometeram a rezar por esta intenção</2>}}"
 
-#: src/routes/submit.tsx:91
+#: src/routes/submit.tsx:44
 msgid "A place where you can share your faith around the world"
 msgstr "Um lugar para compartilhar sua fé com o mundo todo"
 
@@ -20,7 +20,7 @@ msgstr "Um lugar para compartilhar sua fé com o mundo todo"
 msgid "Ask for prayer"
 msgstr "Pedir oração"
 
-#: src/routes/submit.tsx:113
+#: src/routes/submit.tsx:66
 msgid "Between {minLength} and {maxLength} characters."
 msgstr "Entre {minLength} e {maxLength} caracteres."
 
@@ -36,7 +36,7 @@ msgstr "Compromisso"
 msgid "Follow-up"
 msgstr "Acompanhamento"
 
-#: src/routes/submit.tsx:74
+#: src/routes/submit.tsx:25
 msgid "Keep it respectful: leave out insults and offensive language."
 msgstr "Mantenha o respeito: não use insultos nem linguagem ofensiva."
 
@@ -44,9 +44,17 @@ msgstr "Mantenha o respeito: não use insultos nem linguagem ofensiva."
 msgid "Language"
 msgstr "Idioma"
 
-#: src/routes/submit.tsx:75
+#: src/routes/submit.tsx:26
 msgid "Leave out links, ads and repeated text."
 msgstr "Não inclua links, anúncios nem texto repetido."
+
+#: src/ui/Message.tsx:75
+msgid "Looking for intentions…"
+msgstr "Procurando intenções…"
+
+#: src/ui/Message.tsx:44
+msgid "Not sent."
+msgstr "Não enviada."
 
 #: src/routes/pray.tsx:8
 msgid "Pray"
@@ -56,11 +64,19 @@ msgstr "Rezar"
 msgid "Published {published}"
 msgstr "Publicada em {published}"
 
+#: src/ui/StatusMessage.tsx:38
+msgid "Retry"
+msgstr "Tentar de novo"
+
 #: src/ui/MessageBox.tsx:60
 msgid "Send"
 msgstr "Enviar"
 
-#: src/routes/submit.tsx:76
+#: src/ui/Message.tsx:40
+msgid "Sending…"
+msgstr "Enviando…"
+
+#: src/routes/submit.tsx:27
 msgid "Share something you'd like others to pray for."
 msgstr "Compartilhe algo pelo qual você gostaria que outras pessoas orassem."
 
@@ -72,23 +88,23 @@ msgstr "Mostrar menos"
 msgid "Show more"
 msgstr "Mostrar mais"
 
-#: src/routes/submit.tsx:133
+#: src/routes/submit.tsx:86
 msgid "Skip"
 msgstr "Pular"
 
-#: src/routes/submit.tsx:128
+#: src/routes/submit.tsx:81
 msgid "Something went wrong. Please try again."
 msgstr "Algo deu errado. Tente novamente."
 
-#: src/routes/submit.tsx:142
+#: src/routes/submit.tsx:95
 msgid "Submit"
 msgstr "Enviar"
 
-#: src/routes/submit.tsx:102
+#: src/routes/submit.tsx:55
 msgid "Submit your prayer intention"
 msgstr "Envie sua intenção de oração"
 
-#: src/routes/submit.tsx:140
+#: src/routes/submit.tsx:93
 msgid "Submitting…"
 msgstr "Enviando…"
 
@@ -96,22 +112,22 @@ msgstr "Enviando…"
 msgid "This intention is no longer being suggested"
 msgstr "Esta intenção não está mais sendo sugerida"
 
-#: src/routes/submit.tsx:73
+#: src/routes/submit.tsx:24
 msgid "Use initials instead of full names, and leave out contact details."
 msgstr "Use iniciais em vez de nomes completos e não inclua dados de contato."
 
-#: src/routes/submit.tsx:120
+#: src/routes/submit.tsx:73
 msgid "We couldn't check your intention right now. Please try again in a moment."
 msgstr "Não conseguimos verificar sua intenção agora. Tente novamente em instantes."
 
-#: src/routes/submit.tsx:87
+#: src/routes/submit.tsx:38
 msgid "Welcome to"
 msgstr "Bem-vindo ao"
 
-#: src/routes/submit.tsx:112
+#: src/routes/submit.tsx:65
 msgid "Your intention can't be published yet:"
 msgstr "Sua intenção ainda não pode ser publicada:"
 
-#: src/routes/submit.tsx:105
+#: src/routes/submit.tsx:58
 msgid "Your prayer intention"
 msgstr "Sua intenção de oração"

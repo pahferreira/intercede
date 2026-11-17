@@ -97,6 +97,16 @@ test.each([
 	"message-box-scrolling",
 	"message-box-offline",
 	"message-box-search-limit",
+	"thread",
+	"user-prompt",
+	"user-prompt-sending",
+	"user-prompt-failed",
+	"assistant-reply",
+	"assistant-reply-streaming",
+	"searching-status",
+	"status-message-success",
+	"status-message-notice",
+	"status-message-danger",
 ])("shows the %s token", async (name) => {
 	await switchLocale("en");
 	renderWithRouter(
