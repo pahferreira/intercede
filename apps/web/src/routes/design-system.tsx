@@ -22,7 +22,9 @@ import lockupOnLight from "../assets/logos/intercede-lockup-on-light.svg";
 import markOnDark from "../assets/logos/intercede-mark-on-dark.svg";
 import markOnLight from "../assets/logos/intercede-mark-on-light.svg";
 import { Button } from "../ui/Button";
+import { IntentionCard } from "../ui/IntentionCard";
 import { Link } from "../ui/Link";
+import { SuggestionCard } from "../ui/SuggestionCard";
 import { Textarea } from "../ui/Textarea";
 
 const colours = [
@@ -165,6 +167,34 @@ const textareaStates = [
 	},
 ] as const;
 
+const suggestions = [
+	{
+		name: "suggestion",
+		text: "I lost my job last month and I have two kids. Pray that I find work soon and don't lose hope.",
+		whyNote:
+			"Fits because you asked to pray for people going through hard times.",
+		checked: false,
+	},
+	{
+		name: "suggestion-checked",
+		text: "Pray for my grandfather, who is lonely since my grandmother passed away.",
+		whyNote: "Fits because you mentioned grief in the family.",
+		checked: true,
+	},
+	{
+		name: "suggestion-long",
+		text: "Please pray for my mother, M., who has surgery on Thursday. She is afraid and so am I. Pray for the doctors' hands, for peace in her heart, and for our family to stay united while we wait at the hospital. We have been through a lot this year and I am tired.",
+		whyNote: "Fits because you mentioned a family member's health.",
+		checked: false,
+	},
+] as const;
+
+const intentions = [
+	{ name: "intention", commitments: 7, archived: false },
+	{ name: "intention-one-commitment", commitments: 1, archived: false },
+	{ name: "intention-archived", commitments: 12, archived: true },
+] as const;
+
 function Section(props: { title: string; children: ReactNode }) {
 	return (
 		<section className="flex flex-col gap-space-4">
@@ -206,6 +236,22 @@ function TextareaDemo(
 ) {
 	const [value, setValue] = useState(props.value);
 	return <Textarea {...props} value={value} onChange={setValue} />;
+}
+
+function SuggestionSample(props: {
+	text: string;
+	whyNote: string;
+	checked: boolean;
+}) {
+	const [checked, setChecked] = useState<boolean>(props.checked);
+	return (
+		<SuggestionCard
+			text={props.text}
+			whyNote={props.whyNote}
+			checked={checked}
+			onCheckedChange={setChecked}
+		/>
+	);
 }
 
 export function DesignSystem() {
@@ -303,6 +349,26 @@ export function DesignSystem() {
 								minLength={10}
 								maxLength={1000}
 								{...state}
+							/>
+						</Token>
+					))}
+				</div>
+			</Section>
+
+			<Section title="Card">
+				<div className="flex flex-col gap-space-3">
+					{suggestions.map(({ name, ...suggestion }) => (
+						<Token key={name} name={name}>
+							<SuggestionSample {...suggestion} />
+						</Token>
+					))}
+					{intentions.map(({ name, commitments, archived }) => (
+						<Token key={name} name={name}>
+							<IntentionCard
+								text="Pray for my brother R., who is far from God and far from home. That he feels loved wherever he is."
+								publishedAt={new Date(2026, 10, 12)}
+								commitments={commitments}
+								archived={archived}
 							/>
 						</Token>
 					))}
