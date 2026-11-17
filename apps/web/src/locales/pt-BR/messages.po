@@ -10,7 +10,7 @@ msgstr ""
 #. placeholder {0}: props.commitments
 #: src/ui/IntentionCard.tsx:21
 msgid "{0, plural, one {<0><1># person</1> committed to pray for this</0>} other {<2><3># people</3> committed to pray for this</2>}}"
-msgstr "{0, plural, =0 {<2><3># pessoas</3> se comprometeram a orar por esta intenção</2>} one {<0><1># pessoa</1> se comprometeu a orar por esta intenção</0>} other {<2><3># pessoas</3> se comprometeram a orar por esta intenção</2>}}"
+msgstr "{0, plural, =0 {<2><3># pessoas</3> se comprometeram a rezar por esta intenção</2>} one {<0><1># pessoa</1> se comprometeu a rezar por esta intenção</0>} other {<2><3># pessoas</3> se comprometeram a rezar por esta intenção</2>}}"
 
 #: src/routes/home.tsx:24
 msgid "API status: {status}"
@@ -26,7 +26,7 @@ msgstr "Verificando a API…"
 
 #: src/ui/SuggestionCard.tsx:51
 msgid "Commit to pray for this intention"
-msgstr "Comprometer-me a orar por esta intenção"
+msgstr "Comprometer-me a rezar por esta intenção"
 
 #: src/routes/committed.tsx:6
 msgid "Committed"
@@ -42,7 +42,7 @@ msgstr "Idioma"
 
 #: src/routes/pray.tsx:6
 msgid "Pray"
-msgstr "Orar"
+msgstr "Rezar"
 
 #: src/ui/IntentionCard.tsx:20
 msgid "Published {published}"
