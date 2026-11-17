@@ -42,6 +42,7 @@ jobs:
               - package.json
               - bun.lock
               - biome.json
+              - biome-plugins/**
               - tsconfig.base.json
             infra:
               - *ci

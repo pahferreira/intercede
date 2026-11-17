@@ -28,3 +28,5 @@ Agreed test seams, so a TDD run without a human in the loop uses these instead o
 ## Boundary rules
 
 - `.dependency-cruiser.cjs` rules are tested in `apps/api/src/boundaries.test.ts`, which cruises small fixture trees. Each rule gets a fixture that breaks it and the nearest legitimate shape that must still pass.
+- `biome-plugins/*.grit` rules are tested the same way in `apps/web/src/biome-plugins.test.ts`, which lints fixture files under the repo's `biome.json`.
+- `apps/web/src/design-system-classes.test.ts` fails on any Tailwind class in `apps/web/src` that the theme in `index.css` does not generate. A size the design system lacks gets a token there, never a default-scale class.
