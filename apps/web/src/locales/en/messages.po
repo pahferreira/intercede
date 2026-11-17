@@ -48,6 +48,10 @@ msgstr "Pray"
 msgid "Published {published}"
 msgstr "Published {published}"
 
+#: src/ui/MessageBox.tsx:60
+msgid "Send"
+msgstr "Send"
+
 #: src/ui/SuggestionCard.tsx:80
 msgid "Show less"
 msgstr "Show less"

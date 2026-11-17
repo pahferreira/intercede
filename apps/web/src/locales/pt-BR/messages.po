@@ -48,6 +48,10 @@ msgstr "Rezar"
 msgid "Published {published}"
 msgstr "Publicada em {published}"
 
+#: src/ui/MessageBox.tsx:60
+msgid "Send"
+msgstr "Enviar"
+
 #: src/ui/SuggestionCard.tsx:80
 msgid "Show less"
 msgstr "Mostrar menos"

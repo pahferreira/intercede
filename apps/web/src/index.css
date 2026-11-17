@@ -139,6 +139,7 @@
 	--spacing-control-lg: var(--control-lg);
 	--spacing-icon: var(--icon);
 	--spacing-field: var(--field);
+	--spacing-composer-max: 168px;
 
 	--container-column-form: var(--column-form);
 	--container-column-chat: var(--column-chat);
@@ -264,6 +265,10 @@
 
 @utility max-h-clamp-3 {
 	max-height: 3lh;
+}
+
+@utility pb-safe-* {
+	padding-bottom: calc(--value(--spacing-*) + env(safe-area-inset-bottom));
 }
 
 @layer base {
