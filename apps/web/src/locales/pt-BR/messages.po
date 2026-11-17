@@ -48,7 +48,7 @@ msgstr "Rezar"
 msgid "Published {published}"
 msgstr "Publicada em {published}"
 
-#: src/ui/message-box.tsx:64
+#: src/ui/MessageBox.tsx:60
 msgid "Send"
 msgstr "Enviar"
 

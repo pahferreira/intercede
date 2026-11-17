@@ -1,5 +1,6 @@
 import { useLingui } from "@lingui/react/macro";
 import { IconAlertCircle, IconArrowUp } from "@tabler/icons-react";
+import { clsx } from "clsx";
 import { type FormEvent, type KeyboardEvent, useId } from "react";
 
 type MessageBoxProps = {
@@ -10,22 +11,16 @@ type MessageBoxProps = {
 	disabledReason?: string;
 };
 
-export function MessageBox({
-	value,
-	onChange,
-	onSubmit,
-	placeholder,
-	disabledReason,
-}: MessageBoxProps) {
+export function MessageBox(props: MessageBoxProps) {
 	const { t } = useLingui();
 	const reasonId = useId();
-	const disabled = disabledReason !== undefined;
-	const canSend = !disabled && value.trim() !== "";
+	const disabled = props.disabledReason !== undefined;
+	const canSend = !disabled && props.value.trim() !== "";
 
 	function handleSubmit(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
 		if (canSend) {
-			onSubmit(value);
+			props.onSubmit(props.value);
 		}
 	}
 
@@ -44,18 +39,19 @@ export function MessageBox({
 		<div className="mx-auto w-full max-w-column-chat px-space-4 pb-safe-space-4 md:px-0 md:pb-safe-space-5">
 			<form
 				onSubmit={handleSubmit}
-				className={`flex items-end gap-space-2 rounded-lg border-2 border-line-strong bg-violet-raised py-space-2 pr-space-2 pl-space-4 transition motion-reduce:transition-none focus-within:border-ivory focus-within:ring-4 focus-within:ring-ivory-tint ${
-					disabled ? "opacity-70" : "shadow-md"
-				}`}
+				className={clsx(
+					"flex items-end gap-space-2 rounded-lg border-2 border-line-strong bg-violet-raised py-space-2 pr-space-2 pl-space-4 transition motion-reduce:transition-none focus-within:border-ivory focus-within:ring-4 focus-within:ring-ivory-tint",
+					disabled ? "opacity-70" : "shadow-md",
+				)}
 			>
 				<textarea
 					rows={1}
-					aria-label={placeholder}
+					aria-label={props.placeholder}
 					aria-describedby={disabled ? reasonId : undefined}
-					placeholder={placeholder}
-					value={value}
+					placeholder={props.placeholder}
+					value={props.value}
 					disabled={disabled}
-					onChange={(event) => onChange(event.target.value)}
+					onChange={(event) => props.onChange(event.target.value)}
 					onKeyDown={handleKeyDown}
 					className="field-sizing-content max-h-composer-max min-w-0 flex-1 resize-none overflow-y-auto bg-transparent py-space-2 text-body text-ivory placeholder:text-ivory-subtle focus-visible:outline-none disabled:cursor-not-allowed"
 				/>
@@ -74,7 +70,7 @@ export function MessageBox({
 					className="mt-space-2 flex items-start gap-space-2 text-small text-notice"
 				>
 					<IconAlertCircle aria-hidden size={20} className="shrink-0" />
-					{disabledReason}
+					{props.disabledReason}
 				</p>
 			)}
 		</div>

@@ -4,12 +4,9 @@ import { I18nProvider } from "@lingui/react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { useState } from "react";
 import { type Locale, switchLocale } from "../i18n";
-import { MessageBox } from "./message-box";
+import { MessageBox } from "./MessageBox";
 
-function Composer({
-	onSubmit,
-	disabledReason,
-}: {
+function Composer(props: {
 	onSubmit: (text: string) => void;
 	disabledReason?: string;
 }) {
@@ -18,9 +15,9 @@ function Composer({
 		<MessageBox
 			value={value}
 			onChange={setValue}
-			onSubmit={onSubmit}
+			onSubmit={props.onSubmit}
 			placeholder="Tell me more"
-			disabledReason={disabledReason}
+			disabledReason={props.disabledReason}
 		/>
 	);
 }

@@ -48,7 +48,7 @@ msgstr "Pray"
 msgid "Published {published}"
 msgstr "Published {published}"
 
-#: src/ui/message-box.tsx:64
+#: src/ui/MessageBox.tsx:60
 msgid "Send"
 msgstr "Send"
 

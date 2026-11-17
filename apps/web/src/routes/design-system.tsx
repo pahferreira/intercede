@@ -24,7 +24,7 @@ import markOnLight from "../assets/logos/intercede-mark-on-light.svg";
 import { Button } from "../ui/Button";
 import { IntentionCard } from "../ui/IntentionCard";
 import { Link } from "../ui/Link";
-import { MessageBox } from "../ui/message-box";
+import { MessageBox } from "../ui/MessageBox";
 import { SuggestionCard } from "../ui/SuggestionCard";
 import { Textarea } from "../ui/Textarea";
 
@@ -277,21 +277,18 @@ function SuggestionSample(props: {
 	);
 }
 
-function MessageBoxDemo({
-	initialValue,
-	disabledReason,
-}: {
+function MessageBoxDemo(props: {
 	initialValue: string;
 	disabledReason?: string;
 }) {
-	const [value, setValue] = useState(initialValue);
+	const [value, setValue] = useState(props.initialValue);
 	return (
 		<MessageBox
 			value={value}
 			onChange={setValue}
 			onSubmit={() => setValue("")}
 			placeholder="Tell me more, or refine your search…"
-			disabledReason={disabledReason}
+			disabledReason={props.disabledReason}
 		/>
 	);
 }
