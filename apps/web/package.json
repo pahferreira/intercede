@@ -7,7 +7,8 @@
 		"build": "vite build",
 		"preview": "vite preview",
 		"extract": "lingui extract --clean",
-		"lint": "biome check .",
+		"lint": "biome check . && bun run lint:classes",
+		"lint:classes": "bun scripts/check-classes.ts",
 		"typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.test.json",
 		"test": "bun test"
 	},
