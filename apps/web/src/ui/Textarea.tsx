@@ -48,7 +48,7 @@ export function Textarea(props: TextareaProps) {
 				readOnly={submitting}
 				aria-invalid={rejected || undefined}
 				aria-describedby={describedBy || undefined}
-				className="field-sizing-content min-h-42 resize-y rounded-lg border-2 border-line-strong bg-violet-raised p-space-4 text-body-lg text-ivory outline-none transition duration-fast ease-out placeholder:text-ivory-subtle hover:not-read-only:border-ivory-muted focus:border-ivory focus:ring-4 focus:ring-ivory-tint aria-invalid:border-notice read-only:cursor-progress read-only:opacity-60 motion-reduce:transition-none"
+				className="field-sizing-content min-h-field resize-y rounded-lg border-2 border-line-strong bg-violet-raised p-space-4 text-body-lg text-ivory outline-none transition duration-fast ease-out placeholder:text-ivory-subtle hover:not-read-only:border-ivory-muted focus:border-ivory focus:ring-4 focus:ring-ivory-tint aria-invalid:border-notice read-only:cursor-progress read-only:opacity-60 motion-reduce:transition-none"
 			/>
 			<div className="flex justify-between gap-space-4 text-small">
 				<span id={hintId} className="text-ivory-subtle">
@@ -72,7 +72,7 @@ export function Textarea(props: TextareaProps) {
 						<li key={reason} className="flex gap-space-2">
 							<IconAlertCircle
 								aria-hidden
-								className="size-5 shrink-0 text-notice"
+								className="size-icon shrink-0 text-notice"
 							/>
 							{reason}
 						</li>
