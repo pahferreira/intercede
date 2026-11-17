@@ -2,6 +2,7 @@ import {
 	createRootRouteWithContext,
 	createRoute,
 	createRouter,
+	lazyRouteComponent,
 	type RouterHistory,
 } from "@tanstack/react-router";
 import type { ApiClient } from "./api";
@@ -43,11 +44,25 @@ const followUpRoute = createRoute({
 	component: FollowUp,
 });
 
+const devRoutes = import.meta.env.DEV
+	? [
+			createRoute({
+				getParentRoute: () => rootRoute,
+				path: "/design-system",
+				component: lazyRouteComponent(
+					() => import("./routes/design-system"),
+					"DesignSystem",
+				),
+			}),
+		]
+	: [];
+
 const routeTree = rootRoute.addChildren([
 	homeRoute,
 	prayRoute,
 	committedRoute,
 	followUpRoute,
+	...devRoutes,
 ]);
 
 export function createAppRouter(
