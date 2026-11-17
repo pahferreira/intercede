@@ -23,3 +23,7 @@ Reviewers enforce `CODING_STANDARDS.md`.
 ### Worktrees
 
 A fresh worktree has no `node_modules`: run `bun install` first.
+
+### QA plans
+
+QA plans land in the Notion database [Intercede QA Plans](https://app.notion.com/p/419d3d816ffc8095a752fac02c5e0a1a) (data source `collection://80ed3d81-6ffc-82a0-a790-070e0a348e31`). Write them with the `qa-plan` skill.
