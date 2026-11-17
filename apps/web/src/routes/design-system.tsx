@@ -23,7 +23,7 @@ import markOnDark from "../assets/logos/intercede-mark-on-dark.svg";
 import markOnLight from "../assets/logos/intercede-mark-on-light.svg";
 import { Button } from "../ui/Button";
 import { Link } from "../ui/Link";
-import { Textarea } from "../ui/textarea";
+import { Textarea } from "../ui/Textarea";
 
 const colours = [
 	{ name: "violet", className: "bg-violet" },

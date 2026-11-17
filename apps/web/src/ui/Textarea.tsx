@@ -1,4 +1,5 @@
 import { IconAlertCircle } from "@tabler/icons-react";
+import { clsx } from "clsx";
 import { useId } from "react";
 
 type TextareaProps = {
@@ -58,7 +59,10 @@ export function Textarea({
 					{hint}
 				</span>
 				<span
-					className={`shrink-0 tabular-nums ${outsideLimits ? "text-notice" : "text-ivory-muted"}`}
+					className={clsx(
+						"shrink-0 tabular-nums",
+						outsideLimits ? "text-notice" : "text-ivory-muted",
+					)}
 				>
 					{value.length} / {maxLength}
 				</span>

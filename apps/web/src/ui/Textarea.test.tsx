@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { render, screen } from "@testing-library/react";
-import { Textarea } from "./textarea";
+import { Textarea } from "./Textarea";
 
 test("shows the current length against the max", () => {
 	render(
