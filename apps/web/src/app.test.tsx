@@ -51,25 +51,19 @@ test("language toggle marks the current language as pressed", async () => {
 	const group = screen.getByRole("group", { name: "Idioma" });
 	expect(group).toBeDefined();
 	expect(
-		screen
-			.getByRole("button", { name: "Português" })
-			.getAttribute("aria-pressed"),
-	).toBe("true");
+		screen.getByRole("button", { name: "Português", pressed: true }),
+	).toBeDefined();
 	expect(
-		screen
-			.getByRole("button", { name: "English" })
-			.getAttribute("aria-pressed"),
-	).toBe("false");
+		screen.getByRole("button", { name: "English", pressed: false }),
+	).toBeDefined();
 });
 
 test("language toggle switches the page language and remembers it", async () => {
 	await renderAt("/", "en");
 	await screen.findByText("API status: ok");
 	expect(
-		screen
-			.getByRole("button", { name: "English" })
-			.getAttribute("aria-pressed"),
-	).toBe("true");
+		screen.getByRole("button", { name: "English", pressed: true }),
+	).toBeDefined();
 
 	fireEvent.click(screen.getByRole("button", { name: "Português" }));
 
