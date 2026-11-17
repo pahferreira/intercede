@@ -48,7 +48,7 @@ msgstr "Idioma"
 msgid "Leave out links, ads and repeated text."
 msgstr "Não inclua links, anúncios nem texto repetido."
 
-#: src/ui/Message.tsx:75
+#: src/ui/Message.tsx:107
 msgid "Looking for intentions…"
 msgstr "Procurando intenções…"
 
@@ -64,7 +64,7 @@ msgstr "Rezar"
 msgid "Published {published}"
 msgstr "Publicada em {published}"
 
-#: src/ui/StatusMessage.tsx:38
+#: src/ui/StatusMessage.tsx:36
 msgid "Retry"
 msgstr "Tentar de novo"
 

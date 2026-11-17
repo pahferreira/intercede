@@ -26,9 +26,9 @@ import { IntentionCard } from "../ui/IntentionCard";
 import { Link } from "../ui/Link";
 import {
 	AssistantReply,
+	EntryBubble,
 	SearchingStatus,
 	Thread,
-	UserPrompt,
 } from "../ui/Message";
 import { MessageBox } from "../ui/MessageBox";
 import { StatusMessage } from "../ui/StatusMessage";
@@ -150,7 +150,7 @@ const messageBoxStates = [
 	},
 ] as const;
 
-const promptSample =
+const entrySample =
 	"Please pray for my mother.\nShe has surgery on Thursday and is afraid.";
 
 const replySample = [
@@ -162,7 +162,7 @@ const statusMessages = [
 	{
 		name: "status-message-success",
 		tone: "success",
-		text: "Copied ✓",
+		text: "Link copied.",
 		retry: false,
 	},
 	{
@@ -471,20 +471,20 @@ export function DesignSystem() {
 				</p>
 				<Token name="thread">
 					<Thread>
-						<UserPrompt text={promptSample} />
+						<EntryBubble text={entrySample} />
 						<AssistantReply paragraphs={replySample} />
-						<UserPrompt text="Only for mothers, please." state="sending" />
+						<EntryBubble text="Only for mothers, please." state="sending" />
 						<SearchingStatus />
 					</Thread>
 				</Token>
-				<Token name="user-prompt">
-					<UserPrompt text={promptSample} />
+				<Token name="entry-bubble">
+					<EntryBubble text={entrySample} />
 				</Token>
-				<Token name="user-prompt-sending">
-					<UserPrompt text={promptSample} state="sending" />
+				<Token name="entry-bubble-sending">
+					<EntryBubble text={entrySample} state="sending" />
 				</Token>
-				<Token name="user-prompt-failed">
-					<UserPrompt text={promptSample} state="failed" onRetry={() => {}} />
+				<Token name="entry-bubble-failed">
+					<EntryBubble text={entrySample} state="failed" onRetry={() => {}} />
 				</Token>
 				<Token name="assistant-reply">
 					<AssistantReply paragraphs={replySample} />

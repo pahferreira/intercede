@@ -13,12 +13,12 @@ export function Thread(props: { children: ReactNode }) {
 	);
 }
 
-type UserPromptProps = { text: string } & (
+type EntryBubbleProps = { text: string } & (
 	| { state?: "sent" | "sending"; onRetry?: never }
 	| { state: "failed"; onRetry: () => void }
 );
 
-export function UserPrompt(props: UserPromptProps) {
+export function EntryBubble(props: EntryBubbleProps) {
 	const { t } = useLingui();
 
 	return (
@@ -80,7 +80,7 @@ export function AssistantReply(props: AssistantReplyProps) {
 	);
 }
 
-const dotDelays = ["", "animate-delay-160", "animate-delay-320"] as const;
+const dotDelays = ["", "animate-delay-dot-2", "animate-delay-dot-3"] as const;
 
 export function SearchingStatus() {
 	const { t } = useLingui();

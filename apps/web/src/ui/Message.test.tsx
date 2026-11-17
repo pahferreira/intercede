@@ -4,18 +4,18 @@ import { I18nProvider } from "@lingui/react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { type Locale, switchLocale } from "../i18n";
-import { AssistantReply, SearchingStatus, UserPrompt } from "./Message";
+import { AssistantReply, EntryBubble, SearchingStatus } from "./Message";
 
 async function renderIn(locale: Locale, children: ReactNode) {
 	await switchLocale(locale);
 	return render(<I18nProvider i18n={i18n}>{children}</I18nProvider>);
 }
 
-test("Retry on a failed prompt calls its handler", async () => {
+test("Retry on a failed Entry calls its handler", async () => {
 	const onRetry = mock();
 	await renderIn(
 		"en",
-		<UserPrompt text="Pray for my mother" state="failed" onRetry={onRetry} />,
+		<EntryBubble text="Pray for my mother" state="failed" onRetry={onRetry} />,
 	);
 
 	fireEvent.click(screen.getByRole("button", { name: "Retry" }));
@@ -51,10 +51,10 @@ test("the assistant reply is a polite live region", async () => {
 test.each([
 	["en", "Sending…"],
 	["pt-BR", "Enviando…"],
-] as const)("a sending prompt says so in %s", async (locale, sending) => {
+] as const)("a sending Entry says so in %s", async (locale, sending) => {
 	await renderIn(
 		locale,
-		<UserPrompt text="Pray for my mother" state="sending" />,
+		<EntryBubble text="Pray for my mother" state="sending" />,
 	);
 
 	expect(screen.getByText("Pray for my mother")).toBeDefined();
@@ -64,18 +64,21 @@ test.each([
 test.each([
 	["en", "Not sent.", "Retry"],
 	["pt-BR", "Não enviada.", "Tentar de novo"],
-] as const)("a failed prompt says so in %s", async (locale, failed, retry) => {
+] as const)("a failed Entry says so in %s", async (locale, failed, retry) => {
 	await renderIn(
 		locale,
-		<UserPrompt text="Pray for my mother" state="failed" onRetry={mock()} />,
+		<EntryBubble text="Pray for my mother" state="failed" onRetry={mock()} />,
 	);
 
 	expect(screen.getByText(failed)).toBeDefined();
 	expect(screen.getByRole("button", { name: retry })).toBeDefined();
 });
 
-test("a sent prompt keeps the visitor's line breaks and shows no meta line", async () => {
-	await renderIn("en", <UserPrompt text={"Pray for my mother\nand my aunt"} />);
+test("a sent Entry keeps the visitor's line breaks and shows no meta line", async () => {
+	await renderIn(
+		"en",
+		<EntryBubble text={"Pray for my mother\nand my aunt"} />,
+	);
 
 	expect(
 		screen.getByText("Pray for my mother\nand my aunt", {

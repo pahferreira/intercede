@@ -216,6 +216,8 @@
 	--animate-rise: rise var(--duration-slow) var(--ease-out) both;
 	--animate-blink: blink 1s steps(2, start) infinite;
 	--animate-breathe: breathe 1200ms var(--ease-in-out) infinite;
+	--animation-delay-dot-2: 160ms;
+	--animation-delay-dot-3: 320ms;
 
 	@keyframes spin {
 		to {
@@ -297,7 +299,7 @@
 }
 
 @utility animate-delay-* {
-	animation-delay: calc(--value(integer) * 1ms);
+	animation-delay: --value(--animation-delay-*);
 }
 
 @utility pb-safe-* {
