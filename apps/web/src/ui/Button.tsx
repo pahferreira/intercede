@@ -35,11 +35,8 @@ type ButtonProps = {
 	| { loading: boolean; loadingLabel: ReactNode }
 );
 
-export function Button({
-	size = "md",
-	type = "button",
-	...props
-}: ButtonProps) {
+export function Button(props: ButtonProps) {
+	const { size = "md", type = "button" } = props;
 	const interactive = !props.disabled && !props.loading;
 
 	return (

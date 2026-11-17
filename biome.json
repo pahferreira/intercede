@@ -53,6 +53,10 @@
 	},
 	"overrides": [
 		{
+			"includes": ["apps/web/src/**/*.tsx"],
+			"plugins": ["./biome-plugins/component-props.grit"]
+		},
+		{
 			"includes": ["apps/web/src/ui/**"],
 			"plugins": ["./biome-plugins/ui-classname-clsx.grit"],
 			"linter": {

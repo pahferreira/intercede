@@ -63,6 +63,7 @@
 	--control-md: 44px;
 	--control-lg: 52px;
 	--icon: 20px;
+	--field: 168px;
 	--column-form: 560px;
 	--column-chat: 720px;
 
@@ -137,6 +138,7 @@
 	--spacing-control-md: var(--control-md);
 	--spacing-control-lg: var(--control-lg);
 	--spacing-icon: var(--icon);
+	--spacing-field: var(--field);
 
 	--container-column-form: var(--column-form);
 	--container-column-chat: var(--column-chat);

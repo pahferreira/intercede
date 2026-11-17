@@ -78,6 +78,11 @@ test.each([
 	"secondary disabled",
 	"secondary block",
 	"link",
+	"textarea-rest",
+	"textarea-filled",
+	"textarea-outside-limits",
+	"textarea-submitting",
+	"textarea-rejected",
 ])("shows the %s token", async (name) => {
 	renderWithRouter(<DesignSystem />);
 
