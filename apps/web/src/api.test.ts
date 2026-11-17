@@ -25,6 +25,19 @@ test("a request with a body carries the hex SHA-256 of that body, so CloudFront 
 	expect(headers.get("content-type")).toBe("application/json");
 });
 
+test("a body that cannot be hashed is refused instead of sent unsigned", async () => {
+	const { requests, fetch } = recordingFetch();
+
+	const sending = createApiClient(fetch).api.intentions.$post(
+		{ json: { text: "May my mother heal" } },
+		{ init: { body: new FormData() } },
+	);
+
+	expect(sending).rejects.toThrow();
+	await sending.catch(() => {});
+	expect(requests).toHaveLength(0);
+});
+
 test("a request without a body carries no content hash", async () => {
 	const { requests, fetch } = recordingFetch();
 

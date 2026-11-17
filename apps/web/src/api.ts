@@ -18,8 +18,11 @@ async function sha256Hex(text: string) {
 
 function withContentHash(fetch: Fetch): Fetch {
 	return async (input, init) => {
-		if (typeof init?.body !== "string") {
+		if (init?.body == null) {
 			return fetch(input, init);
+		}
+		if (typeof init.body !== "string") {
+			throw new TypeError("only string request bodies can be hashed");
 		}
 		const headers = new Headers(init.headers);
 		headers.set("x-amz-content-sha256", await sha256Hex(init.body));
