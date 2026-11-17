@@ -1,4 +1,26 @@
+import {
+	type Icon,
+	IconAlertCircle,
+	IconAlertTriangle,
+	IconArrowUp,
+	IconCandle,
+	IconCheck,
+	IconChevronDown,
+	IconCopy,
+	IconFlame,
+	IconHeartHandshake,
+	IconLanguage,
+	IconPray,
+	IconRefresh,
+	IconWifiOff,
+	IconX,
+} from "@tabler/icons-react";
 import type { ReactNode } from "react";
+import appIcon from "../assets/logos/intercede-app-icon.svg";
+import lockupOnDark from "../assets/logos/intercede-lockup-on-dark.svg";
+import lockupOnLight from "../assets/logos/intercede-lockup-on-light.svg";
+import markOnDark from "../assets/logos/intercede-mark-on-dark.svg";
+import markOnLight from "../assets/logos/intercede-mark-on-light.svg";
 
 const colours = [
 	{ name: "violet", className: "bg-violet" },
@@ -81,6 +103,38 @@ const motions = [
 	{ name: "ease-in-out", className: "duration-slow ease-in-out" },
 ] as const;
 
+const logos = [
+	{ name: "intercede-app-icon", src: appIcon, ground: "bg-violet" },
+	{ name: "intercede-mark-on-dark", src: markOnDark, ground: "bg-violet" },
+	{ name: "intercede-mark-on-light", src: markOnLight, ground: "bg-ivory" },
+	{ name: "intercede-lockup-on-dark", src: lockupOnDark, ground: "bg-violet" },
+	{
+		name: "intercede-lockup-on-light",
+		src: lockupOnLight,
+		ground: "bg-ivory",
+	},
+] as const;
+
+const interfaceIcons = [
+	{ name: "IconArrowUp", Icon: IconArrowUp },
+	{ name: "IconCopy", Icon: IconCopy },
+	{ name: "IconCheck", Icon: IconCheck },
+	{ name: "IconAlertCircle", Icon: IconAlertCircle },
+	{ name: "IconAlertTriangle", Icon: IconAlertTriangle },
+	{ name: "IconRefresh", Icon: IconRefresh },
+	{ name: "IconWifiOff", Icon: IconWifiOff },
+	{ name: "IconLanguage", Icon: IconLanguage },
+	{ name: "IconX", Icon: IconX },
+	{ name: "IconChevronDown", Icon: IconChevronDown },
+] as const;
+
+const faithIcons = [
+	{ name: "IconCandle", Icon: IconCandle },
+	{ name: "IconFlame", Icon: IconFlame },
+	{ name: "IconPray", Icon: IconPray },
+	{ name: "IconHeartHandshake", Icon: IconHeartHandshake },
+] as const;
+
 function Section({ title, children }: { title: string; children: ReactNode }) {
 	return (
 		<section className="flex flex-col gap-space-4">
@@ -99,10 +153,51 @@ function Token({ name, children }: { name: string; children: ReactNode }) {
 	);
 }
 
+function IconGrid({
+	icons,
+}: {
+	icons: ReadonlyArray<{ name: string; Icon: Icon }>;
+}) {
+	return (
+		<div className="grid grid-cols-2 gap-space-4 md:grid-cols-4">
+			{icons.map(({ name, Icon }) => (
+				<Token key={name} name={name}>
+					<Icon aria-hidden />
+				</Token>
+			))}
+		</div>
+	);
+}
+
 export function DesignSystem() {
 	return (
 		<div className="mx-auto flex max-w-column-chat flex-col gap-space-6 py-space-5">
 			<h1 className="text-title">Design system</h1>
+
+			<Section title="Logo">
+				<div className="grid grid-cols-1 gap-space-4 md:grid-cols-2">
+					{logos.map(({ name, src, ground }) => (
+						<Token key={name} name={name}>
+							<div
+								className={`flex justify-center rounded-lg border-2 border-line p-space-5 ${ground}`}
+							>
+								<img src={src} alt="" className="h-space-8" />
+							</div>
+						</Token>
+					))}
+				</div>
+			</Section>
+
+			<Section title="Icons">
+				<p className="text-small text-ivory-muted">
+					Tabler outline, 2px stroke, currentColor: 20px beside text, 24px
+					alone.
+				</p>
+				<h3 className="text-label">Interface</h3>
+				<IconGrid icons={interfaceIcons} />
+				<h3 className="text-label">Faith</h3>
+				<IconGrid icons={faithIcons} />
+			</Section>
 
 			<Section title="Colour">
 				<div className="grid grid-cols-2 gap-space-4 md:grid-cols-4">

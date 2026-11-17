@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { createApp } from "@intercede/api/testing";
 import { createMemoryHistory } from "@tanstack/react-router";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { createApiClient } from "./api";
 import { App } from "./app";
 import { type Locale, switchLocale } from "./i18n";
@@ -74,4 +74,11 @@ test("language toggle switches the page language and remembers it", async () => 
 
 	expect(await screen.findByText("API status: ok")).toBeDefined();
 	expect(localStorage.getItem("intercede.locale")).toBe("en");
+});
+
+test("header shows the Intercede mark", async () => {
+	await renderAt("/pray", "en");
+
+	const header = await screen.findByRole("banner");
+	expect(within(header).getByRole("img", { name: "Intercede" })).toBeDefined();
 });
