@@ -139,6 +139,7 @@
 	--spacing-control-lg: var(--control-lg);
 	--spacing-icon: var(--icon);
 	--spacing-field: var(--field);
+	--spacing-composer-max: 168px;
 
 	--container-column-form: var(--column-form);
 	--container-column-chat: var(--column-chat);

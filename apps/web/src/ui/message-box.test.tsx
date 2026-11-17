@@ -90,11 +90,26 @@ test("a disabled composer disables both controls and shows its reason", async ()
 });
 
 test.each([
-	["en", "Message", "Send"],
-	["pt-BR", "Mensagem", "Enviar"],
-] as const)("names its controls in %s", async (locale, input, send) => {
+	["en", "Send"],
+	["pt-BR", "Enviar"],
+] as const)("names Send in %s", async (locale, send) => {
 	await renderComposer({ onSubmit: mock() }, locale);
 
-	expect(screen.getByRole("textbox", { name: input })).toBeDefined();
 	expect(screen.getByRole("button", { name: send })).toBeDefined();
+});
+
+test("names the input by its placeholder", async () => {
+	await renderComposer({ onSubmit: mock() });
+
+	expect(screen.getByRole("textbox", { name: "Tell me more" })).toBeDefined();
+});
+
+test("Enter that confirms an IME composition doesn't submit", async () => {
+	const onSubmit = mock();
+	const { input } = await renderComposer({ onSubmit });
+
+	fireEvent.change(input, { target: { value: "祈り" } });
+	fireEvent.keyDown(input, { key: "Enter", isComposing: true });
+
+	expect(onSubmit).not.toHaveBeenCalled();
 });

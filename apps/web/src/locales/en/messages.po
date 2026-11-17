@@ -40,10 +40,6 @@ msgstr "Follow-up"
 msgid "Language"
 msgstr "Language"
 
-#: src/ui/message-box.tsx:49
-msgid "Message"
-msgstr "Message"
-
 #: src/routes/pray.tsx:6
 msgid "Pray"
 msgstr "Pray"
@@ -52,7 +48,7 @@ msgstr "Pray"
 msgid "Published {published}"
 msgstr "Published {published}"
 
-#: src/ui/message-box.tsx:60
+#: src/ui/message-box.tsx:64
 msgid "Send"
 msgstr "Send"
 

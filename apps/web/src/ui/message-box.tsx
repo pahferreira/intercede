@@ -30,7 +30,11 @@ export function MessageBox({
 	}
 
 	function handleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
-		if (event.key === "Enter" && !event.shiftKey) {
+		if (
+			event.key === "Enter" &&
+			!event.shiftKey &&
+			!event.nativeEvent.isComposing
+		) {
 			event.preventDefault();
 			event.currentTarget.form?.requestSubmit();
 		}
@@ -46,14 +50,14 @@ export function MessageBox({
 			>
 				<textarea
 					rows={1}
-					aria-label={t`Message`}
+					aria-label={placeholder}
 					aria-describedby={disabled ? reasonId : undefined}
 					placeholder={placeholder}
 					value={value}
 					disabled={disabled}
 					onChange={(event) => onChange(event.target.value)}
 					onKeyDown={handleKeyDown}
-					className="field-sizing-content max-h-42 min-w-0 flex-1 resize-none overflow-y-auto bg-transparent py-space-2 text-body text-ivory placeholder:text-ivory-subtle focus-visible:outline-none disabled:cursor-not-allowed"
+					className="field-sizing-content max-h-composer-max min-w-0 flex-1 resize-none overflow-y-auto bg-transparent py-space-2 text-body text-ivory placeholder:text-ivory-subtle focus-visible:outline-none disabled:cursor-not-allowed"
 				/>
 				<button
 					type="submit"

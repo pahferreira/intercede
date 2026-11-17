@@ -40,10 +40,6 @@ msgstr "Acompanhamento"
 msgid "Language"
 msgstr "Idioma"
 
-#: src/ui/message-box.tsx:49
-msgid "Message"
-msgstr "Mensagem"
-
 #: src/routes/pray.tsx:6
 msgid "Pray"
 msgstr "Rezar"
@@ -52,7 +48,7 @@ msgstr "Rezar"
 msgid "Published {published}"
 msgstr "Publicada em {published}"
 
-#: src/ui/message-box.tsx:60
+#: src/ui/message-box.tsx:64
 msgid "Send"
 msgstr "Enviar"
 
