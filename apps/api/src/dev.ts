@@ -1,5 +1,5 @@
 import { createApp } from "./app";
-import { createBedrockModerator, createSubmitIntention } from "./intentions";
+import { createNovaModerator, createSubmitIntention } from "./intentions";
 import { createPostHogAnalytics, postHogSettings } from "./platform/analytics";
 import {
 	createDatabase,
@@ -18,7 +18,7 @@ const server = Bun.serve({
 		openAnalytics,
 		submitIntention: createSubmitIntention({
 			database,
-			moderate: createBedrockModerator(),
+			moderate: createNovaModerator(),
 		}),
 	}).fetch,
 });

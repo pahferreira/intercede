@@ -3,7 +3,7 @@ import type {
 	Analytics,
 	LlmGeneration,
 } from "../../../platform/analytics-port";
-import { createBedrockModerator } from "./bedrock-moderator";
+import { createAnthropicModerator } from "./anthropic-moderator";
 
 type SentRequest = { url: string; body: Record<string, unknown> };
 
@@ -47,7 +47,7 @@ function recordingAnalytics() {
 }
 
 const moderatorFor = (bedrock: ReturnType<typeof fakeBedrock>) =>
-	createBedrockModerator({
+	createAnthropicModerator({
 		awsRegion: "us-east-1",
 		providerChainResolver: async () => async () => ({
 			accessKeyId: "AKIATEST",

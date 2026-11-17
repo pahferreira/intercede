@@ -1,6 +1,6 @@
 import { streamHandle } from "hono/aws-lambda";
 import { createApp } from "../app";
-import { createBedrockModerator, createSubmitIntention } from "../intentions";
+import { createNovaModerator, createSubmitIntention } from "../intentions";
 import {
 	createPostHogAnalytics,
 	requirePostHogSettings,
@@ -21,7 +21,7 @@ export const handler = streamHandle(
 		openAnalytics,
 		submitIntention: createSubmitIntention({
 			database,
-			moderate: createBedrockModerator(),
+			moderate: createNovaModerator(),
 		}),
 	}),
 );

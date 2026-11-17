@@ -1,5 +1,6 @@
 export { intentionRoutes } from "./adapters/http/routes";
-export { createBedrockModerator } from "./adapters/llm/bedrock-moderator";
+export { createAnthropicModerator } from "./adapters/llm/anthropic-moderator";
+export { createNovaModerator } from "./adapters/llm/nova-moderator";
 export type { Moderate } from "./application/moderate";
 export {
 	createSubmitIntention,
