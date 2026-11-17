@@ -3,9 +3,8 @@ import { LanguageToggle } from "./language-toggle";
 
 export function Layout() {
 	return (
-		<div className="mx-auto flex min-h-dvh max-w-2xl flex-col gap-6 p-4">
-			<header className="flex items-center justify-between">
-				<span className="font-semibold">Intercede</span>
+		<div className="flex min-h-dvh flex-col px-space-4 pt-space-3 pb-space-5 md:px-space-5">
+			<header className="flex justify-end">
 				<LanguageToggle />
 			</header>
 			<main>
