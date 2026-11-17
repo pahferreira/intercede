@@ -13,3 +13,5 @@ export type Analytics = {
 };
 
 export type OpenAnalytics = () => Analytics;
+
+export type AnalyticsEnv = { Variables: { analytics: Analytics } };

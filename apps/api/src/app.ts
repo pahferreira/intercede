@@ -1,16 +1,19 @@
 import { Hono } from "hono";
-import type { Analytics, OpenAnalytics } from "./platform/analytics-port";
+import { intentionRoutes, type SubmitIntention } from "./intentions";
+import type { AnalyticsEnv, OpenAnalytics } from "./platform/analytics-port";
 
 export type AppDependencies = {
 	isDatabaseReachable: () => Promise<boolean>;
 	openAnalytics: OpenAnalytics;
+	submitIntention: SubmitIntention;
 };
 
 export const createApp = ({
 	isDatabaseReachable,
 	openAnalytics,
+	submitIntention,
 }: AppDependencies) =>
-	new Hono<{ Variables: { analytics: Analytics } }>()
+	new Hono<AnalyticsEnv>()
 		.basePath("/api")
 		.use(async (c, next) => {
 			const analytics = openAnalytics();
@@ -30,6 +33,7 @@ export const createApp = ({
 				return c.json({ status: "ok", database: "ok" } as const, 200);
 			}
 			return c.json({ status: "error", database: "unreachable" } as const, 503);
-		});
+		})
+		.route("/", intentionRoutes(submitIntention));
 
 export type AppType = ReturnType<typeof createApp>;

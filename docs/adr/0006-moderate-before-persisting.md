@@ -1,6 +1,6 @@
 # Moderate before persisting; rejected text is never stored
 
-A submitted text is moderated synchronously (one Haiku call with structured output) **before** any Intention is created. If the Moderation Verdict is a rejection, nothing is written and the Requester gets an actionable reason (for example "use initials instead of full names"). Only an anonymous count of rejection reasons reaches analytics. If Bedrock is unavailable the API returns 503 and asks the Requester to try again. This keeps personal data out of the database and gives immediate feedback to people who cannot be contacted later.
+A submitted text is moderated synchronously (one Nova Lite call that must answer through a verdict tool, see ADR-0004) **before** any Intention is created. If the Moderation Verdict is a rejection, nothing is written and the Requester gets an actionable reason (for example "use initials instead of full names"). Only an anonymous count of rejection reasons reaches analytics. If Bedrock is unavailable the API returns 503 and asks the Requester to try again. This keeps personal data out of the database and gives immediate feedback to people who cannot be contacted later.
 
 ## Considered Options
 

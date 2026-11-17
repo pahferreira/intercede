@@ -1,5 +1,6 @@
 locals {
   api_function_name = "intercede-api"
+  moderation_model  = "amazon.nova-lite-v1:0"
 }
 
 data "archive_file" "api_placeholder" {
@@ -39,6 +40,20 @@ resource "aws_iam_role_policy" "api_logs" {
       Effect   = "Allow"
       Action   = ["logs:CreateLogStream", "logs:PutLogEvents"]
       Resource = "${aws_cloudwatch_log_group.api.arn}:*"
+    }]
+  })
+}
+
+resource "aws_iam_role_policy" "api_bedrock" {
+  name = "bedrock"
+  role = aws_iam_role.api.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Action    = "bedrock:InvokeModel"
+      Resource  = "arn:aws:bedrock:us-east-1::foundation-model/${local.moderation_model}"
+      Condition = { StringEquals = { "aws:RequestedRegion" = "us-east-1" } }
     }]
   })
 }

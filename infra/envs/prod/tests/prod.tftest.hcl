@@ -333,6 +333,25 @@ run "sweeper_may_embed_with_titan_v2_only" {
   }
 }
 
+run "api_may_moderate_with_nova_lite_only" {
+  command = apply
+
+  assert {
+    condition = jsondecode(aws_iam_role_policy.api_bedrock.policy).Statement == [{
+      Effect    = "Allow"
+      Action    = "bedrock:InvokeModel"
+      Resource  = "arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-lite-v1:0"
+      Condition = { StringEquals = { "aws:RequestedRegion" = "us-east-1" } }
+    }]
+    error_message = "The API may moderate with Nova Lite in us-east-1 and call no other model."
+  }
+
+  assert {
+    condition     = aws_iam_role_policy.api_bedrock.role == aws_iam_role.api.id
+    error_message = "The moderation Bedrock policy must be on the API's role."
+  }
+}
+
 run "sweeper_runs_every_5_minutes_by_default" {
   command = apply
 
