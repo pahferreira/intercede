@@ -10,10 +10,21 @@ import {
 	createDatabaseProbe,
 	requireDatabaseUrl,
 } from "../platform/database";
+import {
+	createDailyRateLimit,
+	submissionsPerDay,
+} from "../platform/rate-limit";
+import {
+	createTurnstileVerifier,
+	requireTurnstileSecret,
+} from "../platform/turnstile";
 
 const database = createDatabase(requireDatabaseUrl());
 const isDatabaseReachable = createDatabaseProbe(database);
 const openAnalytics = createPostHogAnalytics(requirePostHogSettings());
+const verifyTurnstile = createTurnstileVerifier({
+	secret: requireTurnstileSecret(),
+});
 
 export const handler = streamHandle(
 	createApp({
@@ -22,6 +33,11 @@ export const handler = streamHandle(
 		submitIntention: createSubmitIntention({
 			database,
 			moderate: createNovaModerator(),
+			verifyTurnstile,
+			consumeSubmissionLimit: createDailyRateLimit(database, {
+				action: "submission",
+				limit: submissionsPerDay(),
+			}),
 		}),
 	}),
 );

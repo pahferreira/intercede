@@ -73,7 +73,8 @@ jobs:
           FUNCTION_NAME: ${{ steps.terraform.outputs.api-function }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           POSTHOG_KEY: ${{ secrets.POSTHOG_KEY }}
-        run: .github/scripts/deploy-lambda.sh "$FUNCTION_NAME" api DATABASE_URL POSTHOG_KEY
+          TURNSTILE_SECRET_KEY: ${{ secrets.TURNSTILE_SECRET_KEY }}
+        run: .github/scripts/deploy-lambda.sh "$FUNCTION_NAME" api DATABASE_URL POSTHOG_KEY TURNSTILE_SECRET_KEY
 
       - name: Release the sweeper
         env:
@@ -85,6 +86,7 @@ jobs:
       - name: Build the web app
         env:
           POSTHOG_KEY: ${{ secrets.POSTHOG_KEY }}
+          TURNSTILE_SITE_KEY: ${{ vars.TURNSTILE_SITE_KEY }}
         run: bun run --filter @intercede/web build
 
       - name: Publish the web app

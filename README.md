@@ -21,6 +21,8 @@ To reset the database, run `docker compose down -v`.
 
 Analytics stay off unless `POSTHOG_KEY` is set; the API and the web app read the same variable. `POSTHOG_HOST` defaults to `https://us.i.posthog.com`.
 
+Locally, Turnstile uses Cloudflare's always-passing test keys unless `TURNSTILE_SITE_KEY` (web) and `TURNSTILE_SECRET_KEY` (API) are set. A Visitor may submit 3 Intentions a day; `SUBMISSIONS_PER_VISITOR_PER_DAY` changes that.
+
 ## Checks
 
 ```sh

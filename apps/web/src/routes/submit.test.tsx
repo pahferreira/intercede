@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import { fireEvent, screen } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { renderAt, type SubmitIntention } from "../../test/render";
+import { installTurnstile } from "../../test/turnstile";
 import { initAnalytics } from "../analytics";
 
 let events: { event: string; properties: unknown }[] = [];
@@ -102,9 +103,9 @@ test("the text is locked while moderation runs", async () => {
 });
 
 test("a published Intention goes to /pray and is counted", async () => {
-	const submitted: string[] = [];
-	await renderAt("/", "en", async (text) => {
-		submitted.push(text);
+	const submitted: { text: string; turnstileToken: string }[] = [];
+	await renderAt("/", "en", async ({ text, turnstileToken }) => {
+		submitted.push({ text, turnstileToken });
 		return { ok: true, value: published };
 	});
 	await write("For my brother's new job");
@@ -112,7 +113,12 @@ test("a published Intention goes to /pray and is counted", async () => {
 	fireEvent.click(screen.getByRole("button", { name: "Submit" }));
 
 	expect(await screen.findByRole("heading", { name: "Pray" })).toBeDefined();
-	expect(submitted).toEqual(["For my brother's new job"]);
+	expect(submitted).toEqual([
+		{
+			text: "For my brother's new job",
+			turnstileToken: "turnstile-token-1",
+		},
+	]);
 	expect(eventNames()).toEqual(["submit_viewed", "intention_submitted"]);
 });
 
@@ -241,5 +247,87 @@ test.each([
 		fireEvent.click(await screen.findByRole("link", { name: ask }));
 
 		expect(await screen.findByRole("heading", { name: heading })).toBeDefined();
+	},
+);
+
+test("each submission asks Turnstile for a fresh token", async () => {
+	const tokens: string[] = [];
+	await renderAt("/", "en", async ({ turnstileToken }) => {
+		tokens.push(turnstileToken);
+		return { ok: false, error: { kind: "rejected", reasons: ["spam"] } };
+	});
+	await write("Buy cheap watches at example.com");
+
+	fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+	await screen.findByText("Leave out links, ads and repeated text.");
+	fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+
+	await waitFor(() =>
+		expect(tokens).toEqual(["turnstile-token-1", "turnstile-token-2"]),
+	);
+});
+
+test.each([
+	["en", "Submit", "Couldn't verify, try again."],
+	["pt-BR", "Enviar", "Não foi possível verificar. Tente novamente."],
+] as const)(
+	"a failed Turnstile check on the server in %s asks to try again and keeps the text",
+	async (locale, submit, message) => {
+		await renderAt("/", locale, async () => ({
+			ok: false,
+			error: { kind: "verification_failed" },
+		}));
+		await write("For my brother's new job");
+
+		fireEvent.click(screen.getByRole("button", { name: submit }));
+
+		expect(await screen.findByText(message)).toBeDefined();
+		expect(textbox().value).toBe("For my brother's new job");
+		expect(textbox().readOnly).toBe(false);
+	},
+);
+
+test("a Turnstile challenge that fails in the browser asks to try again without submitting", async () => {
+	installTurnstile().passes = false;
+	await renderAt("/", "en");
+	await write("For my brother's new job");
+
+	fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+
+	expect(await screen.findByText("Couldn't verify, try again.")).toBeDefined();
+	expect(textbox().value).toBe("For my brother's new job");
+});
+
+test.each([
+	[
+		"en",
+		"Submit",
+		"Skip",
+		"Pray",
+		"You've reached today's limit for intentions. Come back tomorrow, or skip to pray for others.",
+	],
+	[
+		"pt-BR",
+		"Enviar",
+		"Pular",
+		"Rezar",
+		"Você atingiu o limite de intenções de hoje. Volte amanhã ou pule para rezar pelos outros.",
+	],
+] as const)(
+	"a reached submission limit in %s is shown inline and Skip still works",
+	async (locale, submit, skip, pray, message) => {
+		await renderAt("/", locale, async () => ({
+			ok: false,
+			error: { kind: "limit_reached" },
+		}));
+		await write("For my brother's new job");
+
+		fireEvent.click(screen.getByRole("button", { name: submit }));
+		expect(await screen.findByText(message)).toBeDefined();
+		expect(textbox().value).toBe("For my brother's new job");
+
+		fireEvent.click(screen.getByRole("button", { name: skip }));
+
+		expect(await screen.findByRole("heading", { name: pray })).toBeDefined();
 	},
 );

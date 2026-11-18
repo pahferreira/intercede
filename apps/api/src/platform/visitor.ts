@@ -7,9 +7,16 @@ const oneYearInSeconds = 60 * 60 * 24 * 365;
 const visitorId =
 	/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
-export const visitorCookie = createMiddleware(async (c, next) => {
-	if (!visitorId.test(getCookie(c, cookieName) ?? "")) {
-		setCookie(c, cookieName, randomUUID(), {
+export type VisitorEnv = { Variables: { visitorId: string } };
+
+export const visitorCookie = createMiddleware<VisitorEnv>(async (c, next) => {
+	const returning = getCookie(c, cookieName) ?? "";
+	if (visitorId.test(returning)) {
+		c.set("visitorId", returning);
+	} else {
+		const issued = randomUUID();
+		c.set("visitorId", issued);
+		setCookie(c, cookieName, issued, {
 			httpOnly: true,
 			secure: true,
 			sameSite: "Lax",
