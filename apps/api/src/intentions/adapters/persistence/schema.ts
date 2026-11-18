@@ -1,5 +1,6 @@
 import { jsonb, pgSchema, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { languages } from "../../domain/intention";
+import { intentionEventTypes } from "../../domain/intention-event";
 
 export const intentionsSchema = pgSchema("intentions");
 
@@ -15,7 +16,7 @@ export const intentions = intentionsSchema.table("intentions", {
 
 export const outbox = intentionsSchema.table("outbox", {
 	id: uuid().primaryKey().defaultRandom(),
-	type: text({ enum: ["IntentionPublished"] }).notNull(),
+	type: text({ enum: intentionEventTypes }).notNull(),
 	payload: jsonb().notNull(),
 	occurredAt: timestamp("occurred_at", { withTimezone: true })
 		.notNull()

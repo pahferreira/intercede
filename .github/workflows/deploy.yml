@@ -79,7 +79,8 @@ jobs:
         env:
           FUNCTION_NAME: ${{ steps.terraform.outputs.sweeper-function }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: .github/scripts/deploy-lambda.sh "$FUNCTION_NAME" sweeper DATABASE_URL
+          POSTHOG_KEY: ${{ secrets.POSTHOG_KEY }}
+        run: .github/scripts/deploy-lambda.sh "$FUNCTION_NAME" sweeper DATABASE_URL POSTHOG_KEY
 
       - name: Build the web app
         env:
