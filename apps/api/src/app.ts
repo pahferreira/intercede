@@ -25,7 +25,6 @@ export const createApp = ({
 			}
 		})
 		.onError((error, c) => {
-			console.error(error);
 			c.var.analytics.captureException(error);
 			return c.json({ status: "error" } as const, 500);
 		})
