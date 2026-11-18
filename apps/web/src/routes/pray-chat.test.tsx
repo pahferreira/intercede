@@ -127,6 +127,13 @@ test("sending an Entry and showing its Suggestions are counted", async () => {
 	]);
 });
 
+test("an answer with no Suggestions is not counted as shown", async () => {
+	await sendEntry("en", searchOf(answered([])));
+	await screen.findByText("Here are some people to pray for.");
+
+	expect(events).toEqual([{ event: "entry_sent", properties: {} }]);
+});
+
 test("checking a Suggestion selects it, and unchecking clears it", async () => {
 	await sendEntry("en", searchOf(answered([suggestion(1), suggestion(2)])));
 	await screen.findByText("Intention number 1");

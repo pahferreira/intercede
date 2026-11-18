@@ -18,7 +18,7 @@ import {
 import { StatusMessage } from "../ui/StatusMessage";
 import { SuggestionCard } from "../ui/SuggestionCard";
 import { Textarea } from "../ui/Textarea";
-import { type Turn, usePrayRoute } from "./usePrayRoute";
+import { type Exchange, usePrayRoute } from "./usePrayRoute";
 
 const minLength = 1;
 const maxLength = 1000;
@@ -120,29 +120,29 @@ function EntryForm(props: EntryFormProps) {
 }
 
 type ChatProps = {
-	turn: Turn;
+	exchange: Exchange;
 	selected: ReadonlySet<string>;
 	onToggle: (intentionId: string, checked: boolean) => void;
 };
 
 function Chat(props: ChatProps) {
 	const { t } = useLingui();
-	const turn = props.turn;
-	const paragraphs = turn.note.split(/\n{2,}/).filter(Boolean);
+	const exchange = props.exchange;
+	const paragraphs = exchange.note.split(/\n{2,}/).filter(Boolean);
 
 	return (
 		<Thread>
-			<EntryBubble text={turn.entry} />
-			{turn.status === "searching" && <SearchingStatus />}
+			<EntryBubble text={exchange.entry} />
+			{exchange.status === "searching" && <SearchingStatus />}
 			{paragraphs.length > 0 && (
 				<AssistantReply
 					paragraphs={paragraphs}
-					streaming={turn.status === "answering"}
+					streaming={exchange.status === "answering"}
 				/>
 			)}
-			{turn.suggestions.length > 0 && (
+			{exchange.suggestions.length > 0 && (
 				<ul aria-label={t`Suggestions`} className="flex flex-col gap-space-3">
-					{turn.suggestions.map((suggestion) => (
+					{exchange.suggestions.map((suggestion) => (
 						<li key={suggestion.intentionId}>
 							<SuggestionCard
 								text={suggestion.text}
@@ -156,7 +156,7 @@ function Chat(props: ChatProps) {
 					))}
 				</ul>
 			)}
-			{turn.status === "failed" && (
+			{exchange.status === "failed" && (
 				<StatusMessage tone="danger">
 					<Trans>Something went wrong. Please try again.</Trans>
 				</StatusMessage>
@@ -166,11 +166,11 @@ function Chat(props: ChatProps) {
 }
 
 export function Pray() {
-	const { notice, copied, copy, dismiss, turn, selected, send, toggle } =
+	const { notice, copied, copy, dismiss, exchange, selected, send, toggle } =
 		usePrayRoute();
 
-	if (turn) {
-		return <Chat turn={turn} selected={selected} onToggle={toggle} />;
+	if (exchange) {
+		return <Chat exchange={exchange} selected={selected} onToggle={toggle} />;
 	}
 
 	return (

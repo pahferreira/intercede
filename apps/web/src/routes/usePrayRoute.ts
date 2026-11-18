@@ -11,7 +11,7 @@ import { isChatOpen } from "../chat";
 import { dismissPublishedNotice, publishedNotice } from "../follow-ups";
 import { readSearchEvents } from "../search-stream";
 
-export type Turn = {
+export type Exchange = {
 	entry: string;
 	status: "searching" | "answering" | "done" | "failed";
 	note: string;
@@ -25,7 +25,7 @@ export function usePrayRoute() {
 	const chatOpen = useSearch({ strict: false, select: isChatOpen });
 	const [notice, setNotice] = useState(publishedNotice);
 	const [copied, setCopied] = useState(false);
-	const [turn, setTurn] = useState<Turn | null>(null);
+	const [exchange, setExchange] = useState<Exchange | null>(null);
 	const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
 	const searching = useRef<AbortController | null>(null);
 
@@ -38,7 +38,7 @@ export function usePrayRoute() {
 		}
 		searching.current?.abort();
 		searching.current = null;
-		setTurn(null);
+		setExchange(null);
 		setSelected(new Set());
 	}, [chatOpen, navigate]);
 
@@ -66,8 +66,8 @@ export function usePrayRoute() {
 		setCopied(true);
 	};
 
-	const update = (change: (current: Turn) => Turn) =>
-		setTurn((current) => (current ? change(current) : current));
+	const update = (change: (current: Exchange) => Exchange) =>
+		setExchange((current) => (current ? change(current) : current));
 
 	const stream = async (entry: string, signal: AbortSignal) => {
 		const response = await client.api.search.$post(
@@ -86,10 +86,10 @@ export function usePrayRoute() {
 					note: current.note + event.data.text,
 				}));
 			} else if (event.type === "suggestions") {
-				track("suggestions_shown", {
-					count: event.data.suggestions.length,
-					fallback: false,
-				});
+				const count = event.data.suggestions.length;
+				if (count > 0) {
+					track("suggestions_shown", { count, fallback: false });
+				}
 				update((current) => ({
 					...current,
 					suggestions: event.data.suggestions,
@@ -108,7 +108,7 @@ export function usePrayRoute() {
 		searching.current = controller;
 		track("entry_sent", {});
 		setSelected(new Set());
-		setTurn({ entry, status: "searching", note: "", suggestions: [] });
+		setExchange({ entry, status: "searching", note: "", suggestions: [] });
 		navigate({ to: "/pray", search: { chat: true } });
 		stream(entry, controller.signal).catch(() => {
 			if (controller.signal.aborted) return;
@@ -132,7 +132,7 @@ export function usePrayRoute() {
 		copied,
 		copy,
 		dismiss,
-		turn: chatOpen ? turn : null,
+		exchange: chatOpen ? exchange : null,
 		selected,
 		send,
 		toggle,
