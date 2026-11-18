@@ -1,7 +1,13 @@
+import type { InferResponseType } from "hono/client";
+import type { ApiClient } from "./api";
+
 const tokensKey = "intercede.followUpTokens";
 const noticeKey = "intercede.publishedNotice";
 
-export type PublishedIntention = { followUpToken: string; label: string };
+export type PublishedIntention = Omit<
+	InferResponseType<ApiClient["api"]["intentions"]["$post"], 201>,
+	"status"
+>;
 
 function readJson(key: string): unknown {
 	try {
@@ -36,8 +42,4 @@ export function publishedNotice(): PublishedIntention | null {
 
 export function dismissPublishedNotice() {
 	localStorage.removeItem(noticeKey);
-}
-
-export function followUpUrl(followUpToken: string, origin = location.origin) {
-	return new URL(`/f/${followUpToken}`, origin).href;
 }

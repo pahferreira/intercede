@@ -19,7 +19,7 @@ export function useSubmitRoute() {
 		return navigate({ to: "/pray" });
 	};
 
-	const published = (intention: PublishedIntention) => {
+	const onPublished = (intention: PublishedIntention) => {
 		rememberPublished(intention);
 		return leave();
 	};
@@ -29,5 +29,5 @@ export function useSubmitRoute() {
 		return leave();
 	};
 
-	return { published, skip };
+	return { onPublished, skip };
 }

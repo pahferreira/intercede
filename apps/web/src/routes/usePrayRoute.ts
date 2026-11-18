@@ -1,12 +1,10 @@
+import { useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { track } from "../analytics";
-import {
-	dismissPublishedNotice,
-	followUpUrl,
-	publishedNotice,
-} from "../follow-ups";
+import { dismissPublishedNotice, publishedNotice } from "../follow-ups";
 
 export function usePrayRoute() {
+	const router = useRouter();
 	const [notice, setNotice] = useState(publishedNotice);
 	const [copied, setCopied] = useState(false);
 
@@ -17,7 +15,17 @@ export function usePrayRoute() {
 
 	const copy = async () => {
 		if (!notice) return;
-		await navigator.clipboard.writeText(followUpUrl(notice.followUpToken));
+		const followUp = router.buildLocation({
+			to: "/f/$token",
+			params: { token: notice.followUpToken },
+		});
+		try {
+			await navigator.clipboard.writeText(
+				new URL(followUp.href, location.origin).href,
+			);
+		} catch {
+			return;
+		}
 		track("followup_link_copied", {});
 		setCopied(true);
 	};

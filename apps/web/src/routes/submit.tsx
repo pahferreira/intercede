@@ -14,8 +14,8 @@ const maxLength = 1000;
 export function Submit() {
 	const { t } = useLingui();
 	const [text, setText] = useState("");
-	const { published, skip } = useSubmitRoute();
-	const submission = useSubmissionIntention({ onPublished: published });
+	const { onPublished, skip } = useSubmitRoute();
+	const submission = useSubmissionIntention({ onPublished });
 	const result = submission.data;
 
 	const outsideLimits =
