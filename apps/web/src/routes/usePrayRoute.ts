@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { track } from "../analytics";
+import { isChatOpen } from "../chat";
 import { dismissPublishedNotice, publishedNotice } from "../follow-ups";
 import { readSearchEvents } from "../search-stream";
 
@@ -21,10 +22,7 @@ export function usePrayRoute() {
 	const router = useRouter();
 	const navigate = useNavigate();
 	const { client } = useRouteContext({ from: "__root__" });
-	const chatOpen = useSearch({
-		from: "/pray",
-		select: (search) => !!search.chat,
-	});
+	const chatOpen = useSearch({ strict: false, select: isChatOpen });
 	const [notice, setNotice] = useState(publishedNotice);
 	const [copied, setCopied] = useState(false);
 	const [turn, setTurn] = useState<Turn | null>(null);

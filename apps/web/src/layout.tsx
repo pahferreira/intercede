@@ -1,14 +1,12 @@
 import { Trans } from "@lingui/react/macro";
 import { Outlet, useSearch } from "@tanstack/react-router";
 import markOnDark from "./assets/logos/intercede-mark-on-dark.svg";
+import { isChatOpen } from "./chat";
 import { LanguageToggle } from "./language-toggle";
 import { Link } from "./ui/Link";
 
 export function Layout() {
-	const chatOpen = useSearch({
-		strict: false,
-		select: (search) => "chat" in search && search.chat === true,
-	});
+	const chatOpen = useSearch({ strict: false, select: isChatOpen });
 
 	return (
 		<div className="flex min-h-dvh flex-col px-space-4 pt-space-3 pb-space-5 md:px-space-5">
