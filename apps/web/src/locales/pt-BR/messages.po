@@ -16,7 +16,7 @@ msgstr "{0, plural, =0 {<2><3># pessoas</3> se comprometeram a rezar por esta in
 msgid "A place where you can share your faith around the world"
 msgstr "Um lugar para compartilhar sua fé com o mundo todo"
 
-#: src/routes/pray.tsx:11
+#: src/routes/pray.tsx:63
 msgid "Ask for prayer"
 msgstr "Pedir oração"
 
@@ -31,6 +31,18 @@ msgstr "Comprometer-me a rezar por esta intenção"
 #: src/routes/committed.tsx:6
 msgid "Committed"
 msgstr "Compromisso"
+
+#: src/routes/pray.tsx:32
+msgid "Copied"
+msgstr "Copiado"
+
+#: src/routes/pray.tsx:32
+msgid "Copy"
+msgstr "Copiar"
+
+#: src/routes/pray.tsx:36
+msgid "Dismiss"
+msgstr "Fechar"
 
 #: src/routes/follow-up.tsx:6
 msgid "Follow-up"
@@ -56,9 +68,17 @@ msgstr "Procurando intenções…"
 msgid "Not sent."
 msgstr "Não enviada."
 
-#: src/routes/pray.tsx:8
+#: src/routes/pray.tsx:60
 msgid "Pray"
 msgstr "Rezar"
+
+#: src/routes/pray.tsx:20
+msgid "Published"
+msgstr "Publicada"
+
+#: src/routes/pray.tsx:25
+msgid "Published — Intention #{label}"
+msgstr "Publicada — Intenção #{label}"
 
 #: src/ui/IntentionCard.tsx:20
 msgid "Published {published}"

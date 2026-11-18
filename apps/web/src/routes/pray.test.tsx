@@ -1,0 +1,91 @@
+import { afterEach, beforeEach, expect, test } from "bun:test";
+import { fireEvent, screen } from "@testing-library/react";
+import { renderAt, type SubmitIntention } from "../../test/render";
+import { initAnalytics } from "../analytics";
+
+let events: { event: string; properties: unknown }[] = [];
+const posthog = {
+	init: () => {},
+	capture: (event: string, properties: unknown) => {
+		events.push({ event, properties });
+	},
+};
+
+beforeEach(() => {
+	events = [];
+	initAnalytics("phc_test", posthog);
+});
+
+afterEach(() => {
+	initAnalytics(undefined, posthog);
+});
+
+const followUpToken = "Zm9sbG93LXVwLXRva2VuLWZvci10ZXN0cy0xMjM0NTY";
+
+const publishes: SubmitIntention = async () => ({
+	ok: true,
+	value: { followUpToken, label: "a3f9" },
+});
+
+async function publish(locale: "en" | "pt-BR", submit: string) {
+	const rendered = await renderAt("/", locale, publishes);
+	fireEvent.change(await screen.findByRole("textbox"), {
+		target: { value: "For my brother's new job" },
+	});
+	fireEvent.click(screen.getByRole("button", { name: submit }));
+	return rendered;
+}
+
+test.each([
+	["en", "Submit", "Published — Intention #a3f9", "Copy"],
+	["pt-BR", "Enviar", "Publicada — Intenção #a3f9", "Copiar"],
+] as const)(
+	"after publishing in %s, /pray confirms it with the short label",
+	async (locale, submit, confirmation, copy) => {
+		await publish(locale, submit);
+
+		expect(await screen.findByText(confirmation)).toBeDefined();
+		expect(screen.getByRole("button", { name: copy })).toBeDefined();
+	},
+);
+
+test("Copy puts the follow-up link on the clipboard and is counted", async () => {
+	await publish("en", "Submit");
+
+	fireEvent.click(await screen.findByRole("button", { name: "Copy" }));
+
+	expect(await screen.findByRole("button", { name: "Copied" })).toBeDefined();
+	expect(await navigator.clipboard.readText()).toBe(
+		`http://localhost/f/${followUpToken}`,
+	);
+	expect(events.map(({ event }) => event)).toContain("followup_link_copied");
+});
+
+test("the Follow-up Token is kept in localStorage", async () => {
+	await publish("en", "Submit");
+	await screen.findByText("Published — Intention #a3f9");
+
+	expect(
+		JSON.parse(localStorage.getItem("intercede.followUpTokens") ?? ""),
+	).toEqual([followUpToken]);
+});
+
+test("the confirmation stays until it is dismissed", async () => {
+	const first = await publish("en", "Submit");
+	await screen.findByText("Published — Intention #a3f9");
+	first.unmount();
+
+	await renderAt("/pray", "en");
+	fireEvent.click(await screen.findByRole("button", { name: "Dismiss" }));
+
+	expect(screen.queryByText("Published — Intention #a3f9")).toBeNull();
+	expect(screen.getByRole("heading", { name: "Pray" })).toBeDefined();
+	expect(localStorage.getItem("intercede.followUpTokens")).not.toBeNull();
+});
+
+test("/pray reached without publishing shows no confirmation", async () => {
+	await renderAt("/pray", "en");
+
+	await screen.findByRole("heading", { name: "Pray" });
+	expect(screen.queryByRole("button", { name: "Copy" })).toBeNull();
+});

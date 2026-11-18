@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test";
+import { createHash } from "node:crypto";
 import { sql } from "drizzle-orm";
 import { createTestApp } from "../../test/app";
 import { testDatabase } from "../../test/database";
@@ -23,7 +24,7 @@ test("a text the moderation passes is published with its detected language", asy
 	const response = await submit(app, "  Pela saúde da minha mãe  ");
 
 	expect(response.status).toBe(201);
-	expect(await response.json()).toEqual({ status: "published" });
+	expect(await response.json()).toMatchObject({ status: "published" });
 	const rows = await testDatabase().select().from(intentions);
 	expect(rows).toEqual([
 		expect.objectContaining({
@@ -32,6 +33,43 @@ test("a text the moderation passes is published with its detected language", asy
 			status: "published",
 		}),
 	]);
+});
+
+type Published = { status: "published"; followUpToken: string; label: string };
+
+test("publishing answers with an unguessable Follow-up Token and keeps only its hash", async () => {
+	const app = createTestApp({ moderate: publishes("en") });
+
+	const first = (await (
+		await submit(app, "For my brother's new job")
+	).json()) as Published;
+	const second = (await (
+		await submit(app, "For my sister's surgery")
+	).json()) as Published;
+
+	expect(first.followUpToken).toMatch(/^[A-Za-z0-9_-]{43}$/);
+	expect(second.followUpToken).not.toBe(first.followUpToken);
+	const rows = await testDatabase().select().from(intentions);
+	const hashes = rows.map((row) => row.followUpTokenHash);
+	expect(hashes).toContain(
+		createHash("sha256").update(first.followUpToken).digest("hex"),
+	);
+	for (const row of rows) {
+		expect(JSON.stringify(row)).not.toContain(first.followUpToken);
+		expect(first.followUpToken).not.toContain(row.id);
+	}
+});
+
+test("the short label shows the start of the Intention id, for display only", async () => {
+	const app = createTestApp({ moderate: publishes("en") });
+
+	const published = (await (
+		await submit(app, "For my brother's new job")
+	).json()) as Published;
+
+	const [intention] = await testDatabase().select().from(intentions);
+	expect(published.label).toBe(intention?.id.slice(0, 4) ?? "missing");
+	expect(published.label).toMatch(/^[0-9a-f]{4}$/);
 });
 
 test("publishing writes an IntentionPublished outbox row for the Intention", async () => {

@@ -9,6 +9,7 @@ export const intentions = intentionsSchema.table("intentions", {
 	text: text().notNull(),
 	language: text({ enum: languages }).notNull(),
 	status: text({ enum: ["published"] }).notNull(),
+	followUpTokenHash: text("follow_up_token_hash").notNull().unique(),
 	publishedAt: timestamp("published_at", { withTimezone: true })
 		.notNull()
 		.defaultNow(),

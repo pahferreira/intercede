@@ -6,15 +6,16 @@ import { intentions, outbox } from "./schema";
 export type PublishIntention = (intention: {
 	text: string;
 	language: Language;
-}) => Promise<void>;
+	followUpTokenHash: string;
+}) => Promise<{ id: string }>;
 
 export const createPublishIntention =
 	(database: Database): PublishIntention =>
-	({ text, language }) =>
+	({ text, language, followUpTokenHash }) =>
 		database.transaction(async (tx) => {
 			const [published] = await tx
 				.insert(intentions)
-				.values({ text, language, status: "published" })
+				.values({ text, language, status: "published", followUpTokenHash })
 				.returning();
 			if (!published) throw new Error("the Intention was not inserted");
 			await tx.insert(outbox).values({
@@ -26,4 +27,5 @@ export const createPublishIntention =
 					publishedAt: published.publishedAt.toISOString(),
 				},
 			} satisfies IntentionEvent);
+			return { id: published.id };
 		});

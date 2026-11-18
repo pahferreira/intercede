@@ -22,6 +22,13 @@
       "when": 1795026376815,
       "tag": "0002_intercession_catalog",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1795028724766,
+      "tag": "0003_follow_up_token",
+      "breakpoints": true
     }
   ]
 }

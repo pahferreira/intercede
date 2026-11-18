@@ -1,9 +1,61 @@
-import { Trans } from "@lingui/react/macro";
+import { Trans, useLingui } from "@lingui/react/macro";
+import { IconCheck, IconCopy, IconX } from "@tabler/icons-react";
 import { Link } from "@tanstack/react-router";
+import { Button } from "../ui/Button";
+import { usePrayRoute } from "./usePrayRoute";
+
+type PublishedNoticeProps = {
+	label: string;
+	copied: boolean;
+	onCopy: () => void;
+	onDismiss: () => void;
+};
+
+function PublishedNotice(props: PublishedNoticeProps) {
+	const { t } = useLingui();
+	const label = props.label;
+
+	return (
+		<section
+			aria-label={t`Published`}
+			className="flex items-center gap-space-3 rounded-lg border-2 border-line bg-violet-raised p-space-3 shadow-sm"
+		>
+			<IconCheck aria-hidden className="size-icon shrink-0 text-success" />
+			<p className="grow text-small">
+				<Trans>Published — Intention #{label}</Trans>
+			</p>
+			<Button
+				variant="secondary"
+				icon={props.copied ? IconCheck : IconCopy}
+				onClick={props.onCopy}
+			>
+				{props.copied ? <Trans>Copied</Trans> : <Trans>Copy</Trans>}
+			</Button>
+			<button
+				type="button"
+				aria-label={t`Dismiss`}
+				onClick={props.onDismiss}
+				className="cursor-pointer rounded-sm text-ivory-muted transition-colors hover:text-ivory"
+			>
+				<IconX aria-hidden className="size-icon" />
+			</button>
+		</section>
+	);
+}
 
 export function Pray() {
+	const { notice, copied, copy, dismiss } = usePrayRoute();
+
 	return (
 		<>
+			{notice && (
+				<PublishedNotice
+					label={notice.label}
+					copied={copied}
+					onCopy={copy}
+					onDismiss={dismiss}
+				/>
+			)}
 			<h1>
 				<Trans>Pray</Trans>
 			</h1>

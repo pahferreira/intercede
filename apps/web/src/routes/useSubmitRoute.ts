@@ -1,6 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
 import { track } from "../analytics";
+import { type PublishedIntention, rememberPublished } from "../follow-ups";
 import { rememberSubmitOrSkip } from "../submit-gate";
 
 export function useSubmitRoute() {
@@ -18,10 +19,15 @@ export function useSubmitRoute() {
 		return navigate({ to: "/pray" });
 	};
 
+	const published = (intention: PublishedIntention) => {
+		rememberPublished(intention);
+		return leave();
+	};
+
 	const skip = () => {
 		track("submit_skipped", {});
 		return leave();
 	};
 
-	return { leave, skip };
+	return { published, skip };
 }

@@ -21,7 +21,10 @@ export const intentionRoutes = (submitIntention: SubmitIntention) =>
 			const { text } = c.req.valid("json");
 			const submitted = await submitIntention(text, c.var.analytics);
 			if (submitted.ok) {
-				return c.json({ status: "published" } as const, 201);
+				return c.json(
+					{ status: "published", ...submitted.value } as const,
+					201,
+				);
 			}
 			if (submitted.error.kind === "rejected") {
 				return c.json(
