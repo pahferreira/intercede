@@ -72,7 +72,6 @@ export function usePrayRoute() {
 		setTurn((current) => (current ? change(current) : current));
 
 	const stream = async (entry: string, signal: AbortSignal) => {
-		// @ts-expect-error POST /api/search joins AppType when the API side of #39 merges
 		const response = await client.api.search.$post(
 			{ json: { entry } },
 			{ init: { signal } },
