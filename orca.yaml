@@ -1,0 +1,4 @@
+scripts:
+  setup: |
+    echo "📦 Installing dependencies..."
+    bun install;
