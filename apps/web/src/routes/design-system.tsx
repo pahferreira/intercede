@@ -24,7 +24,14 @@ import markOnLight from "../assets/logos/intercede-mark-on-light.svg";
 import { Button } from "../ui/Button";
 import { IntentionCard } from "../ui/IntentionCard";
 import { Link } from "../ui/Link";
+import {
+	AssistantReply,
+	EntryBubble,
+	SearchingStatus,
+	Thread,
+} from "../ui/Message";
 import { MessageBox } from "../ui/MessageBox";
+import { StatusMessage } from "../ui/StatusMessage";
 import { SuggestionCard } from "../ui/SuggestionCard";
 import { Textarea } from "../ui/Textarea";
 
@@ -140,6 +147,35 @@ const messageBoxStates = [
 		name: "message-box-search-limit",
 		initialValue: "",
 		disabledReason: "You've searched a lot today. Come back later.",
+	},
+] as const;
+
+const entrySample =
+	"Please pray for my mother.\nShe has surgery on Thursday and is afraid.";
+
+const replySample = [
+	"I found three intentions from people going through something similar.",
+	"Pick the ones you'd like to pray for.",
+] as const;
+
+const statusMessages = [
+	{
+		name: "status-message-success",
+		tone: "success",
+		text: "Link copied.",
+		retry: false,
+	},
+	{
+		name: "status-message-notice",
+		tone: "notice",
+		text: "You're offline. Reconnect to keep searching.",
+		retry: false,
+	},
+	{
+		name: "status-message-danger",
+		tone: "danger",
+		text: "Couldn't load intentions.",
+		retry: true,
 	},
 ] as const;
 
@@ -423,6 +459,51 @@ export function DesignSystem() {
 					{messageBoxStates.map(({ name, ...props }) => (
 						<Token key={name} name={name}>
 							<MessageBoxDemo {...props} />
+						</Token>
+					))}
+				</div>
+			</Section>
+
+			<Section title="Message">
+				<p className="text-small text-ivory-muted">
+					Each message fades and rises in; reduced motion stops the fade, the
+					caret blink and the dots.
+				</p>
+				<Token name="thread">
+					<Thread>
+						<EntryBubble text={entrySample} />
+						<AssistantReply paragraphs={replySample} />
+						<EntryBubble text="Only for mothers, please." state="sending" />
+						<SearchingStatus />
+					</Thread>
+				</Token>
+				<Token name="entry-bubble">
+					<EntryBubble text={entrySample} />
+				</Token>
+				<Token name="entry-bubble-sending">
+					<EntryBubble text={entrySample} state="sending" />
+				</Token>
+				<Token name="entry-bubble-failed">
+					<EntryBubble text={entrySample} state="failed" onRetry={() => {}} />
+				</Token>
+				<Token name="assistant-reply">
+					<AssistantReply paragraphs={replySample} />
+				</Token>
+				<Token name="assistant-reply-streaming">
+					<AssistantReply paragraphs={replySample} streaming />
+				</Token>
+				<Token name="searching-status">
+					<SearchingStatus />
+				</Token>
+			</Section>
+
+			<Section title="StatusMessage">
+				<div className="flex flex-col gap-space-3">
+					{statusMessages.map(({ name, tone, text, retry }) => (
+						<Token key={name} name={name}>
+							<StatusMessage tone={tone} onRetry={retry ? () => {} : undefined}>
+								{text}
+							</StatusMessage>
 						</Token>
 					))}
 				</div>

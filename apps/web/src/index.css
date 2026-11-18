@@ -140,9 +140,11 @@
 	--spacing-icon: var(--icon);
 	--spacing-field: var(--field);
 	--spacing-composer-max: 168px;
+	--spacing-dot: 6px;
 
 	--container-column-form: var(--column-form);
 	--container-column-chat: var(--column-chat);
+	--container-reply: 640px;
 
 	--radius-sm: var(--radius-sm);
 	--radius-md: var(--radius-md);
@@ -211,10 +213,39 @@
 
 	--animate-spin: spin 800ms linear infinite;
 	--animate-spin-slow: spin 2400ms linear infinite;
+	--animate-rise: rise var(--duration-slow) var(--ease-out) both;
+	--animate-blink: blink 1s steps(2, start) infinite;
+	--animate-breathe: breathe 1200ms var(--ease-in-out) infinite;
+	--animation-delay-dot-2: 160ms;
+	--animation-delay-dot-3: 320ms;
 
 	@keyframes spin {
 		to {
 			transform: rotate(360deg);
+		}
+	}
+
+	@keyframes rise {
+		from {
+			opacity: 0;
+			transform: translateY(var(--space-2));
+		}
+	}
+
+	@keyframes blink {
+		to {
+			visibility: hidden;
+		}
+	}
+
+	@keyframes breathe {
+		0%,
+		100% {
+			opacity: 0.25;
+		}
+		50% {
+			opacity: 1;
+			transform: translateY(-2px);
 		}
 	}
 }
@@ -265,6 +296,10 @@
 
 @utility max-h-clamp-3 {
 	max-height: 3lh;
+}
+
+@utility animate-delay-* {
+	animation-delay: --value(--animation-delay-*);
 }
 
 @utility pb-safe-* {
