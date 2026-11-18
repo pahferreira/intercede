@@ -39,6 +39,10 @@ _Avoid_: Deleted, expired
 A secret given only to the Requester when their Intention is published, letting them later see how many Commitments it received.
 _Avoid_: Link, password
 
+**Intention Code**:
+A short public reference to an Intention, such as `INT-7K3QD`, safe to share; it identifies the Intention but grants nothing, unlike the Follow-up Token.
+_Avoid_: Label, ID, number
+
 ## Intercession context
 
 Helps Intercessors find Intentions that fit what is on their heart, keeps suggestions fair, and records Commitments.

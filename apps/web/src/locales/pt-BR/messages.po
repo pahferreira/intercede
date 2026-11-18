@@ -77,8 +77,8 @@ msgid "Published"
 msgstr "Publicada"
 
 #: src/routes/pray.tsx:25
-msgid "Published — Intention #{label}"
-msgstr "Publicada — Intenção #{label}"
+msgid "Published — Intention {code}"
+msgstr "Publicada — Intenção {code}"
 
 #: src/ui/IntentionCard.tsx:20
 msgid "Published {published}"

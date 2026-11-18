@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { sql } from "drizzle-orm";
 import { createTestApp } from "../../test/app";
 import { testDatabase } from "../../test/database";
+import { createPublishIntention } from "./adapters/persistence/intention-store";
 import { intentions, outbox } from "./adapters/persistence/schema";
 import type { Moderate } from "./application/moderate";
 import type { Language } from "./domain/intention";
@@ -35,7 +36,7 @@ test("a text the moderation passes is published with its detected language", asy
 	]);
 });
 
-type Published = { status: "published"; followUpToken: string; label: string };
+type Published = { status: "published"; followUpToken: string; code: string };
 
 test("publishing answers with an unguessable Follow-up Token and keeps only its hash", async () => {
 	const app = createTestApp({ moderate: publishes("en") });
@@ -60,7 +61,7 @@ test("publishing answers with an unguessable Follow-up Token and keeps only its 
 	}
 });
 
-test("the short label shows the start of the Intention id, for display only", async () => {
+test("publishing answers with the shareable Intention Code it stored", async () => {
 	const app = createTestApp({ moderate: publishes("en") });
 
 	const published = (await (
@@ -68,8 +69,36 @@ test("the short label shows the start of the Intention id, for display only", as
 	).json()) as Published;
 
 	const [intention] = await testDatabase().select().from(intentions);
-	expect(published.label).toBe(intention?.id.slice(0, 4) ?? "missing");
-	expect(published.label).toMatch(/^[0-9a-f]{4}$/);
+	expect(published.code).toMatch(/^INT-[0-9A-HJKMNP-TV-Z]{5}$/);
+	expect(published.code).toBe(intention?.code ?? "missing");
+});
+
+test("an Intention Code already taken is drawn again", async () => {
+	const publish = createPublishIntention(testDatabase(), () => "INT-AAAAA");
+	await publish({
+		text: "For my brother's new job",
+		language: "en",
+		followUpTokenHash: "first",
+	});
+	const codes = ["INT-AAAAA", "INT-BBBBB"];
+	const publishAgain = createPublishIntention(
+		testDatabase(),
+		() => codes.shift() ?? "INT-CCCCC",
+	);
+
+	const published = await publishAgain({
+		text: "For my sister's surgery",
+		language: "en",
+		followUpTokenHash: "second",
+	});
+
+	expect(published.code).toBe("INT-BBBBB");
+	const rows = await testDatabase().select().from(intentions);
+	expect(rows.map((row) => row.code).sort()).toEqual([
+		"INT-AAAAA",
+		"INT-BBBBB",
+	]);
+	expect(await testDatabase().select().from(outbox)).toHaveLength(2);
 });
 
 test("publishing writes an IntentionPublished outbox row for the Intention", async () => {

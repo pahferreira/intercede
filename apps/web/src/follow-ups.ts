@@ -35,8 +35,8 @@ export function rememberPublished(published: PublishedIntention) {
 export function publishedNotice(): PublishedIntention | null {
 	const notice = readJson(noticeKey) as Partial<PublishedIntention> | null;
 	return typeof notice?.followUpToken === "string" &&
-		typeof notice.label === "string"
-		? { followUpToken: notice.followUpToken, label: notice.label }
+		typeof notice.code === "string"
+		? { followUpToken: notice.followUpToken, code: notice.code }
 		: null;
 }
 

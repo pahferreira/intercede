@@ -4,15 +4,14 @@ import type { Result } from "../../platform/result";
 import { createPublishIntention } from "../adapters/persistence/intention-store";
 import type { RejectionReason } from "../domain/moderation-verdict";
 import { issueFollowUpToken } from "./follow-up-token";
+import { issueIntentionCode } from "./intention-code";
 import type { Moderate, ModerationUnavailable } from "./moderate";
-
-const labelLength = 4;
 
 type SubmitIntentionError =
 	| ModerationUnavailable
 	| { kind: "rejected"; reasons: RejectionReason[] };
 
-type PublishedIntention = { followUpToken: string; label: string };
+type PublishedIntention = { followUpToken: string; code: string };
 
 export type SubmitIntention = (
 	text: string,
@@ -26,7 +25,7 @@ export const createSubmitIntention = ({
 	database: Database;
 	moderate: Moderate;
 }): SubmitIntention => {
-	const publish = createPublishIntention(database);
+	const publish = createPublishIntention(database, issueIntentionCode);
 	return async (text, analytics) => {
 		const verdict = await moderate(text, analytics);
 		if (!verdict.ok) return verdict;
@@ -46,7 +45,7 @@ export const createSubmitIntention = ({
 			ok: true,
 			value: {
 				followUpToken: followUpToken.token,
-				label: published.id.slice(0, labelLength),
+				code: published.code,
 			},
 		};
 	};

@@ -24,7 +24,7 @@ const followUpToken = "Zm9sbG93LXVwLXRva2VuLWZvci10ZXN0cy0xMjM0NTY";
 
 const publishes: SubmitIntention = async () => ({
 	ok: true,
-	value: { followUpToken, label: "a3f9" },
+	value: { followUpToken, code: "INT-7K3QD" },
 });
 
 async function publish(locale: "en" | "pt-BR", submit: string) {
@@ -37,10 +37,10 @@ async function publish(locale: "en" | "pt-BR", submit: string) {
 }
 
 test.each([
-	["en", "Submit", "Published — Intention #a3f9", "Copy"],
-	["pt-BR", "Enviar", "Publicada — Intenção #a3f9", "Copiar"],
+	["en", "Submit", "Published — Intention INT-7K3QD", "Copy"],
+	["pt-BR", "Enviar", "Publicada — Intenção INT-7K3QD", "Copiar"],
 ] as const)(
-	"after publishing in %s, /pray confirms it with the short label",
+	"after publishing in %s, /pray confirms it with the Intention Code",
 	async (locale, submit, confirmation, copy) => {
 		await publish(locale, submit);
 
@@ -63,7 +63,7 @@ test("Copy puts the follow-up link on the clipboard and is counted", async () =>
 
 test("the Follow-up Token is kept in localStorage", async () => {
 	await publish("en", "Submit");
-	await screen.findByText("Published — Intention #a3f9");
+	await screen.findByText("Published — Intention INT-7K3QD");
 
 	expect(
 		JSON.parse(localStorage.getItem("intercede.followUpTokens") ?? ""),
@@ -72,13 +72,13 @@ test("the Follow-up Token is kept in localStorage", async () => {
 
 test("the confirmation stays until it is dismissed", async () => {
 	const first = await publish("en", "Submit");
-	await screen.findByText("Published — Intention #a3f9");
+	await screen.findByText("Published — Intention INT-7K3QD");
 	first.unmount();
 
 	await renderAt("/pray", "en");
 	fireEvent.click(await screen.findByRole("button", { name: "Dismiss" }));
 
-	expect(screen.queryByText("Published — Intention #a3f9")).toBeNull();
+	expect(screen.queryByText("Published — Intention INT-7K3QD")).toBeNull();
 	expect(screen.getByRole("heading", { name: "Pray" })).toBeDefined();
 	expect(localStorage.getItem("intercede.followUpTokens")).not.toBeNull();
 });

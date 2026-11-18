@@ -5,7 +5,7 @@ import { Button } from "../ui/Button";
 import { usePrayRoute } from "./usePrayRoute";
 
 type PublishedNoticeProps = {
-	label: string;
+	code: string;
 	copied: boolean;
 	onCopy: () => void;
 	onDismiss: () => void;
@@ -13,7 +13,7 @@ type PublishedNoticeProps = {
 
 function PublishedNotice(props: PublishedNoticeProps) {
 	const { t } = useLingui();
-	const label = props.label;
+	const code = props.code;
 
 	return (
 		<section
@@ -22,7 +22,7 @@ function PublishedNotice(props: PublishedNoticeProps) {
 		>
 			<IconCheck aria-hidden className="size-icon shrink-0 text-success" />
 			<p className="grow text-small">
-				<Trans>Published — Intention #{label}</Trans>
+				<Trans>Published — Intention {code}</Trans>
 			</p>
 			<Button
 				variant="secondary"
@@ -50,7 +50,7 @@ export function Pray() {
 		<>
 			{notice && (
 				<PublishedNotice
-					label={notice.label}
+					code={notice.code}
 					copied={copied}
 					onCopy={copy}
 					onDismiss={dismiss}
