@@ -4,13 +4,22 @@ import type { InferResponseType } from "hono/client";
 import { track } from "../analytics";
 import type { ApiClient } from "../api";
 
+const answeredStatuses = [201, 403, 422, 429, 503] as const;
+
+type AnsweredStatus = (typeof answeredStatuses)[number];
 type PostIntention = ApiClient["api"]["intentions"]["$post"];
-type Submission = InferResponseType<PostIntention, 201 | 403 | 422 | 429 | 503>;
+type Submission = InferResponseType<PostIntention, AnsweredStatus>;
 type Published = InferResponseType<PostIntention, 201>;
 export type RejectionReason = InferResponseType<
 	PostIntention,
 	422
 >["reasons"][number];
+
+function isAnswered<Response extends { status: number }>(
+	response: Response,
+): response is Extract<Response, { status: AnsweredStatus }> {
+	return answeredStatuses.some((status) => status === response.status);
+}
 
 type SubmissionIntentionOptions = {
 	turnstileToken: () => Promise<string>;
@@ -27,15 +36,7 @@ export function useSubmissionIntention(options: SubmissionIntentionOptions) {
 			const response = await client.api.intentions.$post({
 				json: { text: intention, turnstileToken },
 			});
-			if (
-				response.status === 201 ||
-				response.status === 403 ||
-				response.status === 422 ||
-				response.status === 429 ||
-				response.status === 503
-			) {
-				return response.json();
-			}
+			if (isAnswered(response)) return response.json();
 			throw new Error(`unexpected status ${response.status}`);
 		},
 		onSuccess: (result) => {
