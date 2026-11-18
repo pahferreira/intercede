@@ -20,11 +20,9 @@ afterEach(() => {
 	initAnalytics(undefined, posthog);
 });
 
-const followUpToken = "Zm9sbG93LXVwLXRva2VuLWZvci10ZXN0cy0xMjM0NTY";
-
 const publishes: SubmitIntention = async () => ({
 	ok: true,
-	value: { followUpToken, code: "INT-7K3QD" },
+	value: { code: "INT-7K3QD" },
 });
 
 async function publish(locale: "en" | "pt-BR", submit: string) {
@@ -56,18 +54,18 @@ test("Copy puts the follow-up link on the clipboard and is counted", async () =>
 
 	expect(await screen.findByRole("button", { name: "Copied" })).toBeDefined();
 	expect(await navigator.clipboard.readText()).toBe(
-		`http://localhost/f/${followUpToken}`,
+		"http://localhost/intention/INT-7K3QD",
 	);
 	expect(events.map(({ event }) => event)).toContain("followup_link_copied");
 });
 
-test("the Follow-up Token is kept in localStorage", async () => {
+test("the Intention Code is kept in localStorage", async () => {
 	await publish("en", "Submit");
 	await screen.findByText("Published — Intention INT-7K3QD");
 
 	expect(
-		JSON.parse(localStorage.getItem("intercede.followUpTokens") ?? ""),
-	).toEqual([followUpToken]);
+		JSON.parse(localStorage.getItem("intercede.intentionCodes") ?? ""),
+	).toEqual(["INT-7K3QD"]);
 });
 
 test("the confirmation stays until it is dismissed", async () => {
@@ -80,7 +78,7 @@ test("the confirmation stays until it is dismissed", async () => {
 
 	expect(screen.queryByText("Published — Intention INT-7K3QD")).toBeNull();
 	expect(screen.getByRole("heading", { name: "Pray" })).toBeDefined();
-	expect(localStorage.getItem("intercede.followUpTokens")).not.toBeNull();
+	expect(localStorage.getItem("intercede.intentionCodes")).not.toBeNull();
 });
 
 test("/pray reached without publishing shows no confirmation", async () => {

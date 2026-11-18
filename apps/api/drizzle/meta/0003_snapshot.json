@@ -1,5 +1,5 @@
 {
-  "id": "0ad08664-0972-478f-8a7f-643f80310bc3",
+  "id": "dc981a35-1d67-4ae6-b025-93e4794fb435",
   "prevId": "37b0ad18-8049-490c-a303-f342063fce3c",
   "version": "7",
   "dialect": "postgresql",
@@ -14,6 +14,12 @@
           "primaryKey": true,
           "notNull": true,
           "default": "gen_random_uuid()"
+        },
+        "code": {
+          "name": "code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
         },
         "text": {
           "name": "text",
@@ -33,12 +39,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "follow_up_token_hash": {
-          "name": "follow_up_token_hash",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
         "published_at": {
           "name": "published_at",
           "type": "timestamp with time zone",
@@ -51,11 +51,11 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "intentions_follow_up_token_hash_unique": {
-          "name": "intentions_follow_up_token_hash_unique",
+        "intentions_code_unique": {
+          "name": "intentions_code_unique",
           "nullsNotDistinct": false,
           "columns": [
-            "follow_up_token_hash"
+            "code"
           ]
         }
       },

@@ -6,12 +6,12 @@ The brief for the visual design sessions. It fixes flows, states, rules and copy
 
 ## Routes
 
-| Route             | Screen                                                                                      |
-| ----------------- | ------------------------------------------------------------------------------------------- |
-| `/`               | Submit screen, or redirect to `/pray` if this browser submitted or skipped in the last 24 h |
-| `/pray`           | Entry screen, which becomes the fullscreen chat after the first Entry                       |
-| `/pray/committed` | Commitment confirmation                                                                     |
-| `/f/:token`       | Follow-up page for a Requester                                                              |
+| Route              | Screen                                                                                      |
+| ------------------ | ------------------------------------------------------------------------------------------- |
+| `/`                | Submit screen, or redirect to `/pray` if this browser submitted or skipped in the last 24 h |
+| `/pray`            | Entry screen, which becomes the fullscreen chat after the first Entry                       |
+| `/pray/committed`  | Commitment confirmation                                                                     |
+| `/intention/:code` | Follow-up page for a Requester                                                              |
 
 No locale prefix. "Ask for prayer" always opens the submit screen, even within the 24 h window.
 
@@ -35,7 +35,7 @@ Design: `Entry-Published` · `Desktop-Entry-Published`. Reached by Skip, the Ent
 
 Same hero, heading "What's in your heart to pray for today?", textarea, **Start**. Turnstile runs invisibly on Start.
 
-**Success confirmation** (only after publishing): a dismissible notice at the top: "Published ✓ — Intention #a3f9" with a **Copy** button for the follow-up URL `/f/<Follow-up Token>`. The short label is display only; the URL carries the token, never the Intention id. The token is also kept in `localStorage`. The notice stays until dismissed.
+**Success confirmation** (only after publishing): a dismissible notice at the top: "Published ✓ — Intention INT-7K3QD" with a **Copy** button for the follow-up URL `/intention/<Intention Code>`. The URL carries the Intention Code, never the Intention id. The Intention Code is also kept in `localStorage`. The notice stays until dismissed.
 
 ## 3. Fullscreen chat (`/pray`) — [wireframe](wireframes/03-chat.png)
 
@@ -66,11 +66,11 @@ Design: `Committed` · `Desktop-Committed`.
 
 "You committed to pray for these intentions:", the committed Intentions as full-text cards, and "Have a good prayer". Two quiet actions: **New search**, and **Ask for prayer** (only if this Visitor skipped submitting today). The committed cards are kept in `sessionStorage` so a refresh does not lose them.
 
-## 6. Follow-up page (`/f/:token`)
+## 6. Follow-up page (`/intention/:code`)
 
 Design: `FollowUp` · `Desktop-FollowUp`.
 
-The Intention text, its publication date, and "**N people committed to pray for this**" (committed, not prayed). If Archived: "This intention is no longer being suggested", count still shown. Unknown token: a neutral "Link not found". One call to action: **Pray for someone too** → `/pray`.
+The Intention text, its publication date, and "**N people committed to pray for this**" (committed, not prayed). If Archived: "This intention is no longer being suggested", count still shown. Unknown Intention Code: a neutral "Link not found". One call to action: **Pray for someone too** → `/pray`.
 
 ## Cross-cutting rules
 
@@ -84,7 +84,7 @@ The Intention text, its publication date, and "**N people committed to pray for 
 
 - The chat transcript lives in memory only: refresh or a new tab starts over at the Entry screen. Nothing the Intercessor writes is kept in browser storage.
 - The browser back button inside the chat goes to the Entry screen, not to a previous turn.
-- `localStorage`: UI language, submitted/skipped timestamp, Follow-up Tokens. `sessionStorage`: committed cards only.
+- `localStorage`: UI language, submitted/skipped timestamp, Intention Codes. `sessionStorage`: committed cards only.
 
 ### Errors and limits
 
@@ -108,7 +108,7 @@ No user text ever leaves in an event, through any channel:
 - **Funnel events** go through `track` and carry only counts and enums: `submit_viewed`, `submit_skipped`, `intention_submitted`, `intention_rejected{reason}`, `entry_sent`, `clarifying_question_shown`, `refinement_sent{n}`, `suggestions_shown{count, fallback}`, `commit_clicked{count}`, `followup_link_copied`, `followup_viewed`.
 - **Page views and page leaves** are captured, including client-side route changes, so visitors, sessions, bounce rate and referrers are counted.
 - **Exceptions** are captured on the web and the API with their type and stack, never their message.
-- **URLs** in any event have the Follow-up Token replaced: `/f/<token>` becomes `/f/:token`.
+- **URLs** in any event have the Intention Code replaced: `/intention/<code>` becomes `/intention/:code`.
 - **LLM calls** report provider, model, token counts, latency and cost, never the prompt or the output.
 - **Off:** click autocapture, rage and dead clicks, heatmaps and session replay, since each records on-screen text such as Intentions.
 - **Consent** for the analytics cookie is open: #64.

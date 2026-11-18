@@ -5,7 +5,7 @@ import { renderAt } from "../test/render";
 test.each([
 	["/pray", "Pray"],
 	["/pray/committed", "Committed"],
-	["/f/abc123", "Follow-up"],
+	["/intention/INT-7K3QD", "Follow-up"],
 ] as const)("%s renders its stub screen", async (path, heading) => {
 	await renderAt(path, "en");
 

@@ -16,8 +16,8 @@ export function usePrayRoute() {
 	const copy = async () => {
 		if (!notice) return;
 		const followUp = router.buildLocation({
-			to: "/f/$token",
-			params: { token: notice.followUpToken },
+			to: "/intention/$code",
+			params: { code: notice.code },
 		});
 		try {
 			await navigator.clipboard.writeText(

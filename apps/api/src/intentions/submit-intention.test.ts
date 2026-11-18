@@ -1,5 +1,4 @@
 import { expect, test } from "bun:test";
-import { createHash } from "node:crypto";
 import { sql } from "drizzle-orm";
 import { createTestApp } from "../../test/app";
 import { testDatabase } from "../../test/database";
@@ -36,30 +35,7 @@ test("a text the moderation passes is published with its detected language", asy
 	]);
 });
 
-type Published = { status: "published"; followUpToken: string; code: string };
-
-test("publishing answers with an unguessable Follow-up Token and keeps only its hash", async () => {
-	const app = createTestApp({ moderate: publishes("en") });
-
-	const first = (await (
-		await submit(app, "For my brother's new job")
-	).json()) as Published;
-	const second = (await (
-		await submit(app, "For my sister's surgery")
-	).json()) as Published;
-
-	expect(first.followUpToken).toMatch(/^[A-Za-z0-9_-]{43}$/);
-	expect(second.followUpToken).not.toBe(first.followUpToken);
-	const rows = await testDatabase().select().from(intentions);
-	const hashes = rows.map((row) => row.followUpTokenHash);
-	expect(hashes).toContain(
-		createHash("sha256").update(first.followUpToken).digest("hex"),
-	);
-	for (const row of rows) {
-		expect(JSON.stringify(row)).not.toContain(first.followUpToken);
-		expect(first.followUpToken).not.toContain(row.id);
-	}
-});
+type Published = { status: "published"; code: string };
 
 test("publishing answers with the shareable Intention Code it stored", async () => {
 	const app = createTestApp({ moderate: publishes("en") });
@@ -69,8 +45,11 @@ test("publishing answers with the shareable Intention Code it stored", async () 
 	).json()) as Published;
 
 	const [intention] = await testDatabase().select().from(intentions);
+	expect(published).toEqual({
+		status: "published",
+		code: intention?.code ?? "missing",
+	});
 	expect(published.code).toMatch(/^INT-[0-9A-HJKMNP-TV-Z]{5}$/);
-	expect(published.code).toBe(intention?.code ?? "missing");
 });
 
 test("an Intention Code already taken is drawn again", async () => {
@@ -78,7 +57,6 @@ test("an Intention Code already taken is drawn again", async () => {
 	await publish({
 		text: "For my brother's new job",
 		language: "en",
-		followUpTokenHash: "first",
 	});
 	const codes = ["INT-AAAAA", "INT-BBBBB"];
 	const publishAgain = createPublishIntention(
@@ -89,7 +67,6 @@ test("an Intention Code already taken is drawn again", async () => {
 	const published = await publishAgain({
 		text: "For my sister's surgery",
 		language: "en",
-		followUpTokenHash: "second",
 	});
 
 	expect(published.code).toBe("INT-BBBBB");

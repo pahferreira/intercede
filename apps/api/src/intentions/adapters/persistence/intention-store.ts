@@ -8,7 +8,6 @@ const codeAttempts = 5;
 export type PublishIntention = (intention: {
 	text: string;
 	language: Language;
-	followUpTokenHash: string;
 }) => Promise<{ code: string }>;
 
 const isCodeTaken = (error: unknown) => {
@@ -23,17 +22,12 @@ const isCodeTaken = (error: unknown) => {
 
 const insertIntention = (
 	database: Database,
-	{
-		code,
-		text,
-		language,
-		followUpTokenHash,
-	}: Parameters<PublishIntention>[0] & { code: string },
+	{ code, text, language }: Parameters<PublishIntention>[0] & { code: string },
 ) =>
 	database.transaction(async (tx) => {
 		const [published] = await tx
 			.insert(intentions)
-			.values({ code, text, language, status: "published", followUpTokenHash })
+			.values({ code, text, language, status: "published" })
 			.returning();
 		if (!published) throw new Error("the Intention was not inserted");
 		await tx.insert(outbox).values({

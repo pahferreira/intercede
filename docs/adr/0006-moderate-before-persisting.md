@@ -10,4 +10,4 @@ A submitted text is moderated synchronously (one Nova Lite call that must answer
 
 - The Intention lifecycle is only `Published → Archived` (archived 90 days after publication, configurable). There is no Pending state, and the sweeper only drains the outbox.
 - Text is 10–1000 characters; language is `pt` or `en`.
-- On publication the Requester receives a Follow-up Token; only its hash is stored, ready for a future follow-up page.
+- On publication the Requester receives the Intention's Intention Code, which opens its follow-up page. The code is public rather than secret: the page shows only text that Suggestions already make public and a Commitment count, so a guessable code costs little and a short one is easy to share.

@@ -22,7 +22,7 @@ afterEach(() => {
 
 const eventNames = () => events.map(({ event }) => event);
 
-const published = { followUpToken: "a-follow-up-token", code: "INT-7K3QD" };
+const published = { code: "INT-7K3QD" };
 
 const publishes: SubmitIntention = async () => ({
 	ok: true,

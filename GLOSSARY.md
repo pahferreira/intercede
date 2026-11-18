@@ -35,13 +35,9 @@ The state of an Intention that may be suggested to Intercessors.
 The state of an Intention that has aged out: kept, still counted, but never suggested again.
 _Avoid_: Deleted, expired
 
-**Follow-up Token**:
-A secret given only to the Requester when their Intention is published, letting them later see how many Commitments it received.
-_Avoid_: Link, password
-
 **Intention Code**:
-A short public reference to an Intention, such as `INT-7K3QD`, safe to share; it identifies the Intention but grants nothing, unlike the Follow-up Token.
-_Avoid_: Label, ID, number
+A short public reference to an Intention, such as `INT-7K3QD`, given to the Requester when it is published; anyone holding it can see the Intention and how many Commitments it received.
+_Avoid_: Label, ID, number, token
 
 ## Intercession context
 

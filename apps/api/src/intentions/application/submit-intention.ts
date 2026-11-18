@@ -3,7 +3,6 @@ import type { Database } from "../../platform/database";
 import type { Result } from "../../platform/result";
 import { createPublishIntention } from "../adapters/persistence/intention-store";
 import type { RejectionReason } from "../domain/moderation-verdict";
-import { issueFollowUpToken } from "./follow-up-token";
 import { issueIntentionCode } from "./intention-code";
 import type { Moderate, ModerationUnavailable } from "./moderate";
 
@@ -11,7 +10,7 @@ type SubmitIntentionError =
 	| ModerationUnavailable
 	| { kind: "rejected"; reasons: RejectionReason[] };
 
-type PublishedIntention = { followUpToken: string; code: string };
+type PublishedIntention = { code: string };
 
 export type SubmitIntention = (
 	text: string,
@@ -35,18 +34,10 @@ export const createSubmitIntention = ({
 				error: { kind: "rejected", reasons: verdict.value.reasons },
 			};
 		}
-		const followUpToken = issueFollowUpToken();
 		const published = await publish({
 			text,
 			language: verdict.value.language,
-			followUpTokenHash: followUpToken.hash,
 		});
-		return {
-			ok: true,
-			value: {
-				followUpToken: followUpToken.token,
-				code: published.code,
-			},
-		};
+		return { ok: true, value: published };
 	};
 };

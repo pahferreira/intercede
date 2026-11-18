@@ -1,7 +1,7 @@
 import type { InferResponseType } from "hono/client";
 import type { ApiClient } from "./api";
 
-const tokensKey = "intercede.followUpTokens";
+const codesKey = "intercede.intentionCodes";
 const noticeKey = "intercede.publishedNotice";
 
 export type PublishedIntention = Omit<
@@ -17,27 +17,24 @@ function readJson(key: string): unknown {
 	}
 }
 
-function followUpTokens(): string[] {
-	const tokens = readJson(tokensKey);
-	return Array.isArray(tokens)
-		? tokens.filter((token) => typeof token === "string")
+function intentionCodes(): string[] {
+	const codes = readJson(codesKey);
+	return Array.isArray(codes)
+		? codes.filter((code) => typeof code === "string")
 		: [];
 }
 
 export function rememberPublished(published: PublishedIntention) {
 	localStorage.setItem(
-		tokensKey,
-		JSON.stringify([...followUpTokens(), published.followUpToken]),
+		codesKey,
+		JSON.stringify([...intentionCodes(), published.code]),
 	);
 	localStorage.setItem(noticeKey, JSON.stringify(published));
 }
 
 export function publishedNotice(): PublishedIntention | null {
 	const notice = readJson(noticeKey) as Partial<PublishedIntention> | null;
-	return typeof notice?.followUpToken === "string" &&
-		typeof notice.code === "string"
-		? { followUpToken: notice.followUpToken, code: notice.code }
-		: null;
+	return typeof notice?.code === "string" ? { code: notice.code } : null;
 }
 
 export function dismissPublishedNotice() {

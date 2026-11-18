@@ -49,7 +49,7 @@ const committedRoute = createRoute({
 
 const followUpRoute = createRoute({
 	getParentRoute: () => rootRoute,
-	path: "/f/$token",
+	path: "/intention/$code",
 	component: FollowUp,
 });
 

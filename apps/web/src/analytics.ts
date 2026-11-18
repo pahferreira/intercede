@@ -44,20 +44,20 @@ type PostHogClient = {
 	capture: (event: string, properties: Record<string, unknown>) => unknown;
 };
 
-const followUpPath = /\/f\/[^/?#\s"]+/g;
+const followUpPath = /\/intention\/[^/?#\s"]+/g;
 
-function redactFollowUpTokens<T>(value: T): T {
+function redactIntentionCodes<T>(value: T): T {
 	if (typeof value === "string") {
-		return value.replace(followUpPath, "/f/:token") as T;
+		return value.replace(followUpPath, "/intention/:code") as T;
 	}
 	if (Array.isArray(value)) {
-		return value.map(redactFollowUpTokens) as T;
+		return value.map(redactIntentionCodes) as T;
 	}
 	if (value && Object.getPrototypeOf(value) === Object.prototype) {
 		return Object.fromEntries(
 			Object.entries(value).map(([key, nested]) => [
 				key,
-				redactFollowUpTokens(nested),
+				redactIntentionCodes(nested),
 			]),
 		) as T;
 	}
@@ -97,7 +97,7 @@ const config: Partial<PostHogConfig> = {
 	capture_pageview: "history_change",
 	capture_pageleave: true,
 	before_send: (result: CaptureResult | null) =>
-		redactFollowUpTokens(withoutExceptionMessages(result)),
+		redactIntentionCodes(withoutExceptionMessages(result)),
 };
 
 const discard: PostHogClient["capture"] = () => {};
