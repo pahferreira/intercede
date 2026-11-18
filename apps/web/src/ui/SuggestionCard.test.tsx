@@ -96,6 +96,30 @@ test("Show more expands longer text and Show less collapses it, without committi
 	expect(onCheckedChange).not.toHaveBeenCalled();
 });
 
+test("tapping the card body expands longer text and tapping again collapses it, without committing", async () => {
+	layOutTextOfLines(4);
+	const onCheckedChange = mock();
+	await renderCard("en", { onCheckedChange });
+	const text = screen.getByText(
+		"I lost my job last month and I have two kids.",
+	);
+
+	fireEvent.click(text);
+	expect(
+		screen.getByRole("button", { name: "Show less", expanded: true }),
+	).toBeDefined();
+
+	fireEvent.click(
+		screen.getByText(
+			"Fits because you asked to pray for people going through hard times.",
+		),
+	);
+	expect(
+		screen.getByRole("button", { name: "Show more", expanded: false }),
+	).toBeDefined();
+	expect(onCheckedChange).not.toHaveBeenCalled();
+});
+
 test("the card speaks Portuguese", async () => {
 	layOutTextOfLines(4);
 	await renderCard("pt-BR");

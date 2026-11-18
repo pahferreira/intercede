@@ -58,7 +58,15 @@ export function SuggestionCard(props: SuggestionCardProps) {
 					className="pointer-events-none absolute size-space-4 scale-0 text-on-flame transition-transform duration-fast ease-out peer-checked:scale-100 motion-reduce:transition-none"
 				/>
 			</label>
-			<div className="flex min-w-0 flex-1 flex-col gap-space-2">
+			{/* biome-ignore lint/a11y/noStaticElementInteractions: tapping the body is a pointer shortcut; the Show more button is the accessible control */}
+			{/* biome-ignore lint/a11y/useKeyWithClickEvents: keyboard users expand through the Show more button */}
+			<div
+				onClick={() => overflows && setExpanded(!expanded)}
+				className={clsx(
+					"flex min-w-0 flex-1 flex-col gap-space-2",
+					overflows && "cursor-pointer",
+				)}
+			>
 				<p
 					id={textId}
 					ref={textRef}
@@ -74,7 +82,6 @@ export function SuggestionCard(props: SuggestionCardProps) {
 						type="button"
 						aria-expanded={expanded}
 						aria-controls={textId}
-						onClick={() => setExpanded(!expanded)}
 						className="cursor-pointer self-start rounded-sm text-label underline decoration-line-strong decoration-2 underline-offset-3 transition-colors duration-base ease-out hover:decoration-ivory"
 					>
 						{expanded ? t`Show less` : t`Show more`}
