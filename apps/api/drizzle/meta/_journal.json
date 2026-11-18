@@ -15,6 +15,13 @@
       "when": 1794863598110,
       "tag": "0001_intentions_and_outbox",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795026376815,
+      "tag": "0002_intercession_catalog",
+      "breakpoints": true
     }
   ]
 }
