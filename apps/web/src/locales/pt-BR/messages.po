@@ -58,7 +58,7 @@ msgstr "Mantenha o respeito: não use insultos nem linguagem ofensiva."
 
 #: src/routes/pray.tsx:42
 msgid "Keep this link to see how many people commit to pray for it."
-msgstr "Guarde este link para ver quantas pessoas se comprometem a rezar por ela."
+msgstr "Guarde este link para ver quantas pessoas se comprometem a rezar pela sua intenção."
 
 #: src/language-toggle.tsx:13
 msgid "Language"
