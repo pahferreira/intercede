@@ -9,7 +9,7 @@ export function Layout() {
 				<img src={markOnDark} alt="Intercede" className="h-control-md" />
 				<LanguageToggle />
 			</header>
-			<main>
+			<main className="pt-space-5">
 				<Outlet />
 			</main>
 		</div>

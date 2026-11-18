@@ -35,8 +35,8 @@ async function publish(locale: "en" | "pt-BR", submit: string) {
 }
 
 test.each([
-	["en", "Submit", "Published — Intention INT-7K3QD", "Copy"],
-	["pt-BR", "Enviar", "Publicada — Intenção INT-7K3QD", "Copiar"],
+	["en", "Submit", "Intention INT-7K3QD", "Copy link"],
+	["pt-BR", "Enviar", "Intenção INT-7K3QD", "Copiar link"],
 ] as const)(
 	"after publishing in %s, /pray confirms it with the Intention Code",
 	async (locale, submit, confirmation, copy) => {
@@ -47,10 +47,10 @@ test.each([
 	},
 );
 
-test("Copy puts the follow-up link on the clipboard and is counted", async () => {
+test("Copy link puts the follow-up link on the clipboard and is counted", async () => {
 	await publish("en", "Submit");
 
-	fireEvent.click(await screen.findByRole("button", { name: "Copy" }));
+	fireEvent.click(await screen.findByRole("button", { name: "Copy link" }));
 
 	expect(await screen.findByRole("button", { name: "Copied" })).toBeDefined();
 	expect(await navigator.clipboard.readText()).toBe(
@@ -61,7 +61,7 @@ test("Copy puts the follow-up link on the clipboard and is counted", async () =>
 
 test("the Intention Code is kept in localStorage", async () => {
 	await publish("en", "Submit");
-	await screen.findByText("Published — Intention INT-7K3QD");
+	await screen.findByText("Intention INT-7K3QD");
 
 	expect(
 		JSON.parse(localStorage.getItem("intercede.intentionCodes") ?? ""),
@@ -70,13 +70,13 @@ test("the Intention Code is kept in localStorage", async () => {
 
 test("the confirmation stays until it is dismissed", async () => {
 	const first = await publish("en", "Submit");
-	await screen.findByText("Published — Intention INT-7K3QD");
+	await screen.findByText("Intention INT-7K3QD");
 	first.unmount();
 
 	await renderAt("/pray", "en");
 	fireEvent.click(await screen.findByRole("button", { name: "Dismiss" }));
 
-	expect(screen.queryByText("Published — Intention INT-7K3QD")).toBeNull();
+	expect(screen.queryByText("Intention INT-7K3QD")).toBeNull();
 	expect(screen.getByRole("heading", { name: "Pray" })).toBeDefined();
 	expect(localStorage.getItem("intercede.intentionCodes")).not.toBeNull();
 });
@@ -85,5 +85,5 @@ test("/pray reached without publishing shows no confirmation", async () => {
 	await renderAt("/pray", "en");
 
 	await screen.findByRole("heading", { name: "Pray" });
-	expect(screen.queryByRole("button", { name: "Copy" })).toBeNull();
+	expect(screen.queryByRole("button", { name: "Copy link" })).toBeNull();
 });

@@ -32,7 +32,7 @@ export function Submit() {
 			: [];
 
 	return (
-		<div className="mx-auto flex w-full max-w-column-form flex-col gap-space-6 md:gap-space-7 md:pt-space-7 pt-space-5">
+		<div className="mx-auto flex w-full max-w-column-form flex-col gap-space-6 md:gap-space-7">
 			<section className="flex flex-col gap-space-1">
 				<p className="text-eyebrow text-ivory-muted">
 					<Trans>Welcome to</Trans>
