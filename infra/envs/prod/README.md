@@ -73,16 +73,16 @@ After the first apply, `.github/workflows/deploy.yml` deploys every push to `mai
 
 Every step is safe to re-run. A new run waits for the one in progress, and only the latest waiting run goes ahead.
 
-| Name                   | Kind     | Used for                                      |
-| ---------------------- | -------- | --------------------------------------------- |
-| `AWS_APPLY_ROLE_ARN`   | variable | The role the job assumes through GitHub OIDC. |
-| `TF_STATE_BUCKET`      | variable | `terraform init`'s backend bucket.            |
-| `NEON_API_KEY`         | secret   | The Neon provider.                            |
-| `BUDGET_ALERT_EMAIL`   | secret   | `TF_VAR_budget_alert_email`.                  |
-| `DATABASE_URL`         | secret   | Neon's pooled connection string.              |
-| `POSTHOG_KEY`          | secret   | The API's environment and the web build.      |
-| `TURNSTILE_SECRET_KEY` | secret   | The API's environment.                        |
-| `TURNSTILE_SITE_KEY`   | variable | The web build.                                |
+| Name                              | Kind     | Used for                                      |
+| --------------------------------- | -------- | --------------------------------------------- |
+| `AWS_APPLY_ROLE_ARN`              | variable | The role the job assumes through GitHub OIDC. |
+| `TF_STATE_BUCKET`                 | variable | `terraform init`'s backend bucket.            |
+| `NEON_API_KEY`                    | secret   | The Neon provider.                            |
+| `BUDGET_ALERT_EMAIL`              | secret   | `TF_VAR_budget_alert_email`.                  |
+| `DATABASE_URL`                    | secret   | Neon's pooled connection string.              |
+| `POSTHOG_KEY`                     | secret   | The API's environment and the web build.      |
+| `CLOUDFLARE_TURNSTILE_SECRET_KEY` | secret   | The API's `TURNSTILE_SECRET_KEY`.             |
+| `CLOUDFLARE_TURNSTILE_SITE_KEY`   | secret   | The web build's `TURNSTILE_SITE_KEY`.         |
 
 After a deploy, `terraform plan -detailed-exitcode` must still exit `0`: the new code and environment don't show up as changes.
 
