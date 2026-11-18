@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { cosineDistance, eq } from "drizzle-orm";
 import type { Language } from "../../../intentions";
 import type { Database } from "../../../platform/database";
 import { catalog } from "./schema";
@@ -25,3 +25,12 @@ export const removeFromCatalog = async (
 ) => {
 	await database.delete(catalog).where(eq(catalog.intentionId, intentionId));
 };
+
+const intentionsPerSearch = 10;
+
+export const findNearestInCatalog = (database: Database, embedding: number[]) =>
+	database
+		.select({ intentionId: catalog.intentionId, text: catalog.text })
+		.from(catalog)
+		.orderBy(cosineDistance(catalog.embedding, embedding))
+		.limit(intentionsPerSearch);

@@ -26,6 +26,9 @@ export async function renderAt(
 			shutdown: async () => {},
 		}),
 		submitIntention,
+		search: () => {
+			throw new Error("this test does not expect a search");
+		},
 	});
 	const client = createApiClient(app.request);
 	const history = createMemoryHistory({ initialEntries: [path] });
