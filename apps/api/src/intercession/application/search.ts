@@ -1,13 +1,14 @@
 import type { Analytics } from "../../platform/analytics-port";
 import type { Database } from "../../platform/database";
 import type { Result } from "../../platform/result";
-import { findNearestInCatalog } from "../adapters/persistence/catalog-store";
+import { findCandidatesInCatalog } from "../adapters/persistence/catalog-store";
 import { recordSuggestions } from "../adapters/persistence/suggestion-store";
 import {
 	type FoundIntention,
 	maxFindIntentionsCalls,
 	toSuggestions,
 } from "../domain/presentation";
+import { rank } from "../domain/ranking";
 import { internalError, type SearchEvent } from "../domain/search-event";
 import type { Embed } from "./embed";
 import type {
@@ -51,7 +52,12 @@ export const createSearch = ({
 			searchesLeft -= 1;
 			const embedding = await embed(call.query, analytics);
 			if (!embedding.ok) return { ok: false, error: "embedding_failed" };
-			const intentions = await findNearestInCatalog(database, embedding.value);
+			const intentions = rank(
+				await findCandidatesInCatalog(database, {
+					embedding: embedding.value,
+					visitorId,
+				}),
+			);
 			found.push(...intentions);
 			return {
 				ok: true,

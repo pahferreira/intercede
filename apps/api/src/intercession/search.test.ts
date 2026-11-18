@@ -12,22 +12,39 @@ import type {
 } from "./application/search-agent";
 import type { SearchEvent } from "./domain/search-event";
 
+const queryAxis = 0;
+
 const embeddingAt = (position: number) =>
 	Array.from({ length: embeddingDimensions }, (_, index) =>
 		index === position ? 1 : 0,
 	);
 
-const embedsByLength: Embed = async (text) => ({
+const embedsQuery: Embed = async () => ({
 	ok: true,
-	value: embeddingAt(text.length),
+	value: embeddingAt(queryAxis),
 });
 
-const inCatalog = async (intentionId: string, text: string) => {
+let ownAxis = queryAxis;
+
+const embeddingWithSimilarity = (similarity: number) => {
+	ownAxis += 1;
+	const embedding = embeddingAt(ownAxis).map(
+		(value) => value * Math.sqrt(1 - similarity ** 2),
+	);
+	embedding[queryAxis] = similarity;
+	return embedding;
+};
+
+const inCatalog = async (
+	intentionId: string,
+	text: string,
+	similarity = 0.9,
+) => {
 	await putInCatalog(testDatabase(), {
 		intentionId,
 		text,
 		language: "en",
-		embedding: embeddingAt(text.length),
+		embedding: embeddingWithSimilarity(similarity),
 	});
 };
 
@@ -63,7 +80,7 @@ const eventsOf = async (response: Response): Promise<SearchEvent[]> =>
 test("an Entry streams the note and the Suggestions found in the Catalog", async () => {
 	await inCatalog(brotherJob, "For my brother's new job");
 	const app = createTestApp({
-		embed: embedsByLength,
+		embed: embedsQuery,
 		agent: scripted(
 			[{ type: "find_intentions", calls: [{ id: "c1", query: "a new job" }] }],
 			[
@@ -121,7 +138,7 @@ const countingEmbeds = () => {
 	const queries: string[] = [];
 	const embed: Embed = async (text, analytics) => {
 		queries.push(text);
-		return embedsByLength(text, analytics);
+		return embedsQuery(text, analytics);
 	};
 	return { embed, queries };
 };
@@ -178,7 +195,7 @@ test("searches asked for past the limit are answered as limit reached, not run",
 test("an agent that will not present after its last search ends the stream with an error", async () => {
 	let turns = 0;
 	const app = createTestApp({
-		embed: embedsByLength,
+		embed: embedsQuery,
 		agent: async function* () {
 			turns += 1;
 			yield {
@@ -224,20 +241,14 @@ test("find_intentions answers with the nearest Catalog Intentions first", async 
 	await inCatalog(
 		"0b6f6f8e-3c0e-4a8e-9a43-3f1c2d4b5a62",
 		"For my sister's exams",
+		0.6,
 	);
-	await inCatalog(brotherJob, "For my brother's new job");
+	await inCatalog(brotherJob, "For my brother's new job", 0.9);
 	const { agent, turns } = recordingTurns(
-		[
-			{
-				type: "find_intentions",
-				calls: [
-					{ id: "c1", query: "x".repeat("For my brother's new job".length) },
-				],
-			},
-		],
+		[{ type: "find_intentions", calls: [{ id: "c1", query: "a new job" }] }],
 		[{ type: "present_suggestions", suggestions: [] }],
 	);
-	const app = createTestApp({ embed: embedsByLength, agent });
+	const app = createTestApp({ embed: embedsQuery, agent });
 
 	await eventsOf(await send(app, "Someone looking for work"));
 
@@ -251,6 +262,57 @@ test("find_intentions answers with the nearest Catalog Intentions first", async 
 			},
 		],
 	});
+});
+
+const foundBy = async (
+	app: ReturnType<typeof createTestApp>,
+	turns: SearchAgentTurn[],
+	headers: Record<string, string> = {},
+) => {
+	await eventsOf(await send(app, "Someone looking for work", headers));
+	const outcome = turns[1]?.steps[0]?.[0]?.outcome;
+	return outcome?.kind === "found"
+		? outcome.intentions.map((intention) => intention.intentionId)
+		: [];
+};
+
+const searchesOnce = () =>
+	recordingTurns(
+		[{ type: "find_intentions", calls: [{ id: "c1", query: "a new job" }] }],
+		[{ type: "present_suggestions", suggestions: [] }],
+	);
+
+const sisterExams = "0b6f6f8e-3c0e-4a8e-9a43-3f1c2d4b5a62";
+const friendHealth = "0b6f6f8e-3c0e-4a8e-9a43-3f1c2d4b5a63";
+
+test("find_intentions leaves out Intentions below the minimum similarity", async () => {
+	await inCatalog(brotherJob, "For my brother's new job", 0.5);
+	await inCatalog(sisterExams, "For my sister's exams", 0.1);
+	const { agent, turns } = searchesOnce();
+	const app = createTestApp({ embed: embedsQuery, agent });
+
+	expect(await foundBy(app, turns)).toEqual([brotherJob]);
+});
+
+test("Intentions already suggested to this Visitor rank below fresh ones of similar fit, but are still found", async () => {
+	const visitor = "5a0f8f4c-1d2e-4b3a-8c9d-0e1f2a3b4c5e";
+	const otherVisitor = "5a0f8f4c-1d2e-4b3a-8c9d-0e1f2a3b4c5f";
+	await inCatalog(brotherJob, "For my brother's new job", 0.95);
+	await inCatalog(sisterExams, "For my sister's exams", 0.8);
+	await inCatalog(friendHealth, "For my friend's health", 0.7);
+	await testDatabase()
+		.insert(suggestions)
+		.values([
+			{ visitorId: visitor, intentionId: brotherJob },
+			{ visitorId: visitor, intentionId: sisterExams },
+			{ visitorId: otherVisitor, intentionId: friendHealth },
+		]);
+	const { agent, turns } = searchesOnce();
+	const app = createTestApp({ embed: embedsQuery, agent });
+
+	expect(
+		await foundBy(app, turns, { cookie: `intercede_visitor=${visitor}` }),
+	).toEqual([brotherJob, friendHealth, sisterExams]);
 });
 
 const intentionIds = Array.from(
@@ -272,7 +334,7 @@ test("Suggestions only reference Intentions found in this request, once each, at
 	const hallucinated = "7d1c0b9e-0000-4000-8000-000000000000";
 	const presented = [hallucinated, intentionIds[0] ?? "", ...intentionIds];
 	const app = createTestApp({
-		embed: embedsByLength,
+		embed: embedsQuery,
 		agent: scripted(
 			[{ type: "find_intentions", calls: [{ id: "c1", query: "anything" }] }],
 			[
@@ -319,7 +381,7 @@ const visitor = "5a0f8f4c-1d2e-4b3a-8c9d-0e1f2a3b4c5d";
 test("each Suggestion shown is recorded for the Visitor", async () => {
 	await inCatalog(brotherJob, "For my brother's new job");
 	const app = createTestApp({
-		embed: embedsByLength,
+		embed: embedsQuery,
 		agent: scripted(
 			[{ type: "find_intentions", calls: [{ id: "c1", query: "a new job" }] }],
 			[
@@ -420,7 +482,7 @@ test("an unexpected failure mid-stream is reported and ends the stream with an e
 			captureLlmGeneration: () => {},
 			shutdown: async () => {},
 		}),
-		embed: embedsByLength,
+		embed: embedsQuery,
 		agent: scripted(
 			[{ type: "find_intentions", calls: [{ id: "c1", query: "a new job" }] }],
 			[
