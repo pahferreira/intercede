@@ -4,6 +4,8 @@ import { renderAt, type SubmitIntention } from "../../test/render";
 import { installTurnstile } from "../../test/turnstile";
 import { initAnalytics } from "../analytics";
 
+const entryLabel = "What's in your heart to pray for today?";
+
 let events: { event: string; properties: unknown }[] = [];
 const posthog = {
 	init: () => {},
@@ -99,7 +101,9 @@ test("the text is locked while moderation runs", async () => {
 	).toBeDefined();
 	expect(textbox().readOnly).toBe(true);
 	moderation.resolve();
-	expect(await screen.findByRole("heading", { name: "Pray" })).toBeDefined();
+	expect(
+		await screen.findByRole("textbox", { name: entryLabel }),
+	).toBeDefined();
 });
 
 test("a published Intention goes to /pray and is counted", async () => {
@@ -112,7 +116,9 @@ test("a published Intention goes to /pray and is counted", async () => {
 
 	fireEvent.click(screen.getByRole("button", { name: "Submit" }));
 
-	expect(await screen.findByRole("heading", { name: "Pray" })).toBeDefined();
+	expect(
+		await screen.findByRole("textbox", { name: entryLabel }),
+	).toBeDefined();
 	expect(submitted).toEqual([
 		{
 			text: "For my brother's new job",
@@ -208,31 +214,37 @@ test("Skip goes to /pray and is counted", async () => {
 
 	fireEvent.click(await screen.findByRole("button", { name: "Skip" }));
 
-	expect(await screen.findByRole("heading", { name: "Pray" })).toBeDefined();
+	expect(
+		await screen.findByRole("textbox", { name: entryLabel }),
+	).toBeDefined();
 	expect(eventNames()).toEqual(["submit_viewed", "submit_skipped"]);
 });
 
 test("after a skip, / goes straight to /pray", async () => {
 	const first = await renderAt("/", "en");
 	fireEvent.click(await screen.findByRole("button", { name: "Skip" }));
-	await screen.findByRole("heading", { name: "Pray" });
+	await screen.findByRole("textbox", { name: entryLabel });
 	first.unmount();
 
 	await renderAt("/", "en");
 
-	expect(await screen.findByRole("heading", { name: "Pray" })).toBeDefined();
+	expect(
+		await screen.findByRole("textbox", { name: entryLabel }),
+	).toBeDefined();
 });
 
 test("after a submit, / goes straight to /pray", async () => {
 	const first = await renderAt("/", "en", publishes);
 	await write("For my brother's new job");
 	fireEvent.click(screen.getByRole("button", { name: "Submit" }));
-	await screen.findByRole("heading", { name: "Pray" });
+	await screen.findByRole("textbox", { name: entryLabel });
 	first.unmount();
 
 	await renderAt("/", "en");
 
-	expect(await screen.findByRole("heading", { name: "Pray" })).toBeDefined();
+	expect(
+		await screen.findByRole("textbox", { name: entryLabel }),
+	).toBeDefined();
 });
 
 test.each([

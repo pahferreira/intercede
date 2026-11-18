@@ -3,6 +3,8 @@ import { fireEvent, screen } from "@testing-library/react";
 import { renderAt, type SubmitIntention } from "../../test/render";
 import { initAnalytics } from "../analytics";
 
+const entryLabel = "What's in your heart to pray for today?";
+
 let events: { event: string; properties: unknown }[] = [];
 const posthog = {
 	init: () => {},
@@ -77,13 +79,13 @@ test("the confirmation stays until it is dismissed", async () => {
 	fireEvent.click(await screen.findByRole("button", { name: "Dismiss" }));
 
 	expect(screen.queryByText("Intention INT-7K3QD")).toBeNull();
-	expect(screen.getByRole("heading", { name: "Pray" })).toBeDefined();
+	expect(screen.getByRole("textbox", { name: entryLabel })).toBeDefined();
 	expect(localStorage.getItem("intercede.intentionCodes")).not.toBeNull();
 });
 
 test("/pray reached without publishing shows no confirmation", async () => {
 	await renderAt("/pray", "en");
 
-	await screen.findByRole("heading", { name: "Pray" });
+	await screen.findByRole("textbox", { name: entryLabel });
 	expect(screen.queryByRole("button", { name: "Copy link" })).toBeNull();
 });
