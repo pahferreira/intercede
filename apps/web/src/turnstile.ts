@@ -4,6 +4,8 @@ export type TurnstileOptions = {
 	appearance: "interaction-only";
 	callback: (token: string) => void;
 	"error-callback": () => void;
+	"timeout-callback": () => void;
+	"unsupported-callback": () => void;
 };
 
 export type TurnstileApi = {
@@ -56,13 +58,16 @@ export function renderInvisibleWidget(
 ): TurnstileWidget {
 	let pending: PromiseWithResolvers<string> | undefined;
 	let executed = false;
+	const fail = () =>
+		pending?.reject(new Error("the Turnstile challenge failed"));
 	const widgetId = api.render(container, {
 		sitekey,
 		execution: "execute",
 		appearance: "interaction-only",
 		callback: (token) => pending?.resolve(token),
-		"error-callback": () =>
-			pending?.reject(new Error("the Turnstile challenge failed")),
+		"error-callback": fail,
+		"timeout-callback": fail,
+		"unsupported-callback": fail,
 	});
 	return {
 		token: () => {

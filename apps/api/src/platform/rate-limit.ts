@@ -51,3 +51,12 @@ export const createDailyRateLimit =
 		if (!counter) throw new Error("the rate limit counter was not written");
 		return counter.count <= limit;
 	};
+
+export const createSubmissionLimit = (
+	database: Database,
+	env: Env = process.env,
+) =>
+	createDailyRateLimit(database, {
+		action: "submission",
+		limit: submissionsPerDay(env),
+	});

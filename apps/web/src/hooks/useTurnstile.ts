@@ -1,9 +1,22 @@
-import { useEffect, useRef } from "react";
+import { type RefObject, useEffect, useRef } from "react";
 import {
 	loadTurnstile,
 	renderInvisibleWidget,
 	type TurnstileWidget,
 } from "../turnstile";
+
+type WidgetRef = RefObject<Promise<TurnstileWidget> | undefined>;
+
+function render(widget: WidgetRef, element: HTMLElement) {
+	const rendering = loadTurnstile().then((api) =>
+		renderInvisibleWidget(api, element, import.meta.env.TURNSTILE_SITE_KEY),
+	);
+	widget.current = rendering;
+	rendering.catch(() => {
+		if (widget.current === rendering) widget.current = undefined;
+	});
+	return rendering;
+}
 
 export function useTurnstile() {
 	const container = useRef<HTMLDivElement>(null);
@@ -12,11 +25,7 @@ export function useTurnstile() {
 	useEffect(() => {
 		const element = container.current;
 		if (!element) return;
-		const rendering = loadTurnstile().then((api) =>
-			renderInvisibleWidget(api, element, import.meta.env.TURNSTILE_SITE_KEY),
-		);
-		rendering.catch(() => {});
-		widget.current = rendering;
+		const rendering = render(widget, element);
 		return () => {
 			widget.current = undefined;
 			rendering.then(
@@ -27,8 +36,9 @@ export function useTurnstile() {
 	}, []);
 
 	const token = async () => {
-		if (!widget.current) throw new Error("Turnstile is not rendered");
-		return (await widget.current).token();
+		const element = container.current;
+		if (!element) throw new Error("Turnstile has no container");
+		return (await (widget.current ?? render(widget, element))).token();
 	};
 
 	return { container, token };

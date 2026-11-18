@@ -6,16 +6,17 @@ import {
 	createDatabaseProbe,
 	localOrConfiguredDatabaseUrl,
 } from "./platform/database";
-import { createDailyRateLimit, submissionsPerDay } from "./platform/rate-limit";
-import { createTurnstileVerifier } from "./platform/turnstile";
-
-const alwaysPassesTurnstileSecret = "1x0000000000000000000000000000000AA";
+import { createSubmissionLimit } from "./platform/rate-limit";
+import {
+	createTurnstileVerifier,
+	localOrConfiguredTurnstileSecret,
+} from "./platform/turnstile";
 
 const database = createDatabase(localOrConfiguredDatabaseUrl());
 const isDatabaseReachable = createDatabaseProbe(database);
 const openAnalytics = createPostHogAnalytics(postHogSettings());
 const verifyTurnstile = createTurnstileVerifier({
-	secret: process.env.TURNSTILE_SECRET_KEY ?? alwaysPassesTurnstileSecret,
+	secret: localOrConfiguredTurnstileSecret(),
 });
 
 const server = Bun.serve({
@@ -27,10 +28,7 @@ const server = Bun.serve({
 			database,
 			moderate: createNovaModerator(),
 			verifyTurnstile,
-			consumeSubmissionLimit: createDailyRateLimit(database, {
-				action: "submission",
-				limit: submissionsPerDay(),
-			}),
+			consumeSubmissionLimit: createSubmissionLimit(database),
 		}),
 	}).fetch,
 });

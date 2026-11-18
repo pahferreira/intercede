@@ -2,10 +2,7 @@ import { type AppDependencies, createApp } from "../src/app";
 import { createSubmitIntention, type Moderate } from "../src/intentions";
 import { createPostHogAnalytics } from "../src/platform/analytics";
 import { createDatabaseProbe } from "../src/platform/database";
-import {
-	createDailyRateLimit,
-	submissionsPerDay,
-} from "../src/platform/rate-limit";
+import { createSubmissionLimit } from "../src/platform/rate-limit";
 import type { VerifyTurnstile } from "../src/platform/turnstile-port";
 import { testDatabase } from "./database";
 
@@ -35,10 +32,7 @@ export const createTestApp = ({
 			database: testDatabase(),
 			moderate,
 			verifyTurnstile,
-			consumeSubmissionLimit: createDailyRateLimit(testDatabase(), {
-				action: "submission",
-				limit: submissionsPerDay({}),
-			}),
+			consumeSubmissionLimit: createSubmissionLimit(testDatabase(), {}),
 		}),
 		...overrides,
 	});

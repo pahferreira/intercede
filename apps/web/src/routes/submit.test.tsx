@@ -331,3 +331,32 @@ test.each([
 		expect(await screen.findByRole("heading", { name: pray })).toBeDefined();
 	},
 );
+
+test.each(["timeout", "unsupported"] as const)(
+	"a Turnstile challenge that ends in %s asks to try again",
+	async (ending) => {
+		installTurnstile().ending = ending;
+		await renderAt("/", "en");
+		await write("For my brother's new job");
+
+		fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+
+		expect(
+			await screen.findByText("Couldn't verify, try again."),
+		).toBeDefined();
+		expect(textbox().readOnly).toBe(false);
+	},
+);
+
+test("Turnstile that failed to load is loaded again on the next try", async () => {
+	window.turnstile = undefined;
+	await renderAt("/", "en", publishes);
+	await write("For my brother's new job");
+
+	fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+	expect(await screen.findByText("Couldn't verify, try again.")).toBeDefined();
+	installTurnstile();
+	fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+
+	expect(await screen.findByRole("heading", { name: "Pray" })).toBeDefined();
+});

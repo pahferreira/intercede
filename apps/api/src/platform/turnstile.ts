@@ -3,6 +3,7 @@ import type { VerifyTurnstile } from "./turnstile-port";
 const siteverifyUrl =
 	"https://challenges.cloudflare.com/turnstile/v0/siteverify";
 const timeoutMs = 5_000;
+const alwaysPassesSecret = "1x0000000000000000000000000000000AA";
 
 type Env = Record<string, string | undefined>;
 
@@ -10,6 +11,9 @@ type Fetch = (
 	input: string | URL | Request,
 	init?: RequestInit,
 ) => Promise<Response>;
+
+export const localOrConfiguredTurnstileSecret = (env: Env = process.env) =>
+	env.TURNSTILE_SECRET_KEY ?? alwaysPassesSecret;
 
 export const requireTurnstileSecret = (env: Env = process.env) => {
 	const secret = env.TURNSTILE_SECRET_KEY;

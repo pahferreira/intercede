@@ -2,6 +2,7 @@ import type { TurnstileApi, TurnstileOptions } from "../src/turnstile";
 
 export class FakeTurnstile implements TurnstileApi {
 	passes = true;
+	ending: "timeout" | "unsupported" | undefined;
 	executions = 0;
 	private widgets = new Map<string, TurnstileOptions>();
 
@@ -16,9 +17,10 @@ export class FakeTurnstile implements TurnstileApi {
 		if (!widget) throw new Error(`no Turnstile widget ${widgetId}`);
 		this.executions++;
 		const token = `turnstile-token-${this.executions}`;
-		queueMicrotask(() =>
-			this.passes ? widget.callback(token) : widget["error-callback"](),
-		);
+		queueMicrotask(() => {
+			if (this.ending) return widget[`${this.ending}-callback`]();
+			return this.passes ? widget.callback(token) : widget["error-callback"]();
+		});
 	}
 
 	reset(widgetId: string) {

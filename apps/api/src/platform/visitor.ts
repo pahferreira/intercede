@@ -7,7 +7,7 @@ const oneYearInSeconds = 60 * 60 * 24 * 365;
 const visitorId =
 	/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
-export type VisitorEnv = { Variables: { visitorId: string } };
+type VisitorEnv = { Variables: { visitorId: string } };
 
 export const visitorCookie = createMiddleware<VisitorEnv>(async (c, next) => {
 	const returning = getCookie(c, cookieName) ?? "";

@@ -10,10 +10,7 @@ import {
 	createDatabaseProbe,
 	requireDatabaseUrl,
 } from "../platform/database";
-import {
-	createDailyRateLimit,
-	submissionsPerDay,
-} from "../platform/rate-limit";
+import { createSubmissionLimit } from "../platform/rate-limit";
 import {
 	createTurnstileVerifier,
 	requireTurnstileSecret,
@@ -34,10 +31,7 @@ export const handler = streamHandle(
 			database,
 			moderate: createNovaModerator(),
 			verifyTurnstile,
-			consumeSubmissionLimit: createDailyRateLimit(database, {
-				action: "submission",
-				limit: submissionsPerDay(),
-			}),
+			consumeSubmissionLimit: createSubmissionLimit(database),
 		}),
 	}),
 );
