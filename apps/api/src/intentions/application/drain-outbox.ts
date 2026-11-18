@@ -6,15 +6,13 @@ import {
 } from "../adapters/persistence/outbox-store";
 import type { IntentionEvent } from "../domain/intention-event";
 
-export type DispatchIntentionEvent = (
+type DispatchIntentionEvent = (
 	event: IntentionEvent,
 ) => Promise<Result<void, unknown>>;
 
-export type OutboxDrain = { dispatched: number; pending: number };
+type OutboxDrain = { dispatched: number; pending: number };
 
-export type DrainOutbox = (
-	dispatch: DispatchIntentionEvent,
-) => Promise<OutboxDrain>;
+type DrainOutbox = (dispatch: DispatchIntentionEvent) => Promise<OutboxDrain>;
 
 export const createDrainOutbox =
 	(database: Database): DrainOutbox =>

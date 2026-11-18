@@ -8,7 +8,7 @@ import {
 } from "../adapters/persistence/catalog-store";
 import type { Embed, EmbeddingUnavailable } from "./embed";
 
-export type KeepCatalogInStep = (
+type KeepCatalogInStep = (
 	event: IntentionEvent,
 	analytics: Analytics,
 ) => Promise<Result<void, EmbeddingUnavailable>>;
@@ -22,18 +22,21 @@ export const createKeepCatalogInStep =
 		embed: Embed;
 	}): KeepCatalogInStep =>
 	async (event, analytics) => {
-		if (event.type === "IntentionArchived") {
-			await removeFromCatalog(database, event.payload.intentionId);
-			return { ok: true, value: undefined };
+		switch (event.type) {
+			case "IntentionArchived":
+				await removeFromCatalog(database, event.payload.intentionId);
+				return { ok: true, value: undefined };
+			case "IntentionPublished": {
+				const { intentionId, text, language } = event.payload;
+				const embedding = await embed(text, analytics);
+				if (!embedding.ok) return embedding;
+				await putInCatalog(database, {
+					intentionId,
+					text,
+					language,
+					embedding: embedding.value,
+				});
+				return { ok: true, value: undefined };
+			}
 		}
-		const { intentionId, text, language } = event.payload;
-		const embedding = await embed(text, analytics);
-		if (!embedding.ok) return embedding;
-		await putInCatalog(database, {
-			intentionId,
-			text,
-			language,
-			embedding: embedding.value,
-		});
-		return { ok: true, value: undefined };
 	};

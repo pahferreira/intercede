@@ -1,5 +1,6 @@
 import type { Database } from "../../../platform/database";
 import type { Language } from "../../domain/intention";
+import type { IntentionEvent } from "../../domain/intention-event";
 import { intentions, outbox } from "./schema";
 
 export type PublishIntention = (intention: {
@@ -24,5 +25,5 @@ export const createPublishIntention =
 					language: published.language,
 					publishedAt: published.publishedAt.toISOString(),
 				},
-			});
+			} satisfies IntentionEvent);
 		});

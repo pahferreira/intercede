@@ -3,7 +3,7 @@ import type { Database } from "../../../platform/database";
 import type { IntentionEvent } from "../../domain/intention-event";
 import { outbox } from "./schema";
 
-export type PendingEvent = { id: string; event: IntentionEvent };
+type PendingEvent = { id: string; event: IntentionEvent };
 
 export const pendingEvents = async (
 	database: Database,

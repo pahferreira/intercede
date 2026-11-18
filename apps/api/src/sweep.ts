@@ -3,7 +3,7 @@ import { createKeepCatalogInStep, type Embed } from "./intercession";
 import type { OpenAnalytics } from "./platform/analytics-port";
 import type { Database } from "./platform/database";
 
-export type SweepDependencies = {
+type SweepDependencies = {
 	database: Database;
 	embed: Embed;
 	openAnalytics: OpenAnalytics;

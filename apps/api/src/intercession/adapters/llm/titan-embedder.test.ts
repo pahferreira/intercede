@@ -4,6 +4,7 @@ import type {
 	Analytics,
 	LlmGeneration,
 } from "../../../platform/analytics-port";
+import { embeddingDimensions } from "../../application/embed";
 import { createTitanEmbedder } from "./titan-embedder";
 
 type SentRequest = { url: string; body: Record<string, unknown> };
@@ -39,7 +40,10 @@ function fakeBedrock(reply: () => Reply) {
 	return { requests, requestHandler };
 }
 
-const embedding = Array.from({ length: 512 }, (_, index) => index / 512);
+const embedding = Array.from(
+	{ length: embeddingDimensions },
+	(_, index) => index / embeddingDimensions,
+);
 
 const titanAnswers =
 	(answer: unknown = { embedding, inputTextTokenCount: 8 }) =>
@@ -83,7 +87,7 @@ test("a text comes back as Titan's 512-dimension embedding", async () => {
 	);
 	expect(bedrock.requests[0]?.body).toEqual({
 		inputText: "Pela saúde da minha mãe",
-		dimensions: 512,
+		dimensions: embeddingDimensions,
 		normalize: true,
 	});
 });

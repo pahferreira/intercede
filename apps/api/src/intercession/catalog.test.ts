@@ -3,15 +3,18 @@ import { sql } from "drizzle-orm";
 import { createTestApp } from "../../test/app";
 import { testDatabase } from "../../test/database";
 import { createTestSweep } from "../../test/sweep";
+import type { Language } from "../intentions";
 import { catalog } from "./adapters/persistence/schema";
-import type { Embed } from "./application/embed";
+import { type Embed, embeddingDimensions } from "./application/embed";
 
 const embeddingOf = (text: string) =>
-	Array.from({ length: 512 }, (_, index) => (index === text.length ? 1 : 0));
+	Array.from({ length: embeddingDimensions }, (_, index) =>
+		index === text.length ? 1 : 0,
+	);
 
 const embeds: Embed = async (text) => ({ ok: true, value: embeddingOf(text) });
 
-const publish = async (text: string, language: "pt" | "en" = "en") => {
+const publish = async (text: string, language: Language = "en") => {
 	const app = createTestApp({
 		moderate: async () => ({
 			ok: true,
@@ -50,7 +53,7 @@ test("a published Intention enters the Catalog with its language and embedding",
 	]);
 });
 
-const publishedIntentionIds = async () =>
+const catalogIntentionIds = async () =>
 	(await testDatabase().select().from(catalog)).map(
 		(entry) => entry.intentionId,
 	);
@@ -65,13 +68,13 @@ const archive = async (intentionId: string) => {
 test("an archived Intention leaves the Catalog", async () => {
 	await publish("For my brother's new job");
 	await quietly(createTestSweep({ embed: embeds }));
-	const [intentionId] = await publishedIntentionIds();
+	const [intentionId] = await catalogIntentionIds();
 	if (!intentionId) throw new Error("the Intention did not enter the Catalog");
 
 	await archive(intentionId);
 	await quietly(createTestSweep());
 
-	expect(await publishedIntentionIds()).toEqual([]);
+	expect(await catalogIntentionIds()).toEqual([]);
 });
 
 test("an event dispatched again leaves a single Catalog entry", async () => {
@@ -122,7 +125,7 @@ test("an archival waits for its Intention's failed embedding instead of overtaki
 	await quietly(createTestSweep({ embed: embeddingUnavailable }));
 	await quietly(createTestSweep({ embed: embeds }));
 
-	expect(await publishedIntentionIds()).toEqual([]);
+	expect(await catalogIntentionIds()).toEqual([]);
 });
 
 test("one Intention's failed embedding does not hold back the others", async () => {
