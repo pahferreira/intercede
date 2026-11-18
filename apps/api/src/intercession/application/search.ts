@@ -1,5 +1,6 @@
 import type { Analytics } from "../../platform/analytics-port";
 import type { Database } from "../../platform/database";
+import type { Result } from "../../platform/result";
 import { findNearestInCatalog } from "../adapters/persistence/catalog-store";
 import { recordSuggestions } from "../adapters/persistence/suggestion-store";
 import {
@@ -7,7 +8,7 @@ import {
 	maxFindIntentionsCalls,
 	toSuggestions,
 } from "../domain/presentation";
-import type { SearchEvent } from "../domain/search-event";
+import { internalError, type SearchEvent } from "../domain/search-event";
 import type { Embed } from "./embed";
 import type {
 	FindIntentionsCall,
@@ -15,14 +16,10 @@ import type {
 	SearchAgent,
 } from "./search-agent";
 
-export type SearchRequest = { entry: string; visitorId: string };
-
 export type Search = (
-	request: SearchRequest,
+	request: { entry: string; visitorId: string },
 	analytics: Analytics,
 ) => AsyncIterable<SearchEvent>;
-
-const failed: SearchEvent = { type: "error", data: { reason: "internal" } };
 
 export const createSearch = ({
 	database,
@@ -45,15 +42,21 @@ export const createSearch = ({
 
 		const findIntentions = async (
 			call: FindIntentionsCall,
-		): Promise<FindIntentionsResult | undefined> => {
+		): Promise<Result<FindIntentionsResult, "embedding_failed">> => {
 			if (searchesLeft === 0)
-				return { call, outcome: { kind: "limit_reached" } };
+				return {
+					ok: true,
+					value: { call, outcome: { kind: "limit_reached" } },
+				};
 			searchesLeft -= 1;
 			const embedding = await embed(call.query, analytics);
-			if (!embedding.ok) return undefined;
+			if (!embedding.ok) return { ok: false, error: "embedding_failed" };
 			const intentions = await findNearestInCatalog(database, embedding.value);
 			found.push(...intentions);
-			return { call, outcome: { kind: "found", intentions } };
+			return {
+				ok: true,
+				value: { call, outcome: { kind: "found", intentions } },
+			};
 		};
 
 		while (true) {
@@ -82,22 +85,22 @@ export const createSearch = ({
 						return;
 					}
 					case "unavailable":
-						yield failed;
+						yield internalError;
 						return;
 				}
 			}
 			if (!calls || mustPresent) {
-				yield failed;
+				yield internalError;
 				return;
 			}
 			const results: FindIntentionsResult[] = [];
 			for (const call of calls) {
 				const result = await findIntentions(call);
-				if (!result) {
-					yield failed;
+				if (!result.ok) {
+					yield internalError;
 					return;
 				}
-				results.push(result);
+				results.push(result.value);
 			}
 			steps.push(results);
 		}

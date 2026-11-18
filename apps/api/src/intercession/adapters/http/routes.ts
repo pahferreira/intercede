@@ -5,7 +5,7 @@ import { z } from "zod";
 import type { AnalyticsEnv } from "../../../platform/analytics-port";
 import { visitorCookie } from "../../../platform/visitor";
 import type { Search } from "../../application/search";
-import type { SearchEvent } from "../../domain/search-event";
+import { internalError, type SearchEvent } from "../../domain/search-event";
 
 const entryLength = { min: 1, max: 1000 };
 
@@ -32,9 +32,7 @@ export const searchRoutes = (search: Search) =>
 					}
 				} catch (error) {
 					analytics.captureException(error);
-					await stream.writeSSE(
-						asFrame({ type: "error", data: { reason: "internal" } }),
-					);
+					await stream.writeSSE(asFrame(internalError));
 				}
 			});
 		});

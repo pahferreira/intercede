@@ -10,3 +10,8 @@ export type SearchEvent =
 	| { type: "suggestions"; data: { suggestions: Suggestion[] } }
 	| { type: "done"; data: Record<string, never> }
 	| { type: "error"; data: { reason: "internal" } };
+
+export const internalError: SearchEvent = {
+	type: "error",
+	data: { reason: "internal" },
+};
