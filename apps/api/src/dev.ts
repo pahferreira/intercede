@@ -1,7 +1,7 @@
 import { createApp } from "./app";
 import { createNovaModerator, createSubmitIntention } from "./intentions";
 import {
-	createClaudeSearchAgent,
+	createNovaSearchAgent,
 	createSearch,
 	createTitanEmbedder,
 } from "./intercession";
@@ -37,7 +37,7 @@ const server = Bun.serve({
 		search: createSearch({
 			database,
 			embed: createTitanEmbedder(),
-			agent: createClaudeSearchAgent(),
+			agent: createNovaSearchAgent(),
 		}),
 	}).fetch,
 });

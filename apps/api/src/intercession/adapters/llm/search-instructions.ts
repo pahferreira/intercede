@@ -1,4 +1,3 @@
-import type { Tool } from "@anthropic-ai/sdk/resources/messages";
 import { z } from "zod";
 import {
 	maxFindIntentionsCalls,
@@ -25,12 +24,22 @@ export const presentSuggestionsInput = z.object({
 	),
 });
 
-export const tools: Tool[] = [
+type ToolDefinition = {
+	name: "find_intentions" | "present_suggestions";
+	description: string;
+	inputSchema: {
+		type: "object";
+		properties: Record<string, unknown>;
+		required: string[];
+	};
+};
+
+export const tools: ToolDefinition[] = [
 	{
 		name: "find_intentions",
 		description:
 			"Search the Catalog of published prayer intentions. Returns the closest intentions to the query, each with its intentionId and text.",
-		input_schema: {
+		inputSchema: {
 			type: "object",
 			properties: { query: { type: "string" } },
 			required: ["query"],
@@ -40,7 +49,7 @@ export const tools: Tool[] = [
 		name: "present_suggestions",
 		description:
 			"Show the Intercessor your final suggestions. Ends the search.",
-		input_schema: {
+		inputSchema: {
 			type: "object",
 			properties: {
 				note: { type: "string" },
@@ -63,3 +72,22 @@ export const tools: Tool[] = [
 ];
 
 export const limitReachedResult = `The search limit of ${maxFindIntentionsCalls} is reached. Present your suggestions now.`;
+
+const noteStart = /"note"\s*:\s*"/;
+
+export const noteSoFar = (json: string) => {
+	const start = noteStart.exec(json);
+	if (!start) return "";
+	const begin = start.index + start[0].length;
+	let end = begin;
+	while (end < json.length && json[end] !== '"') {
+		if (json[end] === "\\") {
+			const escapeLength = json[end + 1] === "u" ? 6 : 2;
+			if (end + escapeLength > json.length) break;
+			end += escapeLength;
+		} else {
+			end += 1;
+		}
+	}
+	return JSON.parse(`"${json.slice(begin, end)}"`) as string;
+};

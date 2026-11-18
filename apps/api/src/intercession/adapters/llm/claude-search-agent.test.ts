@@ -166,7 +166,7 @@ test("a find_intentions call from Claude comes back as a search to run", async (
 		},
 	]);
 	expect(bedrock.requests[0]?.url).toBe(
-		"https://bedrock-runtime.us-east-1.amazonaws.com/model/global.anthropic.claude-haiku-4-5-20251001-v1:0/invoke-with-response-stream",
+		"https://bedrock-runtime.us-east-1.amazonaws.com/model/global.anthropic.claude-haiku-5-5/invoke-with-response-stream",
 	);
 	expect(JSON.stringify(bedrock.requests[0]?.body.messages)).toContain(
 		"Someone looking for work",
@@ -309,11 +309,11 @@ test("each agent call reports its token counts and cost, never its content", asy
 
 	expect(generations).toEqual([
 		{
-			model: "global.anthropic.claude-haiku-4-5-20251001-v1:0",
+			model: "global.anthropic.claude-haiku-5-5",
 			inputTokens: 800,
 			outputTokens: 120,
 			latencyMs: expect.any(Number),
-			costUsd: 0.0014,
+			costUsd: expect.closeTo(0.00014, 10),
 		},
 	]);
 });

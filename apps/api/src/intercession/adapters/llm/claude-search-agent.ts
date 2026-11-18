@@ -4,6 +4,7 @@ import {
 } from "@anthropic-ai/bedrock-sdk";
 import type {
 	MessageParam,
+	Tool,
 	ToolChoice,
 } from "@anthropic-ai/sdk/resources/messages";
 import type {
@@ -17,33 +18,21 @@ import {
 	findIntentionsInput,
 	instructions,
 	limitReachedResult,
+	noteSoFar,
 	presentSuggestionsInput,
 	tools,
 } from "./search-instructions";
 
 const model = {
-	id: "global.anthropic.claude-haiku-4-5-20251001-v1:0",
-	usdPerMillionTokens: { input: 1, output: 5 },
+	id: "global.anthropic.claude-haiku-5-5",
+	usdPerMillionTokens: { input: 0.1, output: 0.5 },
 };
 
-const noteStart = /"note"\s*:\s*"/;
-
-const noteSoFar = (json: string) => {
-	const start = noteStart.exec(json);
-	if (!start) return "";
-	const begin = start.index + start[0].length;
-	let end = begin;
-	while (end < json.length && json[end] !== '"') {
-		if (json[end] === "\\") {
-			const escapeLength = json[end + 1] === "u" ? 6 : 2;
-			if (end + escapeLength > json.length) break;
-			end += escapeLength;
-		} else {
-			end += 1;
-		}
-	}
-	return JSON.parse(`"${json.slice(begin, end)}"`) as string;
-};
+const claudeTools: Tool[] = tools.map(({ name, description, inputSchema }) => ({
+	name,
+	description,
+	input_schema: inputSchema,
+}));
 
 const toolResult = ({ call, outcome }: FindIntentionsResult) =>
 	outcome.kind === "found"
@@ -96,7 +85,7 @@ export const createClaudeSearchAgent = (
 				model: model.id,
 				max_tokens: 1024,
 				system: instructions,
-				tools,
+				tools: claudeTools,
 				tool_choice: toolChoiceFor(turn),
 				messages: messagesFor(turn),
 			});
