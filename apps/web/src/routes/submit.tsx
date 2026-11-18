@@ -14,8 +14,8 @@ const maxLength = 1000;
 export function Submit() {
 	const { t } = useLingui();
 	const [text, setText] = useState("");
-	const { leave, skip } = useSubmitRoute();
-	const submission = useSubmissionIntention({ onPublished: leave });
+	const { onPublished, skip } = useSubmitRoute();
+	const submission = useSubmissionIntention({ onPublished });
 	const result = submission.data;
 
 	const outsideLimits =
@@ -32,7 +32,7 @@ export function Submit() {
 			: [];
 
 	return (
-		<div className="mx-auto flex w-full max-w-column-form flex-col gap-space-6 md:gap-space-7 md:pt-space-7 pt-space-5">
+		<div className="mx-auto flex w-full max-w-column-form flex-col gap-space-6 md:gap-space-7">
 			<section className="flex flex-col gap-space-1">
 				<p className="text-eyebrow text-ivory-muted">
 					<Trans>Welcome to</Trans>

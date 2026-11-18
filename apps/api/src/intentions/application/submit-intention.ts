@@ -3,16 +3,19 @@ import type { Database } from "../../platform/database";
 import type { Result } from "../../platform/result";
 import { createPublishIntention } from "../adapters/persistence/intention-store";
 import type { RejectionReason } from "../domain/moderation-verdict";
+import { issueIntentionCode } from "./intention-code";
 import type { Moderate, ModerationUnavailable } from "./moderate";
 
 type SubmitIntentionError =
 	| ModerationUnavailable
 	| { kind: "rejected"; reasons: RejectionReason[] };
 
+type PublishedIntention = { code: string };
+
 export type SubmitIntention = (
 	text: string,
 	analytics: Analytics,
-) => Promise<Result<void, SubmitIntentionError>>;
+) => Promise<Result<PublishedIntention, SubmitIntentionError>>;
 
 export const createSubmitIntention = ({
 	database,
@@ -21,7 +24,7 @@ export const createSubmitIntention = ({
 	database: Database;
 	moderate: Moderate;
 }): SubmitIntention => {
-	const publish = createPublishIntention(database);
+	const publish = createPublishIntention(database, issueIntentionCode);
 	return async (text, analytics) => {
 		const verdict = await moderate(text, analytics);
 		if (!verdict.ok) return verdict;
@@ -31,7 +34,10 @@ export const createSubmitIntention = ({
 				error: { kind: "rejected", reasons: verdict.value.reasons },
 			};
 		}
-		await publish({ text, language: verdict.value.language });
-		return { ok: true, value: undefined };
+		const published = await publish({
+			text,
+			language: verdict.value.language,
+		});
+		return { ok: true, value: published };
 	};
 };

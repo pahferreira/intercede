@@ -6,13 +6,14 @@ import type { ApiClient } from "../api";
 
 type PostIntention = ApiClient["api"]["intentions"]["$post"];
 type Submission = InferResponseType<PostIntention, 201 | 422 | 503>;
+type Published = InferResponseType<PostIntention, 201>;
 export type RejectionReason = InferResponseType<
 	PostIntention,
 	422
 >["reasons"][number];
 
 type SubmissionIntentionOptions = {
-	onPublished?: () => unknown;
+	onPublished?: (published: Published) => unknown;
 };
 
 export function useSubmissionIntention(
@@ -37,7 +38,7 @@ export function useSubmissionIntention(
 		onSuccess: (result) => {
 			if (result.status === "published") {
 				track("intention_submitted", {});
-				return options.onPublished?.();
+				return options.onPublished?.(result);
 			}
 			if (result.status === "rejected") {
 				for (const reason of result.reasons) {

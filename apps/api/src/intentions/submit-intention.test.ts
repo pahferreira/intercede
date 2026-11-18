@@ -2,6 +2,7 @@ import { expect, test } from "bun:test";
 import { sql } from "drizzle-orm";
 import { createTestApp } from "../../test/app";
 import { testDatabase } from "../../test/database";
+import { createPublishIntention } from "./adapters/persistence/intention-store";
 import { intentions, outbox } from "./adapters/persistence/schema";
 import type { Moderate } from "./application/moderate";
 import type { Language } from "./domain/intention";
@@ -23,7 +24,7 @@ test("a text the moderation passes is published with its detected language", asy
 	const response = await submit(app, "  Pela saúde da minha mãe  ");
 
 	expect(response.status).toBe(201);
-	expect(await response.json()).toEqual({ status: "published" });
+	expect(await response.json()).toMatchObject({ status: "published" });
 	const rows = await testDatabase().select().from(intentions);
 	expect(rows).toEqual([
 		expect.objectContaining({
@@ -32,6 +33,49 @@ test("a text the moderation passes is published with its detected language", asy
 			status: "published",
 		}),
 	]);
+});
+
+type Published = { status: "published"; code: string };
+
+test("publishing answers with the shareable Intention Code it stored", async () => {
+	const app = createTestApp({ moderate: publishes("en") });
+
+	const published = (await (
+		await submit(app, "For my brother's new job")
+	).json()) as Published;
+
+	const [intention] = await testDatabase().select().from(intentions);
+	expect(published).toEqual({
+		status: "published",
+		code: intention?.code ?? "missing",
+	});
+	expect(published.code).toMatch(/^INT-[0-9A-HJKMNP-TV-Z]{5}$/);
+});
+
+test("an Intention Code already taken is drawn again", async () => {
+	const publish = createPublishIntention(testDatabase(), () => "INT-AAAAA");
+	await publish({
+		text: "For my brother's new job",
+		language: "en",
+	});
+	const codes = ["INT-AAAAA", "INT-BBBBB"];
+	const publishAgain = createPublishIntention(
+		testDatabase(),
+		() => codes.shift() ?? "INT-CCCCC",
+	);
+
+	const published = await publishAgain({
+		text: "For my sister's surgery",
+		language: "en",
+	});
+
+	expect(published.code).toBe("INT-BBBBB");
+	const rows = await testDatabase().select().from(intentions);
+	expect(rows.map((row) => row.code).sort()).toEqual([
+		"INT-AAAAA",
+		"INT-BBBBB",
+	]);
+	expect(await testDatabase().select().from(outbox)).toHaveLength(2);
 });
 
 test("publishing writes an IntentionPublished outbox row for the Intention", async () => {

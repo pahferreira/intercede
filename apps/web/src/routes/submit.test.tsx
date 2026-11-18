@@ -22,7 +22,12 @@ afterEach(() => {
 
 const eventNames = () => events.map(({ event }) => event);
 
-const publishes: SubmitIntention = async () => ({ ok: true, value: undefined });
+const published = { code: "INT-7K3QD" };
+
+const publishes: SubmitIntention = async () => ({
+	ok: true,
+	value: published,
+});
 
 const rejects =
 	(...reasons: ("spam" | "abuse" | "personal_data" | "off_topic")[]) =>
@@ -82,7 +87,7 @@ test("the text is locked while moderation runs", async () => {
 	const moderation = Promise.withResolvers<void>();
 	await renderAt("/", "en", async () => {
 		await moderation.promise;
-		return { ok: true, value: undefined };
+		return { ok: true, value: published };
 	});
 	await write("For my brother's new job");
 
@@ -100,7 +105,7 @@ test("a published Intention goes to /pray and is counted", async () => {
 	const submitted: string[] = [];
 	await renderAt("/", "en", async (text) => {
 		submitted.push(text);
-		return { ok: true, value: undefined };
+		return { ok: true, value: published };
 	});
 	await write("For my brother's new job");
 

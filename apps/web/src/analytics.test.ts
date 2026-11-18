@@ -51,7 +51,7 @@ test("with a key PostHog sends through /ingest, counts page views and exceptions
 	});
 });
 
-test("a page view of a follow-up page never carries its Follow-up Token", () => {
+test("a page view of a follow-up page never carries its Intention Code", () => {
 	const posthog = fakePostHog();
 	initAnalytics("phc_test", posthog.client);
 	const beforeSend = posthog.inits[0]?.config.before_send;
@@ -63,17 +63,17 @@ test("a page view of a follow-up page never carries its Follow-up Token", () => 
 		uuid: "0",
 		event: "$pageview",
 		properties: {
-			$current_url: "https://intercede.pahferreira.dev/f/s3cr3t-token?x=1",
-			$pathname: "/f/s3cr3t-token",
-			$referrer: "https://intercede.pahferreira.dev/f/s3cr3t-token",
+			$current_url: "https://intercede.pahferreira.dev/intention/INT-7K3QD?x=1",
+			$pathname: "/intention/INT-7K3QD",
+			$referrer: "https://intercede.pahferreira.dev/intention/INT-7K3QD",
 			title: "Intercede",
 		},
 	});
 
 	expect(sent?.properties).toEqual({
-		$current_url: "https://intercede.pahferreira.dev/f/:token?x=1",
-		$pathname: "/f/:token",
-		$referrer: "https://intercede.pahferreira.dev/f/:token",
+		$current_url: "https://intercede.pahferreira.dev/intention/:code?x=1",
+		$pathname: "/intention/:code",
+		$referrer: "https://intercede.pahferreira.dev/intention/:code",
 		title: "Intercede",
 	});
 });

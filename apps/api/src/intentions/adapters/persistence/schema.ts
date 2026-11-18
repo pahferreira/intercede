@@ -6,6 +6,7 @@ export const intentionsSchema = pgSchema("intentions");
 
 export const intentions = intentionsSchema.table("intentions", {
 	id: uuid().primaryKey().defaultRandom(),
+	code: text().notNull().unique(),
 	text: text().notNull(),
 	language: text({ enum: languages }).notNull(),
 	status: text({ enum: ["published"] }).notNull(),

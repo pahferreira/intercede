@@ -16,7 +16,7 @@ msgstr "{0, plural, one {<0><1># person</1> committed to pray for this</0>} othe
 msgid "A place where you can share your faith around the world"
 msgstr "A place where you can share your faith around the world"
 
-#: src/routes/pray.tsx:11
+#: src/routes/pray.tsx:84
 msgid "Ask for prayer"
 msgstr "Ask for prayer"
 
@@ -32,13 +32,33 @@ msgstr "Commit to pray for this intention"
 msgid "Committed"
 msgstr "Committed"
 
+#: src/routes/pray.tsx:52
+msgid "Copied"
+msgstr "Copied"
+
+#: src/routes/pray.tsx:52
+msgid "Copy link"
+msgstr "Copy link"
+
+#: src/routes/pray.tsx:57
+msgid "Dismiss"
+msgstr "Dismiss"
+
 #: src/routes/follow-up.tsx:6
 msgid "Follow-up"
 msgstr "Follow-up"
 
+#: src/routes/pray.tsx:38
+msgid "Intention {code}"
+msgstr "Intention {code}"
+
 #: src/routes/submit.tsx:25
 msgid "Keep it respectful: leave out insults and offensive language."
 msgstr "Keep it respectful: leave out insults and offensive language."
+
+#: src/routes/pray.tsx:42
+msgid "Keep this link to see how many people commit to pray for it."
+msgstr "Keep this link to see how many people commit to pray for it."
 
 #: src/language-toggle.tsx:13
 msgid "Language"
@@ -56,9 +76,14 @@ msgstr "Looking for intentions…"
 msgid "Not sent."
 msgstr "Not sent."
 
-#: src/routes/pray.tsx:8
+#: src/routes/pray.tsx:81
 msgid "Pray"
 msgstr "Pray"
+
+#: src/routes/pray.tsx:25
+#: src/routes/pray.tsx:34
+msgid "Published"
+msgstr "Published"
 
 #: src/ui/IntentionCard.tsx:20
 msgid "Published {published}"
