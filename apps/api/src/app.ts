@@ -37,3 +37,4 @@ export const createApp = ({
 		.route("/", intentionRoutes(submitIntention));
 
 export type AppType = ReturnType<typeof createApp>;
+export type { SearchEvent, Suggestion } from "./intercession";
