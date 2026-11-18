@@ -9,83 +9,55 @@ import { type Locale, switchLocale } from "../src/i18n";
 
 export type SubmitIntention = AppDependencies["submitIntention"];
 
-export type SearchStream = (entry: string) => Response;
-
-type Fetch = (
-	input: RequestInfo | URL,
-	init?: RequestInit,
-) => Response | Promise<Response>;
+export type Search = AppDependencies["search"];
 
 const submissionNotExpected: SubmitIntention = async () => {
 	throw new Error("this test does not expect a submission");
 };
 
-const searchNotExpected: SearchStream = () => {
+const searchNotExpected: Search = () => {
 	throw new Error("this test does not expect a search");
 };
 
-const encoder = new TextEncoder();
-
-function encodeEvent(event: SearchEvent) {
-	return encoder.encode(
-		`event: ${event.type}\ndata: ${JSON.stringify(event.data)}\n\n`,
-	);
-}
-
-function eventStream(body: ReadableStream<Uint8Array>) {
-	return new Response(body, {
-		headers: { "content-type": "text/event-stream" },
-	});
-}
-
-export function searchStreamOf(events: SearchEvent[]): SearchStream {
-	return () =>
-		eventStream(
-			new ReadableStream({
-				start: (controller) => {
-					for (const event of events) {
-						controller.enqueue(encodeEvent(event));
-					}
-					controller.close();
-				},
-			}),
-		);
+export function searchOf(events: SearchEvent[]): Search {
+	return async function* () {
+		yield* events;
+	};
 }
 
 export function controlledSearch() {
 	const entries: string[] = [];
-	let controller: ReadableStreamDefaultController<Uint8Array> | undefined;
-	const search: SearchStream = (entry) => {
+	const pending: SearchEvent[] = [];
+	let ended = false;
+	let wake: (() => void) | undefined;
+	const notify = () => {
+		wake?.();
+		wake = undefined;
+	};
+	const search: Search = async function* ({ entry }) {
 		entries.push(entry);
-		return eventStream(
-			new ReadableStream({
-				start: (started) => {
-					controller = started;
-				},
-			}),
-		);
+		while (true) {
+			const event = pending.shift();
+			if (event) {
+				yield event;
+			} else if (ended) {
+				return;
+			} else {
+				await new Promise<void>((resolve) => {
+					wake = resolve;
+				});
+			}
+		}
 	};
 	const send = (...events: SearchEvent[]) => {
-		for (const event of events) {
-			controller?.enqueue(encodeEvent(event));
-		}
+		pending.push(...events);
+		notify();
 	};
-	const end = () => controller?.close();
+	const end = () => {
+		ended = true;
+		notify();
+	};
 	return { search, send, end, entries };
-}
-
-function withSearch(request: Fetch, search: SearchStream): Fetch {
-	return (input, init) => {
-		const url = new URL(
-			input instanceof Request ? input.url : input,
-			"http://localhost",
-		);
-		if (url.pathname === "/api/search" && init?.method === "POST") {
-			const body: { entry: string } = JSON.parse(String(init.body));
-			return search(body.entry);
-		}
-		return request(input, init);
-	};
 }
 
 export async function renderAt(
@@ -103,11 +75,9 @@ export async function renderAt(
 			shutdown: async () => {},
 		}),
 		submitIntention,
-		search: () => {
-			throw new Error("this test does not expect a search");
-		},
+		search,
 	});
-	const client = createApiClient(withSearch(app.request, search));
+	const client = createApiClient(app.request);
 	const history = createMemoryHistory({ initialEntries: [path] });
 	return {
 		...render(

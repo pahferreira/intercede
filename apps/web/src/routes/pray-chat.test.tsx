@@ -4,8 +4,8 @@ import { fireEvent, screen } from "@testing-library/react";
 import {
 	controlledSearch,
 	renderAt,
-	type SearchStream,
-	searchStreamOf,
+	type Search,
+	searchOf,
 } from "../../test/render";
 import { initAnalytics } from "../analytics";
 
@@ -63,7 +63,7 @@ const labels = {
 
 async function sendEntry(
 	locale: keyof typeof labels,
-	search: SearchStream,
+	search: Search,
 	text = entry,
 ) {
 	const rendered = await renderAt("/pray", locale, undefined, search);
@@ -78,10 +78,7 @@ async function sendEntry(
 test.each(["en", "pt-BR"] as const)(
 	"in %s, an Entry opens the chat with the streamed note and its Suggestions",
 	async (locale) => {
-		await sendEntry(
-			locale,
-			searchStreamOf(answered([suggestion(1), suggestion(2)])),
-		);
+		await sendEntry(locale, searchOf(answered([suggestion(1), suggestion(2)])));
 
 		expect(
 			await screen.findByText("Here are some people to pray for."),
@@ -121,7 +118,7 @@ test("the searching status shows until the note starts streaming", async () => {
 });
 
 test("sending an Entry and showing its Suggestions are counted", async () => {
-	await sendEntry("en", searchStreamOf(answered([1, 2, 3].map(suggestion))));
+	await sendEntry("en", searchOf(answered([1, 2, 3].map(suggestion))));
 	await screen.findByText("Intention number 3");
 
 	expect(events).toEqual([
@@ -131,10 +128,7 @@ test("sending an Entry and showing its Suggestions are counted", async () => {
 });
 
 test("checking a Suggestion selects it, and unchecking clears it", async () => {
-	await sendEntry(
-		"en",
-		searchStreamOf(answered([suggestion(1), suggestion(2)])),
-	);
+	await sendEntry("en", searchOf(answered([suggestion(1), suggestion(2)])));
 	await screen.findByText("Intention number 1");
 	const checkboxes = screen.getAllByRole<HTMLInputElement>("checkbox", {
 		name: labels.en.commit,
@@ -152,7 +146,7 @@ test("checking a Suggestion selects it, and unchecking clears it", async () => {
 test("the back button leaves the chat for an empty Entry screen", async () => {
 	const { history } = await sendEntry(
 		"en",
-		searchStreamOf(answered([suggestion(1)])),
+		searchOf(answered([suggestion(1)])),
 	);
 	await screen.findByText("Intention number 1");
 
@@ -167,7 +161,7 @@ test("the back button leaves the chat for an empty Entry screen", async () => {
 });
 
 test("New search leaves the chat for the Entry screen", async () => {
-	await sendEntry("en", searchStreamOf(answered([suggestion(1)])));
+	await sendEntry("en", searchOf(answered([suggestion(1)])));
 
 	fireEvent.click(
 		await screen.findByRole("link", { name: labels.en.newSearch }),
@@ -195,7 +189,7 @@ test.each([
 ] as const)("in %s, a failed search says so", async (locale, message) => {
 	await sendEntry(
 		locale,
-		searchStreamOf([
+		searchOf([
 			{ type: "status", data: { status: "searching" } },
 			{ type: "error", data: { reason: "internal" } },
 		]),
