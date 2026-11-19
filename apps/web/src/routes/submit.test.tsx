@@ -211,10 +211,12 @@ test.each([
 	},
 );
 
-test("Skip goes to /pray and is counted", async () => {
+test("'Pray for others' goes to /pray and is counted", async () => {
 	await renderAt("/", "en");
 
-	fireEvent.click(await screen.findByRole("button", { name: "Skip" }));
+	fireEvent.click(
+		await screen.findByRole("button", { name: "Pray for others" }),
+	);
 
 	expect(
 		await screen.findByRole("textbox", { name: entryLabel }),
@@ -224,7 +226,9 @@ test("Skip goes to /pray and is counted", async () => {
 
 test("after a skip, / goes straight to /pray", async () => {
 	const first = await renderAt("/", "en");
-	fireEvent.click(await screen.findByRole("button", { name: "Skip" }));
+	fireEvent.click(
+		await screen.findByRole("button", { name: "Pray for others" }),
+	);
 	await screen.findByRole("textbox", { name: entryLabel });
 	first.unmount();
 
