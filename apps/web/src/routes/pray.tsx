@@ -15,6 +15,7 @@ import {
 	SearchingStatus,
 	Thread,
 } from "../ui/Message";
+import { MessageBox } from "../ui/MessageBox";
 import { StatusMessage } from "../ui/StatusMessage";
 import { SuggestionCard } from "../ui/SuggestionCard";
 import { Textarea } from "../ui/Textarea";
@@ -126,70 +127,97 @@ type ChatProps = {
 	selected: ReadonlySet<string>;
 	onToggle: (intentionId: string, checked: boolean) => void;
 	commit: CommitControls;
+	onAnswer: (answer: string) => void;
 };
+
+const asParagraphs = (text: string) => text.split(/\n{2,}/).filter(Boolean);
 
 function Chat(props: ChatProps) {
 	const { t } = useLingui();
+	const [reply, setReply] = useState("");
 	const exchange = props.exchange;
-	const paragraphs = exchange.note.split(/\n{2,}/).filter(Boolean);
+	const paragraphs = asParagraphs(exchange.note);
+	const awaitingAnswer =
+		exchange.question !== undefined && exchange.answer === undefined;
 
 	return (
-		<Thread>
-			<EntryBubble text={exchange.entry} />
-			{exchange.status === "searching" && <SearchingStatus />}
-			{paragraphs.length > 0 && (
-				<AssistantReply
-					paragraphs={paragraphs}
-					streaming={exchange.status === "answering"}
-				/>
-			)}
-			{exchange.suggestions.length > 0 && (
-				<ul aria-label={t`Suggestions`} className="flex flex-col gap-space-3">
-					{exchange.suggestions.map((suggestion) => (
-						<li key={suggestion.intentionId}>
-							<SuggestionCard
-								text={suggestion.text}
-								whyNote={suggestion.whyNote}
-								checked={props.selected.has(suggestion.intentionId)}
-								onCheckedChange={(checked) =>
-									props.onToggle(suggestion.intentionId, checked)
-								}
-							/>
-						</li>
-					))}
-				</ul>
-			)}
-			{exchange.status === "failed" && (
-				<StatusMessage tone="danger">
-					<Trans>Something went wrong. Please try again.</Trans>
-				</StatusMessage>
-			)}
-			{props.commit.unavailable && (
-				<StatusMessage tone="notice">
-					<Trans>
-						Some of the intentions you chose are no longer available.
-					</Trans>
-				</StatusMessage>
-			)}
-			{props.selected.size > 0 && (
-				<div className="sticky bottom-space-4 flex flex-col items-center gap-space-2 pt-space-3">
-					{props.commit.failed && (
-						<StatusMessage tone="danger" onRetry={props.commit.retry}>
-							<Trans>Couldn't save your commitment.</Trans>
-						</StatusMessage>
-					)}
-					<Button
-						variant="primary"
-						size="lg"
-						loading={props.commit.pending}
-						loadingLabel={<Trans>Committing…</Trans>}
-						onClick={props.commit.commit}
-					>
-						<Trans>I commit!</Trans>
-					</Button>
+		<div className="flex flex-col gap-space-5">
+			<Thread>
+				<EntryBubble text={exchange.entry} />
+				{exchange.question !== undefined && (
+					<AssistantReply paragraphs={asParagraphs(exchange.question)} />
+				)}
+				{exchange.answer !== undefined && (
+					<EntryBubble text={exchange.answer} />
+				)}
+				{exchange.status === "searching" && <SearchingStatus />}
+				{paragraphs.length > 0 && (
+					<AssistantReply
+						paragraphs={paragraphs}
+						streaming={exchange.status === "answering"}
+					/>
+				)}
+				{exchange.suggestions.length > 0 && (
+					<ul aria-label={t`Suggestions`} className="flex flex-col gap-space-3">
+						{exchange.suggestions.map((suggestion) => (
+							<li key={suggestion.intentionId}>
+								<SuggestionCard
+									text={suggestion.text}
+									whyNote={suggestion.whyNote}
+									checked={props.selected.has(suggestion.intentionId)}
+									onCheckedChange={(checked) =>
+										props.onToggle(suggestion.intentionId, checked)
+									}
+								/>
+							</li>
+						))}
+					</ul>
+				)}
+				{exchange.status === "failed" && (
+					<StatusMessage tone="danger">
+						<Trans>Something went wrong. Please try again.</Trans>
+					</StatusMessage>
+				)}
+				{props.commit.unavailable && (
+					<StatusMessage tone="notice">
+						<Trans>
+							Some of the intentions you chose are no longer available.
+						</Trans>
+					</StatusMessage>
+				)}
+				{props.selected.size > 0 && (
+					<div className="sticky bottom-space-4 flex flex-col items-center gap-space-2 pt-space-3">
+						{props.commit.failed && (
+							<StatusMessage tone="danger" onRetry={props.commit.retry}>
+								<Trans>Couldn't save your commitment.</Trans>
+							</StatusMessage>
+						)}
+						<Button
+							variant="primary"
+							size="lg"
+							loading={props.commit.pending}
+							loadingLabel={<Trans>Committing…</Trans>}
+							onClick={props.commit.commit}
+						>
+							<Trans>I commit!</Trans>
+						</Button>
+					</div>
+				)}
+			</Thread>
+			{awaitingAnswer && (
+				<div className="sticky bottom-0 -mx-space-4 bg-violet md:mx-0">
+					<MessageBox
+						value={reply}
+						onChange={setReply}
+						onSubmit={(text) => {
+							setReply("");
+							props.onAnswer(text.trim());
+						}}
+						placeholder={t`Tell me more…`}
+					/>
 				</div>
 			)}
-		</Thread>
+		</div>
 	);
 }
 
@@ -205,6 +233,7 @@ export function Pray() {
 				selected={chat.selected}
 				onToggle={chat.toggle}
 				commit={chat.commit}
+				onAnswer={chat.answer}
 			/>
 		);
 	}
