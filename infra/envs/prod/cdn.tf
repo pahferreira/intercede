@@ -51,6 +51,18 @@ resource "aws_cloudfront_function" "spa_routes" {
   JS
 }
 
+resource "aws_cloudfront_response_headers_policy" "noindex" {
+  name = "intercede-noindex"
+
+  custom_headers_config {
+    items {
+      header   = "X-Robots-Tag"
+      value    = "noindex"
+      override = true
+    }
+  }
+}
+
 data "aws_cloudfront_cache_policy" "caching_optimized" {
   name = "Managed-CachingOptimized"
 }
@@ -142,6 +154,22 @@ resource "aws_cloudfront_distribution" "site" {
     cache_policy_id          = data.aws_cloudfront_cache_policy.caching_disabled.id
     origin_request_policy_id = data.aws_cloudfront_origin_request_policy.all_viewer_except_host_header.id
     compress                 = true
+  }
+
+  ordered_cache_behavior {
+    path_pattern               = "/intention/*"
+    target_origin_id           = local.web_origin_id
+    viewer_protocol_policy     = "redirect-to-https"
+    allowed_methods            = ["GET", "HEAD"]
+    cached_methods             = ["GET", "HEAD"]
+    cache_policy_id            = data.aws_cloudfront_cache_policy.caching_optimized.id
+    response_headers_policy_id = aws_cloudfront_response_headers_policy.noindex.id
+    compress                   = true
+
+    function_association {
+      event_type   = "viewer-request"
+      function_arn = aws_cloudfront_function.spa_routes.arn
+    }
   }
 
   default_cache_behavior {
