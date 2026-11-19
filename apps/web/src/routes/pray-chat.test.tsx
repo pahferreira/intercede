@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import type { SearchEvent, Suggestion } from "@intercede/api";
+import type { SearchEvent, Suggestion, SuggestionMatch } from "@intercede/api";
 import { fireEvent, screen } from "@testing-library/react";
 import {
 	controlledSearch,
@@ -37,12 +37,15 @@ function suggestion(n: number): Suggestion {
 	};
 }
 
-function answered(suggestions: Suggestion[], fallback = false): SearchEvent[] {
+function answered(
+	suggestions: Suggestion[],
+	match: SuggestionMatch = "close",
+): SearchEvent[] {
 	return [
 		{ type: "status", data: { status: "searching" } },
 		{ type: "note_delta", data: { text: "Here are some " } },
 		{ type: "note_delta", data: { text: "people to pray for." } },
-		{ type: "suggestions", data: { suggestions, fallback } },
+		{ type: "suggestions", data: { match, suggestions } },
 		{ type: "done", data: {} },
 	];
 }
@@ -156,7 +159,7 @@ test.each(["en", "pt-BR"] as const)(
 	async (locale) => {
 		await sendEntry(
 			locale,
-			searchOf(answered([unattended(1), unattended(2)], true)),
+			searchOf(answered([unattended(1), unattended(2)], "fallback")),
 		);
 
 		expect(await screen.findByText(fallbackCopy[locale].noMatch)).toBeDefined();
@@ -168,7 +171,7 @@ test.each(["en", "pt-BR"] as const)(
 );
 
 test("showing the fallback Intentions is counted as a fallback", async () => {
-	await sendEntry("en", searchOf(answered([1, 2].map(unattended), true)));
+	await sendEntry("en", searchOf(answered([1, 2].map(unattended), "fallback")));
 	await screen.findByText("Intention number 2");
 
 	expect(events).toEqual([
@@ -180,7 +183,7 @@ test("showing the fallback Intentions is counted as a fallback", async () => {
 test.each(["en", "pt-BR"] as const)(
 	"in %s, an empty Catalog says so and links to asking for prayer",
 	async (locale) => {
-		await sendEntry(locale, searchOf(answered([], true)));
+		await sendEntry(locale, searchOf(answered([], "empty_catalog")));
 
 		expect(await screen.findByText(fallbackCopy[locale].empty)).toBeDefined();
 		expect(screen.queryByText(fallbackCopy[locale].noMatch)).toBeNull();

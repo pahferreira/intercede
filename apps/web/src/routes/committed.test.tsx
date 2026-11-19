@@ -39,7 +39,7 @@ const answered: SearchEvent[] = [
 	{ type: "note_delta", data: { text: "Here are some people to pray for." } },
 	{
 		type: "suggestions",
-		data: { suggestions: [brotherJob, motherSurgery], fallback: false },
+		data: { match: "close", suggestions: [brotherJob, motherSurgery] },
 	},
 	{ type: "done", data: {} },
 ];

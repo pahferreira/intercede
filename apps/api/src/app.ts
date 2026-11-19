@@ -97,4 +97,5 @@ export type {
 	Commitment,
 	SearchEvent,
 	Suggestion,
+	SuggestionMatch,
 } from "./intercession";

@@ -1,4 +1,8 @@
-import type { Clarification, Suggestion } from "@intercede/api";
+import type {
+	Clarification,
+	Suggestion,
+	SuggestionMatch,
+} from "@intercede/api";
 import {
 	useNavigate,
 	useRouteContext,
@@ -16,7 +20,7 @@ export type Exchange = {
 	status: "searching" | "answering" | "done" | "failed";
 	note: string;
 	suggestions: Suggestion[];
-	fallback: boolean;
+	match: SuggestionMatch;
 };
 
 export function useChat() {
@@ -82,11 +86,14 @@ export function useChat() {
 					note: current.note + event.data.text,
 				}));
 			} else if (event.type === "suggestions") {
-				const { suggestions, fallback } = event.data;
+				const { match, suggestions } = event.data;
 				if (suggestions.length > 0) {
-					track("suggestions_shown", { count: suggestions.length, fallback });
+					track("suggestions_shown", {
+						count: suggestions.length,
+						fallback: match === "fallback",
+					});
 				}
-				update((current) => ({ ...current, suggestions, fallback }));
+				update((current) => ({ ...current, match, suggestions }));
 			} else if (event.type === "question") {
 				track("clarifying_question_shown", {});
 				update((current) => ({
@@ -121,7 +128,7 @@ export function useChat() {
 			status: "searching",
 			note: "",
 			suggestions: [],
-			fallback: false,
+			match: "close",
 		});
 		navigate({ to: "/pray", search: { chat: true } });
 		run(entry);

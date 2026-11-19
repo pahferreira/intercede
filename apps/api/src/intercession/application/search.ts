@@ -12,7 +12,11 @@ import {
 	toSuggestions,
 } from "../domain/presentation";
 import { rank } from "../domain/ranking";
-import { internalError, type SearchEvent } from "../domain/search-event";
+import {
+	internalError,
+	type SearchEvent,
+	toMatch,
+} from "../domain/search-event";
 import type { Embed } from "./embed";
 import {
 	AgentEventType,
@@ -88,16 +92,20 @@ export const createSearch = ({
 					case AgentEventType.PresentSuggestions: {
 						const presented = toSuggestions(event.suggestions, found);
 						const language = steps.flat().at(-1)?.call.language;
-						const fallback = presented.length === 0 && language !== undefined;
-						const suggestions = fallback
-							? await findFewestCommittedInCatalog(database, language)
-							: presented;
+						const fallback =
+							presented.length === 0 && language !== undefined
+								? await findFewestCommittedInCatalog(database, language)
+								: undefined;
+						const suggestions = fallback ?? presented;
 						await recordSuggestions(
 							database,
 							visitorId,
 							suggestions.map((suggestion) => suggestion.intentionId),
 						);
-						yield { type: "suggestions", data: { suggestions, fallback } };
+						yield {
+							type: "suggestions",
+							data: { match: toMatch(fallback), suggestions },
+						};
 						yield { type: "done", data: {} };
 						return;
 					}

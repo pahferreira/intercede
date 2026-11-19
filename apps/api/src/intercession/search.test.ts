@@ -120,7 +120,7 @@ test("an Entry streams the note and the Suggestions found in the Catalog", async
 		{
 			type: "suggestions",
 			data: {
-				fallback: false,
+				match: "close",
 				suggestions: [
 					{
 						intentionId: brotherJob,
@@ -171,7 +171,7 @@ test("the answer to the Clarifying Question continues the turn with the Entry", 
 
 	expect(await eventsOf(response)).toEqual([
 		{ type: "status", data: { status: "searching" } },
-		{ type: "suggestions", data: { suggestions: [], fallback: false } },
+		{ type: "suggestions", data: { match: "close", suggestions: [] } },
 		{ type: "done", data: {} },
 	]);
 	expect(turns).toEqual([
@@ -586,7 +586,7 @@ test("with no close match, up to 5 Intentions with the fewest Commitments are su
 		{
 			type: "suggestions",
 			data: {
-				fallback: true,
+				match: "fallback",
 				suggestions: [1, 3, 2, 0, 4].map((index) => ({
 					intentionId: intentionIds[index] ?? "",
 					text: `For intention number ${index}`,
@@ -631,7 +631,7 @@ test("a Catalog with no Intentions in the Entry's Language falls back to no Sugg
 
 	expect(events).toContainEqual({
 		type: "suggestions",
-		data: { suggestions: [], fallback: true },
+		data: { match: "empty_catalog", suggestions: [] },
 	});
 });
 
@@ -645,7 +645,7 @@ test("an agent that presents nothing without searching gets no fallback", async 
 
 	expect(events).toContainEqual({
 		type: "suggestions",
-		data: { suggestions: [], fallback: false },
+		data: { match: "close", suggestions: [] },
 	});
 });
 
