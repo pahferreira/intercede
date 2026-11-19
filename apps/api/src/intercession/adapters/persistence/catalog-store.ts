@@ -29,7 +29,11 @@ export const removeFromCatalog = async (
 
 export const findCandidatesInCatalog = (
 	database: Database,
-	{ embedding, visitorId }: { embedding: number[]; visitorId: string },
+	{
+		embedding,
+		language,
+		visitorId,
+	}: { embedding: number[]; language: Language; visitorId: string },
 ): Promise<Candidate[]> => {
 	const distance = cosineDistance(catalog.embedding, embedding);
 	return database
@@ -50,6 +54,7 @@ export const findCandidatesInCatalog = (
 			).mapWith(Boolean),
 		})
 		.from(catalog)
+		.where(eq(catalog.language, language))
 		.orderBy(distance)
 		.limit(candidatesPerSearch);
 };

@@ -74,7 +74,7 @@ const messagesFor = (turn: SearchAgentTurn): Message[] => {
 					toolUse: {
 						toolUseId: call.id,
 						name: ToolName.FindIntentions,
-						input: { query: call.query },
+						input: { query: call.query, language: call.language },
 					},
 				})),
 			},
@@ -180,7 +180,7 @@ export const createNovaSearchAgent = (
 				.filter((toolUse) => toolUse.name === ToolName.FindIntentions)
 				.map((toolUse) => ({
 					id: toolUse.id,
-					query: findIntentionsInput.parse(JSON.parse(toolUse.json)).query,
+					...findIntentionsInput.parse(JSON.parse(toolUse.json)),
 				}));
 			if (calls.length > 0)
 				yield { type: AgentEventType.FindIntentions, calls };
