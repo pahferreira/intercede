@@ -1,8 +1,13 @@
 import { streamHandle } from "hono/aws-lambda";
 import { createApp } from "../app";
-import { createNovaModerator, createSubmitIntention } from "../intentions";
+import {
+	createFindFollowUp,
+	createNovaModerator,
+	createSubmitIntention,
+} from "../intentions";
 import {
 	createCommit,
+	createCountCommitments,
 	createNovaSearchAgent,
 	createSearch,
 	createTitanEmbedder,
@@ -38,6 +43,10 @@ export const handler = streamHandle(
 			moderate: createNovaModerator(),
 			verifyTurnstile,
 			consumeSubmissionLimit: createSubmissionLimit(database),
+		}),
+		findFollowUp: createFindFollowUp({
+			database: database,
+			countCommitments: createCountCommitments({ database: database }),
 		}),
 		search: createSearch({
 			database,

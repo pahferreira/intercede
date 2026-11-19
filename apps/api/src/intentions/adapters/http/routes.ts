@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 import type { AnalyticsEnv } from "../../../platform/analytics-port";
 import { visitorCookie } from "../../../platform/visitor";
+import type { FindFollowUp } from "../../application/follow-up";
 import type { SubmitIntention } from "../../application/submit-intention";
 import { intentionTextLength } from "../../domain/intention";
 
@@ -15,7 +16,15 @@ const submission = z.object({
 	turnstileToken: z.string().min(1).max(2048),
 });
 
-export const intentionRoutes = (submitIntention: SubmitIntention) => {
+type IntentionRoutesDeps = {
+	submitIntention: SubmitIntention;
+	findFollowUp: FindFollowUp;
+};
+
+export const intentionRoutes = ({
+	submitIntention,
+	findFollowUp,
+}: IntentionRoutesDeps) => {
 	return new Hono<AnalyticsEnv>()
 		.use("/intentions", visitorCookie)
 		.post("/intentions", zValidator("json", submission), async (c) => {
@@ -42,5 +51,16 @@ export const intentionRoutes = (submitIntention: SubmitIntention) => {
 				return c.json({ status: "verification_failed" } as const, 403);
 			}
 			return c.json({ status: "moderation_unavailable" } as const, 503);
+		})
+		.get("/intentions/:code", async (c) => {
+			const found = await findFollowUp(c.req.param("code"));
+			if (!found.ok) return c.json({ status: "not_found" } as const, 404);
+			return c.json(
+				{
+					...found.value,
+					publishedAt: found.value.publishedAt.toISOString(),
+				},
+				200,
+			);
 		});
 };

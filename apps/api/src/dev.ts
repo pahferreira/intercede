@@ -1,7 +1,12 @@
 import { createApp } from "./app";
-import { createNovaModerator, createSubmitIntention } from "./intentions";
+import {
+	createFindFollowUp,
+	createNovaModerator,
+	createSubmitIntention,
+} from "./intentions";
 import {
 	createCommit,
+	createCountCommitments,
 	createNovaSearchAgent,
 	createSearch,
 	createTitanEmbedder,
@@ -34,6 +39,10 @@ const server = Bun.serve({
 			moderate: createNovaModerator(),
 			verifyTurnstile,
 			consumeSubmissionLimit: createSubmissionLimit(database),
+		}),
+		findFollowUp: createFindFollowUp({
+			database: database,
+			countCommitments: createCountCommitments({ database: database }),
 		}),
 		search: createSearch({
 			database,

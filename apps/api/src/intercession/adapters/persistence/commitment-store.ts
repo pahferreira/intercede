@@ -1,4 +1,4 @@
-import { and, eq, gt, inArray, sql } from "drizzle-orm";
+import { and, countDistinct, eq, gt, inArray, sql } from "drizzle-orm";
 import type { Database } from "../../../platform/database";
 import type { Commitment, CommitmentBatch } from "../../domain/commitment";
 import { suggestionWindowHours } from "../../domain/presentation";
@@ -33,4 +33,15 @@ export const recordCommitments = async (
 		.insert(commitments)
 		.values(intentionIds.map((intentionId) => ({ visitorId, intentionId })))
 		.onConflictDoNothing();
+};
+
+export const countCommittedVisitors = async (
+	database: Database,
+	intentionId: string,
+) => {
+	const [counted] = await database
+		.select({ visitors: countDistinct(commitments.visitorId) })
+		.from(commitments)
+		.where(eq(commitments.intentionId, intentionId));
+	return counted?.visitors ?? 0;
 };

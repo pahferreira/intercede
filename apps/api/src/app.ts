@@ -1,5 +1,9 @@
 import { Hono } from "hono";
-import { intentionRoutes, type SubmitIntention } from "./intentions";
+import {
+	type FindFollowUp,
+	intentionRoutes,
+	type SubmitIntention,
+} from "./intentions";
 import {
 	type Commit,
 	commitRoutes,
@@ -38,6 +42,7 @@ export type AppDependencies = {
 	isDatabaseReachable: () => Promise<boolean>;
 	openAnalytics: OpenAnalytics;
 	submitIntention: SubmitIntention;
+	findFollowUp: FindFollowUp;
 	search: Search;
 	commit: Commit;
 };
@@ -46,6 +51,7 @@ export const createApp = ({
 	isDatabaseReachable,
 	openAnalytics,
 	submitIntention,
+	findFollowUp,
 	search,
 	commit,
 }: AppDependencies) => {
@@ -80,7 +86,7 @@ export const createApp = ({
 			}
 			return c.json({ status: "error", database: "unreachable" } as const, 503);
 		})
-		.route("/", intentionRoutes(submitIntention))
+		.route("/", intentionRoutes({ submitIntention, findFollowUp }))
 		.route("/", searchRoutes(search))
 		.route("/", commitRoutes(commit));
 };

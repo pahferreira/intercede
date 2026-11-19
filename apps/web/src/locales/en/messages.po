@@ -45,6 +45,10 @@ msgstr "Copied"
 msgid "Copy link"
 msgstr "Copy link"
 
+#: src/routes/follow-up.tsx:33
+msgid "Couldn't load this prayer request."
+msgstr "Couldn't load this prayer request."
+
 #: src/routes/pray.tsx:193
 msgid "Couldn't save your commitment."
 msgstr "Couldn't save your commitment."
@@ -56,10 +60,6 @@ msgstr "Couldn't verify, try again."
 #: src/routes/pray.tsx:74
 msgid "Dismiss"
 msgstr "Dismiss"
-
-#: src/routes/follow-up.tsx:6
-msgid "Follow-up"
-msgstr "Follow-up"
 
 #: src/routes/committed.tsx:29
 msgid "Have a good prayer"
@@ -89,6 +89,10 @@ msgstr "Language"
 msgid "Leave out links, ads and repeated text."
 msgstr "Leave out links, ads and repeated text."
 
+#: src/routes/follow-up.tsx:28
+msgid "Link not found"
+msgstr "Link not found"
+
 #: src/ui/Message.tsx:107
 msgid "Looking for intentions…"
 msgstr "Looking for intentions…"
@@ -105,6 +109,10 @@ msgstr "Not sent."
 #: src/routes/submit.tsx:96
 msgid "Pray for Others"
 msgstr "Pray for Others"
+
+#: src/routes/follow-up.tsx:38
+msgid "Pray for someone too"
+msgstr "Pray for someone too"
 
 #: src/routes/pray.tsx:42
 #: src/routes/pray.tsx:51
@@ -200,6 +208,7 @@ msgstr "You committed to pray for these intentions:"
 msgid "You've reached today's limit for prayer requests. Come back tomorrow, or skip to pray for others."
 msgstr "You've reached today's limit for prayer requests. Come back tomorrow, or skip to pray for others."
 
+#: src/routes/follow-up.tsx:16
 #: src/routes/submit.tsx:54
 msgid "Your prayer request"
 msgstr "Your prayer request"

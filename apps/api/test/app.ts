@@ -1,7 +1,12 @@
 import { type AppDependencies, createApp } from "../src/app";
-import { createSubmitIntention, type Moderate } from "../src/intentions";
+import {
+	createFindFollowUp,
+	createSubmitIntention,
+	type Moderate,
+} from "../src/intentions";
 import {
 	createCommit,
+	createCountCommitments,
 	createSearch,
 	type Embed,
 	type SearchAgent,
@@ -51,6 +56,10 @@ export const createTestApp = ({
 			moderate,
 			verifyTurnstile,
 			consumeSubmissionLimit: createSubmissionLimit(testDatabase(), {}),
+		}),
+		findFollowUp: createFindFollowUp({
+			database: testDatabase(),
+			countCommitments: createCountCommitments({ database: testDatabase() }),
 		}),
 		search: createSearch({ database: testDatabase(), embed, agent }),
 		commit: createCommit({ database: testDatabase() }),

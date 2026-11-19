@@ -2,6 +2,10 @@ export { intentionRoutes } from "./adapters/http/routes";
 export { createAnthropicModerator } from "./adapters/llm/anthropic-moderator";
 export { createNovaModerator } from "./adapters/llm/nova-moderator";
 export { createDrainOutbox } from "./application/drain-outbox";
+export {
+	createFindFollowUp,
+	type FindFollowUp,
+} from "./application/follow-up";
 export type { Moderate } from "./application/moderate";
 export {
 	createSubmitIntention,

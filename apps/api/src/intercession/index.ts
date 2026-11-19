@@ -4,6 +4,7 @@ export { createClaudeSearchAgent } from "./adapters/llm/claude-search-agent";
 export { createNovaSearchAgent } from "./adapters/llm/nova-search-agent";
 export { createTitanEmbedder } from "./adapters/llm/titan-embedder";
 export { type Commit, createCommit } from "./application/commit";
+export { createCountCommitments } from "./application/count-commitments";
 export type { Embed } from "./application/embed";
 export { createKeepCatalogInStep } from "./application/keep-catalog-in-step";
 export { createSearch, type Search } from "./application/search";

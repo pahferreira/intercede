@@ -1,5 +1,5 @@
 import { jsonb, pgSchema, text, timestamp, uuid } from "drizzle-orm/pg-core";
-import { languages } from "../../domain/intention";
+import { intentionStatuses, languages } from "../../domain/intention";
 import { intentionEventTypes } from "../../domain/intention-event";
 
 export const intentionsSchema = pgSchema("intentions");
@@ -9,7 +9,7 @@ export const intentions = intentionsSchema.table("intentions", {
 	code: text().notNull().unique(),
 	text: text().notNull(),
 	language: text({ enum: languages }).notNull(),
-	status: text({ enum: ["published"] }).notNull(),
+	status: text({ enum: intentionStatuses }).notNull(),
 	publishedAt: timestamp("published_at", { withTimezone: true })
 		.notNull()
 		.defaultNow(),
