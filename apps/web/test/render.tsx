@@ -13,6 +13,8 @@ export type Search = AppDependencies["search"];
 
 export type Commit = AppDependencies["commit"];
 
+export type FindFollowUp = AppDependencies["findFollowUp"];
+
 const submissionNotExpected: SubmitIntention = async () => {
 	throw new Error("this test does not expect a submission");
 };
@@ -23,6 +25,10 @@ const searchNotExpected: Search = () => {
 
 const commitNotExpected: Commit = async () => {
 	throw new Error("this test does not expect a commit");
+};
+
+const followUpNotExpected: FindFollowUp = async () => {
+	throw new Error("this test does not expect a follow-up");
 };
 
 export function searchOf(events: SearchEvent[]): Search {
@@ -81,6 +87,7 @@ export async function renderAt(
 	submitIntention = submissionNotExpected,
 	search = searchNotExpected,
 	commit = commitNotExpected,
+	findFollowUp = followUpNotExpected,
 ) {
 	await switchLocale(locale);
 	const app = createApp({
@@ -91,6 +98,7 @@ export async function renderAt(
 			shutdown: async () => {},
 		}),
 		submitIntention,
+		findFollowUp,
 		search,
 		commit,
 	});

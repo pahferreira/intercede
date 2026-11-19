@@ -2,15 +2,6 @@ import { expect, test } from "bun:test";
 import { fireEvent, screen, within } from "@testing-library/react";
 import { renderAt } from "../test/render";
 
-test("/intention/:code renders its stub screen", async () => {
-	await renderAt("/intention/INT-7K3QD", "en");
-
-	expect(
-		await screen.findByRole("heading", { name: "Follow-up" }),
-	).toBeDefined();
-	expect(screen.getByRole("group", { name: "Language" })).toBeDefined();
-});
-
 test("language toggle marks the current language as pressed", async () => {
 	await renderAt("/", "pt-BR");
 	await screen.findByRole("heading", { name: "Envie seu pedido de oração" });

@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import type { Database } from "../../../platform/database";
 import type { Language } from "../../domain/intention";
 import type { IntentionEvent } from "../../domain/intention-event";
@@ -41,6 +42,19 @@ const insertIntention = (
 		} satisfies IntentionEvent);
 		return { code: published.code };
 	});
+};
+
+export const findIntentionByCode = async (database: Database, code: string) => {
+	const [intention] = await database
+		.select({
+			id: intentions.id,
+			text: intentions.text,
+			status: intentions.status,
+			publishedAt: intentions.publishedAt,
+		})
+		.from(intentions)
+		.where(eq(intentions.code, code));
+	return intention;
 };
 
 export const createPublishIntention =
