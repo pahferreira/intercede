@@ -52,6 +52,7 @@ const labels = {
 		newSearch: "New search",
 		ask: "Ask for prayer",
 		failed: "Couldn't save your commitment.",
+		unavailable: "Some of the intentions you chose are no longer available.",
 		retry: "Retry",
 		submit: "Submit",
 	},
@@ -65,6 +66,8 @@ const labels = {
 		newSearch: "Nova busca",
 		ask: "Pedir oração",
 		failed: "Não foi possível salvar seu compromisso.",
+		unavailable:
+			"Algumas das intenções que você escolheu não estão mais disponíveis.",
 		retry: "Tentar de novo",
 		submit: "Enviar",
 	},
@@ -183,6 +186,47 @@ test.each(["en", "pt-BR"] as const)(
 	},
 );
 
+test.each(["en", "pt-BR"] as const)(
+	"in %s, Intentions no longer available leave the selection and the rest can still be committed",
+	async (locale) => {
+		const batches: string[][] = [];
+		const rejectsMotherSurgery: Commit = async (batch) => {
+			if (batch.intentionIds.includes(motherSurgery.intentionId)) {
+				return {
+					ok: false,
+					error: {
+						kind: "not_suggested",
+						intentionIds: [motherSurgery.intentionId],
+					},
+				};
+			}
+			return commitsAll(batches)(batch);
+		};
+		await openSuggestions(locale, rejectsMotherSurgery);
+		for (const box of selectionBoxes(locale)) fireEvent.click(box);
+
+		fireEvent.click(
+			screen.getByRole("button", { name: labels[locale].commit }),
+		);
+
+		expect(await screen.findByText(labels[locale].unavailable)).toBeDefined();
+		expect(selectionBoxes(locale).map((box) => box.checked)).toEqual([
+			true,
+			false,
+		]);
+		expect(
+			screen.queryByRole("button", { name: labels[locale].retry }),
+		).toBeNull();
+
+		fireEvent.click(
+			screen.getByRole("button", { name: labels[locale].commit }),
+		);
+
+		expect(await screen.findByText(labels[locale].committed)).toBeDefined();
+		expect(batches).toEqual([[brotherJob.intentionId]]);
+	},
+);
+
 async function commitBoth() {
 	await openSuggestions("en");
 	for (const box of selectionBoxes("en")) fireEvent.click(box);
@@ -190,7 +234,7 @@ async function commitBoth() {
 	await screen.findByText(labels.en.committed);
 }
 
-test("the committed cards survive a refresh of the confirmation", async () => {
+test("the committed Intentions survive a refresh of the confirmation", async () => {
 	await commitBoth();
 	cleanup();
 
@@ -225,7 +269,7 @@ test.each(["en", "pt-BR"] as const)(
 	async (locale) => {
 		rememberSubmitOrSkip();
 		sessionStorage.setItem(
-			"intercede.committedCards",
+			"intercede.commitments",
 			JSON.stringify([
 				{ intentionId: brotherJob.intentionId, text: brotherJob.text },
 			]),

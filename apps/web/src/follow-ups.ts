@@ -1,5 +1,6 @@
 import type { InferResponseType } from "hono/client";
 import type { ApiClient } from "./api";
+import { readStoredJson } from "./stored-json";
 
 const codesKey = "intercede.intentionCodes";
 const noticeKey = "intercede.publishedNotice";
@@ -9,16 +10,8 @@ export type PublishedIntention = Omit<
 	"status"
 >;
 
-function readJson(key: string): unknown {
-	try {
-		return JSON.parse(localStorage.getItem(key) ?? "null");
-	} catch {
-		return null;
-	}
-}
-
 function intentionCodes(): string[] {
-	const codes = readJson(codesKey);
+	const codes = readStoredJson(localStorage, codesKey);
 	return Array.isArray(codes)
 		? codes.filter((code) => typeof code === "string")
 		: [];
@@ -33,7 +26,10 @@ export function rememberPublished(published: PublishedIntention) {
 }
 
 export function publishedNotice(): PublishedIntention | null {
-	const notice = readJson(noticeKey) as Partial<PublishedIntention> | null;
+	const notice = readStoredJson(
+		localStorage,
+		noticeKey,
+	) as Partial<PublishedIntention> | null;
 	return typeof notice?.code === "string" ? { code: notice.code } : null;
 }
 

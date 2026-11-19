@@ -1,16 +1,12 @@
 import { and, eq, gt, inArray, sql } from "drizzle-orm";
 import type { Database } from "../../../platform/database";
-import {
-	type Commitment,
-	suggestionWindowHours,
-} from "../../domain/commitment";
+import type { Commitment, CommitmentBatch } from "../../domain/commitment";
+import { suggestionWindowHours } from "../../domain/presentation";
 import { catalog, commitments, suggestions } from "./schema";
-
-type Batch = { visitorId: string; intentionIds: string[] };
 
 export const findCommittable = (
 	database: Database,
-	{ visitorId, intentionIds }: Batch,
+	{ visitorId, intentionIds }: CommitmentBatch,
 ): Promise<Commitment[]> =>
 	database
 		.selectDistinct({ intentionId: catalog.intentionId, text: catalog.text })
@@ -30,7 +26,7 @@ export const findCommittable = (
 
 export const recordCommitments = async (
 	database: Database,
-	{ visitorId, intentionIds }: Batch,
+	{ visitorId, intentionIds }: CommitmentBatch,
 ) => {
 	await database
 		.insert(commitments)

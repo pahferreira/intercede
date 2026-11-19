@@ -19,6 +19,7 @@ import { StatusMessage } from "../ui/StatusMessage";
 import { SuggestionCard } from "../ui/SuggestionCard";
 import { Textarea } from "../ui/Textarea";
 import { type Exchange, useChat } from "./useChat";
+import type { CommitControls } from "./useCommit";
 import { usePrayRoute } from "./usePrayRoute";
 
 const minLength = 1;
@@ -124,10 +125,7 @@ type ChatProps = {
 	exchange: Exchange;
 	selected: ReadonlySet<string>;
 	onToggle: (intentionId: string, checked: boolean) => void;
-	committing: boolean;
-	commitFailed: boolean;
-	onCommit: () => void;
-	onRetryCommit: () => void;
+	commit: CommitControls;
 };
 
 function Chat(props: ChatProps) {
@@ -166,19 +164,26 @@ function Chat(props: ChatProps) {
 					<Trans>Something went wrong. Please try again.</Trans>
 				</StatusMessage>
 			)}
+			{props.commit.unavailable && (
+				<StatusMessage tone="notice">
+					<Trans>
+						Some of the intentions you chose are no longer available.
+					</Trans>
+				</StatusMessage>
+			)}
 			{props.selected.size > 0 && (
 				<div className="sticky bottom-space-4 flex flex-col items-center gap-space-2 pt-space-3">
-					{props.commitFailed && (
-						<StatusMessage tone="danger" onRetry={props.onRetryCommit}>
+					{props.commit.failed && (
+						<StatusMessage tone="danger" onRetry={props.commit.retry}>
 							<Trans>Couldn't save your commitment.</Trans>
 						</StatusMessage>
 					)}
 					<Button
 						variant="primary"
 						size="lg"
-						loading={props.committing}
+						loading={props.commit.pending}
 						loadingLabel={<Trans>Committing…</Trans>}
-						onClick={props.onCommit}
+						onClick={props.commit.commit}
 					>
 						<Trans>I commit!</Trans>
 					</Button>
@@ -199,10 +204,7 @@ export function Pray() {
 				exchange={exchange}
 				selected={chat.selected}
 				onToggle={chat.toggle}
-				committing={chat.committing}
-				commitFailed={chat.commitFailed}
-				onCommit={chat.commit}
-				onRetryCommit={chat.retryCommit}
+				commit={chat.commit}
 			/>
 		);
 	}

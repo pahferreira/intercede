@@ -1,5 +1,4 @@
 import type { Suggestion } from "@intercede/api";
-import { useMutation } from "@tanstack/react-query";
 import {
 	useNavigate,
 	useRouteContext,
@@ -8,8 +7,8 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { track } from "../analytics";
 import { isChatOpen } from "../chat";
-import { rememberCommitted } from "../committed-cards";
 import { readSearchEvents } from "../search-stream";
+import { useCommit } from "./useCommit";
 
 export type Exchange = {
 	entry: string;
@@ -25,6 +24,15 @@ export function useChat() {
 	const [exchange, setExchange] = useState<Exchange | null>(null);
 	const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
 	const searching = useRef<AbortController | null>(null);
+
+	const deselect = (intentionIds: string[]) =>
+		setSelected((current) => {
+			const next = new Set(current);
+			for (const intentionId of intentionIds) next.delete(intentionId);
+			return next;
+		});
+
+	const commit = useCommit({ selected, onUnavailable: deselect });
 
 	useEffect(() => {
 		if (chatOpen) {
@@ -83,6 +91,7 @@ export function useChat() {
 		searching.current = controller;
 		track("entry_sent", {});
 		setSelected(new Set());
+		commit.reset();
 		setExchange({ entry, status: "searching", note: "", suggestions: [] });
 		navigate({ to: "/pray", search: { chat: true } });
 		stream(entry, controller.signal).catch(() => {
@@ -102,37 +111,11 @@ export function useChat() {
 			return next;
 		});
 
-	const commitment = useMutation({
-		mutationFn: async (intentionIds: string[]) => {
-			const response = await client.api.commitments.$post({
-				json: { intentionIds },
-			});
-			if (response.status !== 201) {
-				throw new Error(`unexpected status ${response.status}`);
-			}
-			return (await response.json()).commitments;
-		},
-		onSuccess: (commitments) => {
-			rememberCommitted(commitments);
-			return navigate({ to: "/pray/committed" });
-		},
-	});
-
-	const retryCommit = () => commitment.mutate([...selected]);
-
-	const commit = () => {
-		track("commit_clicked", { count: selected.size });
-		retryCommit();
-	};
-
 	return {
 		exchange: chatOpen ? exchange : null,
 		selected,
 		send,
 		toggle,
 		commit,
-		retryCommit,
-		committing: commitment.isPending,
-		commitFailed: commitment.isError,
 	};
 }
