@@ -37,7 +37,10 @@ const motherSurgery: Suggestion = {
 const answered: SearchEvent[] = [
 	{ type: "status", data: { status: "searching" } },
 	{ type: "note_delta", data: { text: "Here are some people to pray for." } },
-	{ type: "suggestions", data: { suggestions: [brotherJob, motherSurgery] } },
+	{
+		type: "suggestions",
+		data: { suggestions: [brotherJob, motherSurgery], fallback: false },
+	},
 	{ type: "done", data: {} },
 ];
 
@@ -147,7 +150,7 @@ test.each(["en", "pt-BR"] as const)(
 		]);
 		expect(screen.getByText(brotherJob.text)).toBeDefined();
 		expect(screen.getByText(motherSurgery.text)).toBeDefined();
-		expect(screen.queryByText(brotherJob.whyNote)).toBeNull();
+		expect(screen.queryByText("About work")).toBeNull();
 		expect(screen.getByText(labels[locale].goodPrayer)).toBeDefined();
 	},
 );

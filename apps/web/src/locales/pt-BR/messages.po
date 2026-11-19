@@ -8,7 +8,7 @@ msgstr ""
 "Language: pt-BR\n"
 
 #. placeholder {0}: props.commitments
-#: src/ui/IntentionCard.tsx:21
+#: src/ui/IntentionCard.tsx:27
 msgid "{0, plural, one {<0><1># person</1> committed to pray for this</0>} other {<2><3># people</3> committed to pray for this</2>}}"
 msgstr "{0, plural, =0 {<2><3># pessoas</3> se comprometeram a rezar por este pedido</2>} one {<0><1># pessoa</1> se comprometeu a rezar por este pedido</0>} other {<2><3># pessoas</3> se comprometeram a rezar por este pedido</2>}}"
 
@@ -20,6 +20,10 @@ msgstr "Um lugar para compartilhar sua fé com o mundo todo"
 #: src/routes/pray.tsx:111
 msgid "Ask for prayer"
 msgstr "Pedir oração"
+
+#: src/routes/pray.tsx:173
+msgid "Be the first to ask for prayer"
+msgstr "Seja a primeira pessoa a pedir oração"
 
 #: src/routes/submit.tsx:62
 msgid "Between {minLength} and {maxLength} characters."
@@ -33,7 +37,7 @@ msgstr "Comprometer-me a rezar por esta intenção"
 msgid "Committed intentions"
 msgstr "Intenções assumidas"
 
-#: src/routes/pray.tsx:200
+#: src/routes/pray.tsx:216
 msgid "Committing…"
 msgstr "Salvando…"
 
@@ -49,7 +53,7 @@ msgstr "Copiar link"
 msgid "Couldn't load this prayer request."
 msgstr "Não foi possível carregar este pedido de oração."
 
-#: src/routes/pray.tsx:193
+#: src/routes/pray.tsx:209
 msgid "Couldn't save your commitment."
 msgstr "Não foi possível salvar seu compromisso."
 
@@ -65,9 +69,13 @@ msgstr "Fechar"
 msgid "Have a good prayer"
 msgstr "Tenha uma boa oração"
 
-#: src/routes/pray.tsx:203
+#: src/routes/pray.tsx:219
 msgid "I commit!"
 msgstr "Eu me comprometo!"
+
+#: src/routes/pray.tsx:165
+msgid "I couldn't find a close match. These are still waiting for prayer:"
+msgstr "Não encontrei nada muito próximo. Estas intenções ainda esperam por oração:"
 
 #: src/routes/pray.tsx:55
 msgid "Intention {code}"
@@ -102,6 +110,10 @@ msgstr "Procurando intenções…"
 msgid "New search"
 msgstr "Nova busca"
 
+#: src/routes/pray.tsx:171
+msgid "No intentions yet."
+msgstr "Ainda não há intenções."
+
 #: src/ui/Message.tsx:44
 msgid "Not sent."
 msgstr "Não enviada."
@@ -119,7 +131,7 @@ msgstr "Reze por alguém também"
 msgid "Published"
 msgstr "Publicada"
 
-#: src/ui/IntentionCard.tsx:20
+#: src/ui/IntentionCard.tsx:23
 msgid "Published {published}"
 msgstr "Publicado em {published}"
 
@@ -147,11 +159,11 @@ msgstr "Mostrar menos"
 msgid "Show more"
 msgstr "Mostrar mais"
 
-#: src/routes/pray.tsx:184
+#: src/routes/pray.tsx:200
 msgid "Some of the intentions you chose are no longer available."
 msgstr "Algumas das intenções que você escolheu não estão mais disponíveis."
 
-#: src/routes/pray.tsx:179
+#: src/routes/pray.tsx:195
 #: src/routes/submit.tsx:90
 msgid "Something went wrong. Please try again."
 msgstr "Algo deu errado. Tente novamente."
@@ -172,15 +184,15 @@ msgstr "Envie seu pedido de oração"
 msgid "Submitting…"
 msgstr "Enviando…"
 
-#: src/routes/pray.tsx:162
+#: src/routes/pray.tsx:178
 msgid "Suggestions"
 msgstr "Sugestões"
 
-#: src/routes/pray.tsx:217
+#: src/routes/pray.tsx:233
 msgid "Tell me more…"
 msgstr "Conte-me mais…"
 
-#: src/ui/IntentionCard.tsx:37
+#: src/ui/IntentionCard.tsx:44
 msgid "This prayer request is no longer being suggested"
 msgstr "Este pedido não está mais sendo sugerido"
 

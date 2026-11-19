@@ -1,7 +1,10 @@
 import type { Analytics } from "../../platform/analytics-port";
 import type { Database } from "../../platform/database";
 import type { Result } from "../../platform/result";
-import { findCandidatesInCatalog } from "../adapters/persistence/catalog-store";
+import {
+	findCandidatesInCatalog,
+	findFewestCommittedInCatalog,
+} from "../adapters/persistence/catalog-store";
 import { recordSuggestions } from "../adapters/persistence/suggestion-store";
 import {
 	type FoundIntention,
@@ -83,13 +86,18 @@ export const createSearch = ({
 						calls = event.calls;
 						break;
 					case AgentEventType.PresentSuggestions: {
-						const suggestions = toSuggestions(event.suggestions, found);
+						const presented = toSuggestions(event.suggestions, found);
+						const language = steps.flat().at(-1)?.call.language;
+						const fallback = presented.length === 0 && language !== undefined;
+						const suggestions = fallback
+							? await findFewestCommittedInCatalog(database, language)
+							: presented;
 						await recordSuggestions(
 							database,
 							visitorId,
 							suggestions.map((suggestion) => suggestion.intentionId),
 						);
-						yield { type: "suggestions", data: { suggestions } };
+						yield { type: "suggestions", data: { suggestions, fallback } };
 						yield { type: "done", data: {} };
 						return;
 					}

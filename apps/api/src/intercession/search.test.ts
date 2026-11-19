@@ -4,6 +4,7 @@ import { createTestApp } from "../../test/app";
 import { testDatabase } from "../../test/database";
 import type { Language } from "../intentions";
 import { putInCatalog } from "./adapters/persistence/catalog-store";
+import { recordCommitments } from "./adapters/persistence/commitment-store";
 import { suggestions } from "./adapters/persistence/schema";
 import { type Embed, embeddingDimensions } from "./application/embed";
 import type {
@@ -119,6 +120,7 @@ test("an Entry streams the note and the Suggestions found in the Catalog", async
 		{
 			type: "suggestions",
 			data: {
+				fallback: false,
 				suggestions: [
 					{
 						intentionId: brotherJob,
@@ -169,7 +171,7 @@ test("the answer to the Clarifying Question continues the turn with the Entry", 
 
 	expect(await eventsOf(response)).toEqual([
 		{ type: "status", data: { status: "searching" } },
-		{ type: "suggestions", data: { suggestions: [] } },
+		{ type: "suggestions", data: { suggestions: [], fallback: false } },
 		{ type: "done", data: {} },
 	]);
 	expect(turns).toEqual([
@@ -531,6 +533,139 @@ test.each([
 );
 
 const visitor = "5a0f8f4c-1d2e-4b3a-8c9d-0e1f2a3b4c5d";
+
+const committedBy = async (intentionId: string, count: number) => {
+	for (let index = 0; index < count; index += 1) {
+		await recordCommitments(testDatabase(), {
+			visitorId: crypto.randomUUID(),
+			intentionIds: [intentionId],
+		});
+	}
+};
+
+const searchesAndPresents = (
+	suggested: string[],
+	language: Language = "en",
+) => {
+	return scripted(
+		[
+			{
+				type: "find_intentions",
+				calls: [{ id: "c1", query: "anything", language }],
+			},
+		],
+		[
+			{ type: "note_delta", text: "Nothing fits closely." },
+			{
+				type: "present_suggestions",
+				suggestions: suggested.map((intentionId) => ({
+					intentionId,
+					whyNote: "Fits",
+				})),
+			},
+		],
+	);
+};
+
+test("with no close match, up to 5 Intentions with the fewest Commitments are suggested as a fallback", async () => {
+	const commitmentCounts = [3, 0, 2, 1, 4, 5];
+	for (const [index, id] of intentionIds.entries()) {
+		await inCatalog(id, `For intention number ${index}`, 0.1);
+		await committedBy(id, commitmentCounts[index] ?? 0);
+	}
+	const app = createTestApp({
+		embed: embedsQuery,
+		agent: searchesAndPresents([]),
+	});
+
+	const events = await eventsOf(await send(app, "Someone looking for work"));
+
+	expect(events).toEqual([
+		{ type: "status", data: { status: "searching" } },
+		{ type: "note_delta", data: { text: "Nothing fits closely." } },
+		{
+			type: "suggestions",
+			data: {
+				fallback: true,
+				suggestions: [1, 3, 2, 0, 4].map((index) => ({
+					intentionId: intentionIds[index] ?? "",
+					text: `For intention number ${index}`,
+				})),
+			},
+		},
+		{ type: "done", data: {} },
+	]);
+});
+
+test("the fallback only suggests Intentions in the Entry's Language", async () => {
+	await inCatalog(brotherJob, "For my brother's new job", 0.1, "en");
+	await inCatalog(
+		sisterExamsInPortuguese,
+		"Pela prova da minha irmã",
+		0.1,
+		"pt",
+	);
+	const app = createTestApp({
+		embed: embedsQuery,
+		agent: searchesAndPresents([], "pt"),
+	});
+
+	const events = await eventsOf(await send(app, "Alguém procurando trabalho"));
+
+	expect(suggestionIdsOf(events)).toEqual([sisterExamsInPortuguese]);
+});
+
+test("a Catalog with no Intentions in the Entry's Language falls back to no Suggestions", async () => {
+	await inCatalog(
+		sisterExamsInPortuguese,
+		"Pela prova da minha irmã",
+		0.9,
+		"pt",
+	);
+	const app = createTestApp({
+		embed: embedsQuery,
+		agent: searchesAndPresents([]),
+	});
+
+	const events = await eventsOf(await send(app, "Someone looking for work"));
+
+	expect(events).toContainEqual({
+		type: "suggestions",
+		data: { suggestions: [], fallback: true },
+	});
+});
+
+test("an agent that presents nothing without searching gets no fallback", async () => {
+	await inCatalog(brotherJob, "For my brother's new job");
+	const app = createTestApp({
+		agent: scripted([{ type: "present_suggestions", suggestions: [] }]),
+	});
+
+	const events = await eventsOf(await send(app, "Someone looking for work"));
+
+	expect(events).toContainEqual({
+		type: "suggestions",
+		data: { suggestions: [], fallback: false },
+	});
+});
+
+test("an Intention suggested as a fallback can be committed to", async () => {
+	await inCatalog(brotherJob, "For my brother's new job", 0.1);
+	const cookie = `intercede_visitor=${visitor}`;
+	const app = createTestApp({
+		embed: embedsQuery,
+		agent: searchesAndPresents([]),
+	});
+	await eventsOf(await send(app, "Someone looking for work", { cookie }));
+
+	const response = await app.request("/api/commitments", {
+		method: "POST",
+		headers: { "content-type": "application/json", cookie },
+		body: JSON.stringify({ intentionIds: [brotherJob] }),
+	});
+
+	expect(response.status).toBe(201);
+});
 
 test("each Suggestion shown is recorded for the Visitor", async () => {
 	await inCatalog(brotherJob, "For my brother's new job");

@@ -16,6 +16,7 @@ export type Exchange = {
 	status: "searching" | "answering" | "done" | "failed";
 	note: string;
 	suggestions: Suggestion[];
+	fallback: boolean;
 };
 
 export function useChat() {
@@ -81,14 +82,11 @@ export function useChat() {
 					note: current.note + event.data.text,
 				}));
 			} else if (event.type === "suggestions") {
-				const count = event.data.suggestions.length;
-				if (count > 0) {
-					track("suggestions_shown", { count, fallback: false });
+				const { suggestions, fallback } = event.data;
+				if (suggestions.length > 0) {
+					track("suggestions_shown", { count: suggestions.length, fallback });
 				}
-				update((current) => ({
-					...current,
-					suggestions: event.data.suggestions,
-				}));
+				update((current) => ({ ...current, suggestions, fallback }));
 			} else if (event.type === "question") {
 				track("clarifying_question_shown", {});
 				update((current) => ({
@@ -118,7 +116,13 @@ export function useChat() {
 		track("entry_sent", {});
 		setSelected(new Set());
 		commit.reset();
-		setExchange({ entry, status: "searching", note: "", suggestions: [] });
+		setExchange({
+			entry,
+			status: "searching",
+			note: "",
+			suggestions: [],
+			fallback: false,
+		});
 		navigate({ to: "/pray", search: { chat: true } });
 		run(entry);
 	};

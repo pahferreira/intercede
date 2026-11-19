@@ -55,7 +55,7 @@ A follow-up Entry that narrows or redirects a previous search ("something more a
 _Avoid_: Follow-up message, chat turn
 
 **Suggestion**:
-An Intention shown to an Intercessor in response to an Entry, with a short note on why it fits.
+An Intention shown to an Intercessor in response to an Entry, with a short note on why it fits. When nothing fits, the Intentions with the fewest Commitments are shown instead, without a note.
 _Avoid_: Match, result, recommendation
 
 **Commitment**:

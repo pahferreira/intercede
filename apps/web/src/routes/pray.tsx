@@ -138,6 +138,7 @@ function Chat(props: ChatProps) {
 	const [reply, setReply] = useState("");
 	const exchange = props.exchange;
 	const paragraphs = asParagraphs(exchange.note);
+	const hasSuggestions = exchange.suggestions.length > 0;
 
 	return (
 		<div className="flex flex-col gap-space-5">
@@ -158,7 +159,22 @@ function Chat(props: ChatProps) {
 						streaming={exchange.status === "answering"}
 					/>
 				)}
-				{exchange.suggestions.length > 0 && (
+				{exchange.fallback && hasSuggestions && (
+					<AssistantReply
+						paragraphs={[
+							t`I couldn't find a close match. These are still waiting for prayer:`,
+						]}
+					/>
+				)}
+				{exchange.fallback && !hasSuggestions && (
+					<p className="max-w-reply text-body-lg text-ivory">
+						<Trans>No intentions yet.</Trans>{" "}
+						<Link to="/" search={{ ask: true }}>
+							<Trans>Be the first to ask for prayer</Trans>
+						</Link>
+					</p>
+				)}
+				{hasSuggestions && (
 					<ul aria-label={t`Suggestions`} className="flex flex-col gap-space-3">
 						{exchange.suggestions.map((suggestion) => (
 							<li key={suggestion.intentionId}>
