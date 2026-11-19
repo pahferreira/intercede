@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: /pray
+
+Sitemap: https://intercede.pahferreira.dev/sitemap.xml

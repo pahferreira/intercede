@@ -626,3 +626,23 @@ run "deploy_reads_its_targets_from_outputs" {
     error_message = "The deploy job checks the site at the URL in the outputs."
   }
 }
+
+run "follow_up_pages_are_kept_out_of_search_results" {
+  command = plan
+
+  assert {
+    condition = anytrue([
+      for behavior in aws_cloudfront_distribution.site.ordered_cache_behavior :
+      behavior.path_pattern == "/intention/*" && behavior.response_headers_policy_id == aws_cloudfront_response_headers_policy.noindex.id
+    ])
+    error_message = "Pages under /intention/ must be served with the noindex response headers policy."
+  }
+
+  assert {
+    condition = anytrue([
+      for item in aws_cloudfront_response_headers_policy.noindex.custom_headers_config[0].items :
+      item.header == "X-Robots-Tag" && item.value == "noindex"
+    ])
+    error_message = "The noindex policy must send X-Robots-Tag: noindex."
+  }
+}
