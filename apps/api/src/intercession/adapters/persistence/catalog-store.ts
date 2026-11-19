@@ -27,13 +27,15 @@ export const removeFromCatalog = async (
 	await database.delete(catalog).where(eq(catalog.intentionId, intentionId));
 };
 
+type CandidateSearch = {
+	embedding: number[];
+	language: Language;
+	visitorId: string;
+};
+
 export const findCandidatesInCatalog = (
 	database: Database,
-	{
-		embedding,
-		language,
-		visitorId,
-	}: { embedding: number[]; language: Language; visitorId: string },
+	{ embedding, language, visitorId }: CandidateSearch,
 ): Promise<Candidate[]> => {
 	const distance = cosineDistance(catalog.embedding, embedding);
 	return database

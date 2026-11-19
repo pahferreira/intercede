@@ -420,3 +420,18 @@ test("a tool input outside its schema makes the agent unavailable", async () => 
 
 	expect(events).toEqual([{ type: "unavailable" }]);
 });
+
+test("a find_intentions call in a Language other than pt or en makes the agent unavailable", async () => {
+	const bedrock = fakeBedrock(
+		novaStreams({
+			id: "tooluse_1",
+			name: "find_intentions",
+			inputChunks: ['{"query": "un nouveau travail", "language": "fr"}'],
+		}),
+	);
+	const { analytics } = recordingAnalytics();
+
+	const events = await collect(agentFor(bedrock)(firstTurn, analytics));
+
+	expect(events).toEqual([{ type: "unavailable" }]);
+});
