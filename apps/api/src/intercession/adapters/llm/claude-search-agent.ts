@@ -7,20 +7,24 @@ import type {
 	Tool,
 	ToolChoice,
 } from "@anthropic-ai/sdk/resources/messages";
-import type {
-	AgentEvent,
-	FindIntentionsResult,
-	SearchAgent,
-	SearchAgentTurn,
+import {
+	type AgentEvent,
+	AgentEventType,
+	type FindIntentionsResult,
+	type SearchAgent,
+	type SearchAgentTurn,
+	ToolName,
 } from "../../application/search-agent";
 import {
 	asEntry,
+	clarifyingQuestionFrom,
 	findIntentionsInput,
 	instructions,
 	limitReachedResult,
 	noteSoFar,
 	presentSuggestionsInput,
-	tools,
+	type ToolDefinition,
+	toolsFor,
 } from "./search-instructions";
 
 const model = {
@@ -28,11 +32,13 @@ const model = {
 	usdPerMillionTokens: { input: 0.1, output: 0.5 },
 };
 
-const claudeTools: Tool[] = tools.map(({ name, description, inputSchema }) => ({
+const asClaudeTool = ({
 	name,
 	description,
-	input_schema: inputSchema,
-}));
+	inputSchema,
+}: ToolDefinition): Tool => {
+	return { name, description, input_schema: inputSchema };
+};
 
 const toolResult = ({ call, outcome }: FindIntentionsResult) => {
 	return outcome.kind === "found"
@@ -49,16 +55,16 @@ const toolResult = ({ call, outcome }: FindIntentionsResult) => {
 			};
 };
 
-const messagesFor = ({ entry, steps }: SearchAgentTurn): MessageParam[] => {
+const messagesFor = (turn: SearchAgentTurn): MessageParam[] => {
 	return [
-		{ role: "user", content: asEntry(entry) },
-		...steps.flatMap((results): MessageParam[] => [
+		{ role: "user", content: asEntry(turn) },
+		...turn.steps.flatMap((results): MessageParam[] => [
 			{
 				role: "assistant",
 				content: results.map(({ call }) => ({
 					type: "tool_use" as const,
 					id: call.id,
-					name: "find_intentions",
+					name: ToolName.FindIntentions,
 					input: { query: call.query },
 				})),
 			},
@@ -69,7 +75,7 @@ const messagesFor = ({ entry, steps }: SearchAgentTurn): MessageParam[] => {
 
 const toolChoiceFor = ({ mustPresent }: SearchAgentTurn): ToolChoice => {
 	return mustPresent
-		? { type: "tool", name: "present_suggestions" }
+		? { type: "tool", name: ToolName.PresentSuggestions }
 		: { type: "any" };
 };
 
@@ -91,7 +97,7 @@ export const createClaudeSearchAgent = (
 				model: model.id,
 				max_tokens: 1024,
 				system: instructions,
-				tools: claudeTools,
+				tools: toolsFor(turn).map(asClaudeTool),
 				tool_choice: toolChoiceFor(turn),
 				messages: messagesFor(turn),
 			});
@@ -114,10 +120,13 @@ export const createClaudeSearchAgent = (
 					const input = inputs.get(event.index);
 					if (!input) continue;
 					input.json += event.delta.partial_json;
-					if (input.name !== "present_suggestions") continue;
+					if (input.name !== ToolName.PresentSuggestions) continue;
 					const note = noteSoFar(input.json);
 					if (note.length > streamedNote.length) {
-						yield { type: "note_delta", text: note.slice(streamedNote.length) };
+						yield {
+							type: AgentEventType.NoteDelta,
+							text: note.slice(streamedNote.length),
+						};
 						streamedNote = note;
 					}
 				}
@@ -138,25 +147,33 @@ export const createClaudeSearchAgent = (
 				block.type === "tool_use" ? [block] : [],
 			);
 			const presentation = toolUses.find(
-				(block) => block.name === "present_suggestions",
+				(block) => block.name === ToolName.PresentSuggestions,
 			);
 			if (presentation) {
 				const { suggestions } = presentSuggestionsInput.parse(
 					presentation.input,
 				);
-				yield { type: "present_suggestions", suggestions };
+				yield { type: AgentEventType.PresentSuggestions, suggestions };
+				return;
+			}
+			const question = toolUses.find(
+				(block) => block.name === ToolName.AskClarifyingQuestion,
+			);
+			if (question) {
+				yield clarifyingQuestionFrom(question.input);
 				return;
 			}
 			const calls = toolUses
-				.filter((block) => block.name === "find_intentions")
+				.filter((block) => block.name === ToolName.FindIntentions)
 				.map((block) => ({
 					id: block.id,
 					query: findIntentionsInput.parse(block.input).query,
 				}));
-			if (calls.length > 0) yield { type: "find_intentions", calls };
+			if (calls.length > 0)
+				yield { type: AgentEventType.FindIntentions, calls };
 		} catch (error) {
 			analytics.captureException(error);
-			yield { type: "unavailable" };
+			yield { type: AgentEventType.Unavailable };
 		}
 	};
 };

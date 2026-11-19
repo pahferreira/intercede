@@ -1,4 +1,4 @@
-import type { Suggestion } from "@intercede/api";
+import type { Clarification, Suggestion } from "@intercede/api";
 import {
 	useNavigate,
 	useRouteContext,
@@ -12,6 +12,7 @@ import { useCommit } from "./useCommit";
 
 export type Exchange = {
 	entry: string;
+	clarification?: { question: string; answer?: string };
 	status: "searching" | "answering" | "done" | "failed";
 	note: string;
 	suggestions: Suggestion[];
@@ -59,9 +60,13 @@ export function useChat() {
 		setExchange((current) => (current ? change(current) : current));
 	};
 
-	const stream = async (entry: string, signal: AbortSignal) => {
+	const stream = async (
+		entry: string,
+		clarification: Clarification | undefined,
+		signal: AbortSignal,
+	) => {
 		const response = await client.api.search.$post(
-			{ json: { entry } },
+			{ json: { entry, clarification } },
 			{ init: { signal } },
 		);
 		if (!response.ok || !response.body) {
@@ -84,6 +89,13 @@ export function useChat() {
 					...current,
 					suggestions: event.data.suggestions,
 				}));
+			} else if (event.type === "question") {
+				track("clarifying_question_shown", {});
+				update((current) => ({
+					...current,
+					status: "answering",
+					clarification: { question: event.data.question },
+				}));
 			} else if (event.type === "done") {
 				update((current) => ({ ...current, status: "done" }));
 			} else if (event.type === "error") {
@@ -92,19 +104,35 @@ export function useChat() {
 		}
 	};
 
-	const send = (entry: string) => {
+	const run = (entry: string, clarification?: Clarification) => {
 		const controller = new AbortController();
 		searching.current?.abort();
 		searching.current = controller;
+		stream(entry, clarification, controller.signal).catch(() => {
+			if (controller.signal.aborted) return;
+			update((current) => ({ ...current, status: "failed" }));
+		});
+	};
+
+	const send = (entry: string) => {
 		track("entry_sent", {});
 		setSelected(new Set());
 		commit.reset();
 		setExchange({ entry, status: "searching", note: "", suggestions: [] });
 		navigate({ to: "/pray", search: { chat: true } });
-		stream(entry, controller.signal).catch(() => {
-			if (controller.signal.aborted) return;
-			update((current) => ({ ...current, status: "failed" }));
-		});
+		run(entry);
+	};
+
+	const unansweredQuestion =
+		exchange?.clarification?.answer === undefined
+			? exchange?.clarification?.question
+			: undefined;
+
+	const answer = (text: string) => {
+		if (!exchange || unansweredQuestion === undefined) return;
+		const clarification = { question: unansweredQuestion, answer: text.trim() };
+		setExchange({ ...exchange, clarification, status: "searching" });
+		run(exchange.entry, clarification);
 	};
 
 	const toggle = (intentionId: string, checked: boolean) => {
@@ -122,7 +150,9 @@ export function useChat() {
 	return {
 		exchange: chatOpen ? exchange : null,
 		selected,
+		awaitingAnswer: unansweredQuestion !== undefined,
 		send,
+		answer,
 		toggle,
 		commit,
 	};

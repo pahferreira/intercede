@@ -31,6 +31,15 @@ export function searchOf(events: SearchEvent[]): Search {
 	};
 }
 
+export function searchesOf(...responses: SearchEvent[][]) {
+	const requests: Parameters<Search>[0][] = [];
+	const search: Search = async function* (request) {
+		requests.push(request);
+		yield* responses.shift() ?? [];
+	};
+	return { search, requests };
+}
+
 export function controlledSearch() {
 	const entries: string[] = [];
 	const pending: SearchEvent[] = [];

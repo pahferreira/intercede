@@ -4,6 +4,20 @@ import type {
 	PresentedSuggestion,
 } from "../domain/presentation";
 
+export const ToolName = {
+	FindIntentions: "find_intentions",
+	PresentSuggestions: "present_suggestions",
+	AskClarifyingQuestion: "ask_clarifying_question",
+} as const;
+
+export type ToolName = (typeof ToolName)[keyof typeof ToolName];
+
+export const AgentEventType = {
+	...ToolName,
+	NoteDelta: "note_delta",
+	Unavailable: "unavailable",
+} as const;
+
 export type FindIntentionsCall = { id: string; query: string };
 
 export type FindIntentionsOutcome =
@@ -16,13 +30,20 @@ export type FindIntentionsResult = {
 };
 
 export type AgentEvent =
-	| { type: "note_delta"; text: string }
-	| { type: "find_intentions"; calls: FindIntentionsCall[] }
-	| { type: "present_suggestions"; suggestions: PresentedSuggestion[] }
-	| { type: "unavailable" };
+	| { type: typeof AgentEventType.NoteDelta; text: string }
+	| { type: typeof AgentEventType.FindIntentions; calls: FindIntentionsCall[] }
+	| {
+			type: typeof AgentEventType.PresentSuggestions;
+			suggestions: PresentedSuggestion[];
+	  }
+	| { type: typeof AgentEventType.AskClarifyingQuestion; question: string }
+	| { type: typeof AgentEventType.Unavailable };
+
+export type Clarification = { question: string; answer: string };
 
 export type SearchAgentTurn = {
 	entry: string;
+	clarification?: Clarification;
 	steps: FindIntentionsResult[][];
 	mustPresent: boolean;
 };

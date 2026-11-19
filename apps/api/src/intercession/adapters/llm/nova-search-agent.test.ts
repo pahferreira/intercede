@@ -292,6 +292,66 @@ test("earlier searches are replayed to Nova as tool calls and their results", as
 	});
 });
 
+const toolNames = (body: Record<string, unknown> | undefined) => {
+	return (
+		body?.toolConfig as { tools: { toolSpec: { name: string } }[] } | undefined
+	)?.tools.map((tool) => tool.toolSpec.name);
+};
+
+test("an ask_clarifying_question call from Nova comes back as the Clarifying Question", async () => {
+	const bedrock = fakeBedrock(
+		novaStreams({
+			id: "tooluse_1",
+			name: "ask_clarifying_question",
+			inputChunks: ['{"question": "Who would you ', 'like to pray for?"}'],
+		}),
+	);
+	const { analytics } = recordingAnalytics();
+
+	const events = await collect(agentFor(bedrock)(firstTurn, analytics));
+
+	expect(events).toEqual([
+		{
+			type: "ask_clarifying_question",
+			question: "Who would you like to pray for?",
+		},
+	]);
+	expect(toolNames(bedrock.requests[0]?.body)).toContain(
+		"ask_clarifying_question",
+	);
+});
+
+test("once answered, the Clarifying Question is replayed to Nova and cannot be asked again", async () => {
+	const bedrock = fakeBedrock(
+		novaStreams({
+			id: "tooluse_1",
+			name: "find_intentions",
+			inputChunks: ['{"query": "a sick sister"}'],
+		}),
+	);
+	const { analytics } = recordingAnalytics();
+
+	await collect(
+		agentFor(bedrock)(
+			{
+				...firstTurn,
+				entry: "pray",
+				clarification: {
+					question: "Who would you like to pray for?",
+					answer: "My sister, she is sick",
+				},
+			},
+			analytics,
+		),
+	);
+
+	const body = bedrock.requests[0]?.body;
+	const messages = JSON.stringify(body?.messages);
+	expect(messages).toContain("Who would you like to pray for?");
+	expect(messages).toContain("My sister, she is sick");
+	expect(toolNames(body)).toEqual(["find_intentions", "present_suggestions"]);
+});
+
 test("while searches are left Nova must call one of the tools", async () => {
 	const bedrock = fakeBedrock(
 		novaStreams({

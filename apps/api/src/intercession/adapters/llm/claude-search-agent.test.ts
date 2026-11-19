@@ -284,6 +284,63 @@ test("earlier searches are replayed to Claude as tool calls and their results", 
 	});
 });
 
+test("an ask_clarifying_question call from Claude comes back as the Clarifying Question", async () => {
+	const bedrock = fakeBedrock(
+		claudeStreams({
+			id: "toolu_1",
+			name: "ask_clarifying_question",
+			inputChunks: ['{"question": "Who would you ', 'like to pray for?"}'],
+		}),
+	);
+	const { analytics } = recordingAnalytics();
+
+	const events = await collect(agentFor(bedrock)(firstTurn, analytics));
+
+	expect(events).toEqual([
+		{
+			type: "ask_clarifying_question",
+			question: "Who would you like to pray for?",
+		},
+	]);
+	const tools = bedrock.requests[0]?.body.tools as { name: string }[];
+	expect(tools.map((tool) => tool.name)).toContain("ask_clarifying_question");
+});
+
+test("once answered, the Clarifying Question is replayed to Claude and cannot be asked again", async () => {
+	const bedrock = fakeBedrock(
+		claudeStreams({
+			id: "toolu_1",
+			name: "find_intentions",
+			inputChunks: ['{"query": "a sick sister"}'],
+		}),
+	);
+	const { analytics } = recordingAnalytics();
+
+	await collect(
+		agentFor(bedrock)(
+			{
+				...firstTurn,
+				entry: "pray",
+				clarification: {
+					question: "Who would you like to pray for?",
+					answer: "My sister, she is sick",
+				},
+			},
+			analytics,
+		),
+	);
+
+	const body = bedrock.requests[0]?.body;
+	const messages = JSON.stringify(body?.messages);
+	expect(messages).toContain("Who would you like to pray for?");
+	expect(messages).toContain("My sister, she is sick");
+	const tools = body?.tools as { name: string }[];
+	expect(tools.map((tool) => tool.name)).toEqual([
+		"find_intentions",
+		"present_suggestions",
+	]);
+});
+
 test("while searches are left Claude must call one of the tools", async () => {
 	const bedrock = fakeBedrock(
 		claudeStreams({

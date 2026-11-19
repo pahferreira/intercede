@@ -11,14 +11,16 @@ import {
 import { rank } from "../domain/ranking";
 import { internalError, type SearchEvent } from "../domain/search-event";
 import type { Embed } from "./embed";
-import type {
-	FindIntentionsCall,
-	FindIntentionsResult,
-	SearchAgent,
+import {
+	AgentEventType,
+	type Clarification,
+	type FindIntentionsCall,
+	type FindIntentionsResult,
+	type SearchAgent,
 } from "./search-agent";
 
 export type Search = (
-	request: { entry: string; visitorId: string },
+	request: { entry: string; clarification?: Clarification; visitorId: string },
 	analytics: Analytics,
 ) => AsyncIterable<SearchEvent>;
 
@@ -32,7 +34,7 @@ export const createSearch = ({
 	agent: SearchAgent;
 }): Search => {
 	return async function* (
-		{ entry, visitorId },
+		{ entry, clarification, visitorId },
 		analytics,
 	): AsyncGenerator<SearchEvent> {
 		yield { type: "status", data: { status: "searching" } };
@@ -69,17 +71,17 @@ export const createSearch = ({
 			const mustPresent = searchesLeft === 0;
 			let calls: FindIntentionsCall[] | undefined;
 			for await (const event of agent(
-				{ entry, steps, mustPresent },
+				{ entry, clarification, steps, mustPresent },
 				analytics,
 			)) {
 				switch (event.type) {
-					case "note_delta":
+					case AgentEventType.NoteDelta:
 						yield { type: "note_delta", data: { text: event.text } };
 						break;
-					case "find_intentions":
+					case AgentEventType.FindIntentions:
 						calls = event.calls;
 						break;
-					case "present_suggestions": {
+					case AgentEventType.PresentSuggestions: {
 						const suggestions = toSuggestions(event.suggestions, found);
 						await recordSuggestions(
 							database,
@@ -90,7 +92,15 @@ export const createSearch = ({
 						yield { type: "done", data: {} };
 						return;
 					}
-					case "unavailable":
+					case AgentEventType.AskClarifyingQuestion:
+						if (clarification) {
+							yield internalError;
+							return;
+						}
+						yield { type: "question", data: { question: event.question } };
+						yield { type: "done", data: {} };
+						return;
+					case AgentEventType.Unavailable:
 						yield internalError;
 						return;
 				}

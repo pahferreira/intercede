@@ -5,6 +5,7 @@ import {
 	controlledSearch,
 	renderAt,
 	type Search,
+	searchesOf,
 	searchOf,
 } from "../../test/render";
 import { initAnalytics } from "../analytics";
@@ -52,12 +53,16 @@ const labels = {
 		start: "Start",
 		newSearch: "New search",
 		commit: "Commit to pray for this intention",
+		answer: "Tell me more…",
+		send: "Send",
 	},
 	"pt-BR": {
 		entry: "O que está no seu coração para rezar hoje?",
 		start: "Começar",
 		newSearch: "Nova busca",
 		commit: "Comprometer-me a rezar por esta intenção",
+		answer: "Conte-me mais…",
+		send: "Enviar",
 	},
 } as const;
 
@@ -204,4 +209,66 @@ test.each([
 
 	expect(await screen.findByText(message)).toBeDefined();
 	expect(screen.queryByRole("status")).toBeNull();
+});
+
+const question = "Who would you like to pray for?";
+
+const asked: SearchEvent[] = [
+	{ type: "status", data: { status: "searching" } },
+	{ type: "question", data: { question } },
+	{ type: "done", data: {} },
+];
+
+async function answerQuestion(locale: keyof typeof labels, answer: string) {
+	fireEvent.change(
+		await screen.findByRole("textbox", { name: labels[locale].answer }),
+		{ target: { value: answer } },
+	);
+	fireEvent.click(screen.getByRole("button", { name: labels[locale].send }));
+}
+
+test.each(["en", "pt-BR"] as const)(
+	"in %s, the Clarifying Question is answered from the composer and the search goes on",
+	async (locale) => {
+		const searches = searchesOf(asked, answered([suggestion(1)]));
+		await sendEntry(locale, searches.search, "pray");
+
+		expect(await screen.findByText(question)).toBeDefined();
+
+		await answerQuestion(locale, "My sister, she is sick");
+
+		expect(await screen.findByText("Intention number 1")).toBeDefined();
+		expect(screen.getByText("pray")).toBeDefined();
+		expect(screen.getByText(question)).toBeDefined();
+		expect(screen.getByText("My sister, she is sick")).toBeDefined();
+		expect(
+			searches.requests.map(({ entry, clarification }) => ({
+				entry,
+				clarification,
+			})),
+		).toEqual([
+			{ entry: "pray", clarification: undefined },
+			{
+				entry: "pray",
+				clarification: { question, answer: "My sister, she is sick" },
+			},
+		]);
+		expect(
+			screen.queryByRole("textbox", { name: labels[locale].answer }),
+		).toBeNull();
+	},
+);
+
+test("showing the Clarifying Question is counted, and its answer is neither an Entry nor a Refinement", async () => {
+	const searches = searchesOf(asked, answered([suggestion(1)]));
+	await sendEntry("en", searches.search, "pray");
+	await screen.findByText(question);
+	await answerQuestion("en", "My sister");
+	await screen.findByText("Intention number 1");
+
+	expect(events).toEqual([
+		{ event: "entry_sent", properties: {} },
+		{ event: "clarifying_question_shown", properties: {} },
+		{ event: "suggestions_shown", properties: { count: 1, fallback: false } },
+	]);
 });

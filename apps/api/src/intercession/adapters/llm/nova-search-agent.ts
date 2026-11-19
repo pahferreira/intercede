@@ -8,20 +8,24 @@ import {
 	type ToolChoice,
 	type ToolInputSchema,
 } from "@aws-sdk/client-bedrock-runtime";
-import type {
-	AgentEvent,
-	FindIntentionsResult,
-	SearchAgent,
-	SearchAgentTurn,
+import {
+	type AgentEvent,
+	AgentEventType,
+	type FindIntentionsResult,
+	type SearchAgent,
+	type SearchAgentTurn,
+	ToolName,
 } from "../../application/search-agent";
 import {
 	asEntry,
+	clarifyingQuestionFrom,
 	findIntentionsInput,
 	instructions,
 	limitReachedResult,
 	noteSoFar,
 	presentSuggestionsInput,
-	tools,
+	type ToolDefinition,
+	toolsFor,
 } from "./search-instructions";
 
 const model = {
@@ -29,13 +33,19 @@ const model = {
 	usdPerMillionTokens: { input: 0.06, output: 0.24 },
 };
 
-const novaTools: Tool[] = tools.map(({ name, description, inputSchema }) => ({
-	toolSpec: {
-		name,
-		description,
-		inputSchema: { json: inputSchema } as ToolInputSchema,
-	},
-}));
+const asNovaTool = ({
+	name,
+	description,
+	inputSchema,
+}: ToolDefinition): Tool => {
+	return {
+		toolSpec: {
+			name,
+			description,
+			inputSchema: { json: inputSchema } as ToolInputSchema,
+		},
+	};
+};
 
 const toolResult = ({ call, outcome }: FindIntentionsResult): ContentBlock => {
 	return outcome.kind === "found"
@@ -54,16 +64,16 @@ const toolResult = ({ call, outcome }: FindIntentionsResult): ContentBlock => {
 			};
 };
 
-const messagesFor = ({ entry, steps }: SearchAgentTurn): Message[] => {
+const messagesFor = (turn: SearchAgentTurn): Message[] => {
 	return [
-		{ role: "user", content: [{ text: asEntry(entry) }] },
-		...steps.flatMap((results): Message[] => [
+		{ role: "user", content: [{ text: asEntry(turn) }] },
+		...turn.steps.flatMap((results): Message[] => [
 			{
 				role: "assistant",
 				content: results.map(({ call }) => ({
 					toolUse: {
 						toolUseId: call.id,
-						name: "find_intentions",
+						name: ToolName.FindIntentions,
 						input: { query: call.query },
 					},
 				})),
@@ -74,7 +84,9 @@ const messagesFor = ({ entry, steps }: SearchAgentTurn): Message[] => {
 };
 
 const toolChoiceFor = ({ mustPresent }: SearchAgentTurn): ToolChoice => {
-	return mustPresent ? { tool: { name: "present_suggestions" } } : { any: {} };
+	return mustPresent
+		? { tool: { name: ToolName.PresentSuggestions } }
+		: { any: {} };
 };
 
 export const createNovaSearchAgent = (
@@ -94,7 +106,10 @@ export const createNovaSearchAgent = (
 					system: [{ text: instructions }],
 					messages: messagesFor(turn),
 					inferenceConfig: { maxTokens: 1024, temperature: 0 },
-					toolConfig: { tools: novaTools, toolChoice: toolChoiceFor(turn) },
+					toolConfig: {
+						tools: toolsFor(turn).map(asNovaTool),
+						toolChoice: toolChoiceFor(turn),
+					},
 				}),
 			);
 			const inputs = new Map<
@@ -118,10 +133,13 @@ export const createNovaSearchAgent = (
 					const input = inputs.get(delta.contentBlockIndex ?? 0);
 					if (!input) continue;
 					input.json += delta.delta.toolUse.input ?? "";
-					if (input.name !== "present_suggestions") continue;
+					if (input.name !== ToolName.PresentSuggestions) continue;
 					const note = noteSoFar(input.json);
 					if (note.length > streamedNote.length) {
-						yield { type: "note_delta", text: note.slice(streamedNote.length) };
+						yield {
+							type: AgentEventType.NoteDelta,
+							text: note.slice(streamedNote.length),
+						};
 						streamedNote = note;
 					}
 				}
@@ -142,25 +160,33 @@ export const createNovaSearchAgent = (
 			});
 			const toolUses = [...inputs.values()];
 			const presentation = toolUses.find(
-				(toolUse) => toolUse.name === "present_suggestions",
+				(toolUse) => toolUse.name === ToolName.PresentSuggestions,
 			);
 			if (presentation) {
 				const { suggestions } = presentSuggestionsInput.parse(
 					JSON.parse(presentation.json),
 				);
-				yield { type: "present_suggestions", suggestions };
+				yield { type: AgentEventType.PresentSuggestions, suggestions };
+				return;
+			}
+			const question = toolUses.find(
+				(toolUse) => toolUse.name === ToolName.AskClarifyingQuestion,
+			);
+			if (question) {
+				yield clarifyingQuestionFrom(JSON.parse(question.json));
 				return;
 			}
 			const calls = toolUses
-				.filter((toolUse) => toolUse.name === "find_intentions")
+				.filter((toolUse) => toolUse.name === ToolName.FindIntentions)
 				.map((toolUse) => ({
 					id: toolUse.id,
 					query: findIntentionsInput.parse(JSON.parse(toolUse.json)).query,
 				}));
-			if (calls.length > 0) yield { type: "find_intentions", calls };
+			if (calls.length > 0)
+				yield { type: AgentEventType.FindIntentions, calls };
 		} catch (error) {
 			analytics.captureException(error);
-			yield { type: "unavailable" };
+			yield { type: AgentEventType.Unavailable };
 		}
 	};
 };

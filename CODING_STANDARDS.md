@@ -20,6 +20,8 @@ Judgement rules for review. Biome, tsc and dependency-cruiser enforce the mechan
 - Export only what a caller uses today, or what the ticket explicitly asks for (e.g. a helper that later slices will call). Code for a later ticket arrives with that ticket.
 - A placeholder file is acceptable only when a tool needs it to run (e.g. drizzle-kit needs one schema file).
 - A closed set of values (locales, statuses, route paths) is declared once; every other site derives from it.
+  - A set the code iterates or passes whole (a Zod or database enum) is an `as const` array.
+  - A set whose members the code names one at a time (`switch` cases, tool names) is an `as const` object, used as `AgentEventType.NoteDelta`.
 
 ## Boundaries
 
