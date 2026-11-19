@@ -157,7 +157,7 @@ test("a find_intentions call from Nova comes back as a search to run", async () 
 		novaStreams({
 			id: "tooluse_1",
 			name: "find_intentions",
-			inputChunks: ['{"query": "a new ', 'job"}'],
+			inputChunks: ['{"query": "uma nova ', 'vaga", "language": "pt"}'],
 		}),
 	);
 	const { analytics } = recordingAnalytics();
@@ -167,7 +167,7 @@ test("a find_intentions call from Nova comes back as a search to run", async () 
 	expect(events).toEqual([
 		{
 			type: "find_intentions",
-			calls: [{ id: "tooluse_1", query: "a new job" }],
+			calls: [{ id: "tooluse_1", query: "uma nova vaga", language: "pt" }],
 		},
 	]);
 	expect(bedrock.requests[0]?.url).toBe(
@@ -223,7 +223,7 @@ test("earlier searches are replayed to Nova as tool calls and their results", as
 				steps: [
 					[
 						{
-							call: { id: "tooluse_1", query: "a new job" },
+							call: { id: "tooluse_1", query: "a new job", language: "en" },
 							outcome: {
 								kind: "found",
 								intentions: [
@@ -232,7 +232,7 @@ test("earlier searches are replayed to Nova as tool calls and their results", as
 							},
 						},
 						{
-							call: { id: "tooluse_2", query: "work" },
+							call: { id: "tooluse_2", query: "work", language: "en" },
 							outcome: { kind: "limit_reached" },
 						},
 					],
@@ -255,14 +255,14 @@ test("earlier searches are replayed to Nova as tool calls and their results", as
 			toolUse: {
 				toolUseId: "tooluse_1",
 				name: "find_intentions",
-				input: { query: "a new job" },
+				input: { query: "a new job", language: "en" },
 			},
 		},
 		{
 			toolUse: {
 				toolUseId: "tooluse_2",
 				name: "find_intentions",
-				input: { query: "work" },
+				input: { query: "work", language: "en" },
 			},
 		},
 	]);
@@ -326,7 +326,7 @@ test("once answered, the Clarifying Question is replayed to Nova and cannot be a
 		novaStreams({
 			id: "tooluse_1",
 			name: "find_intentions",
-			inputChunks: ['{"query": "a sick sister"}'],
+			inputChunks: ['{"query": "a sick sister", "language": "en"}'],
 		}),
 	);
 	const { analytics } = recordingAnalytics();
@@ -357,7 +357,7 @@ test("while searches are left Nova must call one of the tools", async () => {
 		novaStreams({
 			id: "tooluse_1",
 			name: "find_intentions",
-			inputChunks: ['{"query": "a new job"}'],
+			inputChunks: ['{"query": "a new job", "language": "en"}'],
 		}),
 	);
 	const { analytics } = recordingAnalytics();
@@ -374,7 +374,7 @@ test("each agent call reports its token counts and cost, never its content", asy
 		novaStreams({
 			id: "tooluse_1",
 			name: "find_intentions",
-			inputChunks: ['{"query": "a new job"}'],
+			inputChunks: ['{"query": "a new job", "language": "en"}'],
 		}),
 	);
 	const { analytics, generations } = recordingAnalytics();
@@ -412,6 +412,21 @@ test("a tool input outside its schema makes the agent unavailable", async () => 
 			id: "tooluse_1",
 			name: "find_intentions",
 			inputChunks: ['{"words": 3}'],
+		}),
+	);
+	const { analytics } = recordingAnalytics();
+
+	const events = await collect(agentFor(bedrock)(firstTurn, analytics));
+
+	expect(events).toEqual([{ type: "unavailable" }]);
+});
+
+test("a find_intentions call in a Language other than pt or en makes the agent unavailable", async () => {
+	const bedrock = fakeBedrock(
+		novaStreams({
+			id: "tooluse_1",
+			name: "find_intentions",
+			inputChunks: ['{"query": "un nouveau travail", "language": "fr"}'],
 		}),
 	);
 	const { analytics } = recordingAnalytics();

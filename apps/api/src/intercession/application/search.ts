@@ -57,6 +57,7 @@ export const createSearch = ({
 			const intentions = rank(
 				await findCandidatesInCatalog(database, {
 					embedding: embedding.value,
+					language: call.language,
 					visitorId,
 				}),
 			);

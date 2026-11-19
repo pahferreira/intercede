@@ -2,6 +2,7 @@ import { expect, test } from "bun:test";
 import { sql } from "drizzle-orm";
 import { createTestApp } from "../../test/app";
 import { testDatabase } from "../../test/database";
+import type { Language } from "../intentions";
 import { putInCatalog } from "./adapters/persistence/catalog-store";
 import { suggestions } from "./adapters/persistence/schema";
 import { type Embed, embeddingDimensions } from "./application/embed";
@@ -42,11 +43,12 @@ const inCatalog = async (
 	intentionId: string,
 	text: string,
 	similarity = 0.9,
+	language: Language = "en",
 ) => {
 	await putInCatalog(testDatabase(), {
 		intentionId,
 		text,
-		language: "en",
+		language,
 		embedding: embeddingWithSimilarity(similarity),
 	});
 };
@@ -89,7 +91,12 @@ test("an Entry streams the note and the Suggestions found in the Catalog", async
 	const app = createTestApp({
 		embed: embedsQuery,
 		agent: scripted(
-			[{ type: "find_intentions", calls: [{ id: "c1", query: "a new job" }] }],
+			[
+				{
+					type: "find_intentions",
+					calls: [{ id: "c1", query: "a new job", language: "en" }],
+				},
+			],
 			[
 				{ type: "note_delta", text: "These are " },
 				{ type: "note_delta", text: "about work." },
@@ -213,7 +220,7 @@ const keepsSearching = () => {
 		}
 		yield {
 			type: "find_intentions",
-			calls: [{ id: `c${turns.length}`, query: "a new job" }],
+			calls: [{ id: `c${turns.length}`, query: "a new job", language: "en" }],
 		};
 	};
 	return { agent, turns };
@@ -258,7 +265,11 @@ test("searches asked for past the limit are answered as limit reached, not run",
 			turns.push(structuredClone(turn));
 			yield {
 				type: "find_intentions",
-				calls: ["a", "b", "c", "d"].map((id) => ({ id, query: "a new job" })),
+				calls: ["a", "b", "c", "d"].map((id) => ({
+					id,
+					query: "a new job",
+					language: "en",
+				})),
 			};
 		},
 	});
@@ -285,7 +296,7 @@ test("an agent that will not present after its last search ends the stream with 
 			turns += 1;
 			yield {
 				type: "find_intentions",
-				calls: [{ id: `c${turns}`, query: "a new job" }],
+				calls: [{ id: `c${turns}`, query: "a new job", language: "en" }],
 			};
 		},
 	});
@@ -330,7 +341,12 @@ test("find_intentions answers with the nearest Catalog Intentions first", async 
 	);
 	await inCatalog(brotherJob, "For my brother's new job", 0.9);
 	const { agent, turns } = recordingTurns(
-		[{ type: "find_intentions", calls: [{ id: "c1", query: "a new job" }] }],
+		[
+			{
+				type: "find_intentions",
+				calls: [{ id: "c1", query: "a new job", language: "en" }],
+			},
+		],
 		[{ type: "present_suggestions", suggestions: [] }],
 	);
 	const app = createTestApp({ embed: embedsQuery, agent });
@@ -363,7 +379,12 @@ const foundBy = async (
 
 const searchesOnce = () => {
 	return recordingTurns(
-		[{ type: "find_intentions", calls: [{ id: "c1", query: "a new job" }] }],
+		[
+			{
+				type: "find_intentions",
+				calls: [{ id: "c1", query: "a new job", language: "en" }],
+			},
+		],
 		[{ type: "present_suggestions", suggestions: [] }],
 	);
 };
@@ -423,7 +444,12 @@ test("Suggestions only reference Intentions found in this request, once each, at
 	const app = createTestApp({
 		embed: embedsQuery,
 		agent: scripted(
-			[{ type: "find_intentions", calls: [{ id: "c1", query: "anything" }] }],
+			[
+				{
+					type: "find_intentions",
+					calls: [{ id: "c1", query: "anything", language: "en" }],
+				},
+			],
 			[
 				{
 					type: "present_suggestions",
@@ -463,6 +489,47 @@ test("an Intention in the Catalog but not returned by find_intentions is never s
 	expect(suggestionIdsOf(events)).toEqual([]);
 });
 
+const sisterExamsInPortuguese = "0b6f6f8e-3c0e-4a8e-9a43-3f1c2d4b5a64";
+
+test.each([
+	["pt", "Alguém procurando trabalho", sisterExamsInPortuguese],
+	["en", "Someone looking for work", brotherJob],
+] as const)(
+	"an Entry in %s only gets Suggestions in its own Language",
+	async (language, entry, expected) => {
+		await inCatalog(brotherJob, "For my brother's new job", 0.9, "en");
+		await inCatalog(
+			sisterExamsInPortuguese,
+			"Pela prova da minha irmã",
+			0.9,
+			"pt",
+		);
+		const app = createTestApp({
+			embed: embedsQuery,
+			agent: scripted(
+				[
+					{
+						type: "find_intentions",
+						calls: [{ id: "c1", query: entry, language }],
+					},
+				],
+				[
+					{
+						type: "present_suggestions",
+						suggestions: [brotherJob, sisterExamsInPortuguese].map(
+							(intentionId) => ({ intentionId, whyNote: "Fits" }),
+						),
+					},
+				],
+			),
+		});
+
+		const events = await eventsOf(await send(app, entry));
+
+		expect(suggestionIdsOf(events)).toEqual([expected]);
+	},
+);
+
 const visitor = "5a0f8f4c-1d2e-4b3a-8c9d-0e1f2a3b4c5d";
 
 test("each Suggestion shown is recorded for the Visitor", async () => {
@@ -470,7 +537,12 @@ test("each Suggestion shown is recorded for the Visitor", async () => {
 	const app = createTestApp({
 		embed: embedsQuery,
 		agent: scripted(
-			[{ type: "find_intentions", calls: [{ id: "c1", query: "a new job" }] }],
+			[
+				{
+					type: "find_intentions",
+					calls: [{ id: "c1", query: "a new job", language: "en" }],
+				},
+			],
 			[
 				{
 					type: "present_suggestions",
@@ -571,7 +643,12 @@ test("an unexpected failure mid-stream is reported and ends the stream with an e
 		}),
 		embed: embedsQuery,
 		agent: scripted(
-			[{ type: "find_intentions", calls: [{ id: "c1", query: "a new job" }] }],
+			[
+				{
+					type: "find_intentions",
+					calls: [{ id: "c1", query: "a new job", language: "en" }],
+				},
+			],
 			[
 				{
 					type: "present_suggestions",
@@ -608,7 +685,10 @@ test("an unavailable embedding ends the stream with an error", async () => {
 			error: { kind: "embedding_unavailable" },
 		}),
 		agent: scripted([
-			{ type: "find_intentions", calls: [{ id: "c1", query: "a new job" }] },
+			{
+				type: "find_intentions",
+				calls: [{ id: "c1", query: "a new job", language: "en" }],
+			},
 		]),
 	});
 

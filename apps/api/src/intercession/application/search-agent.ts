@@ -1,3 +1,4 @@
+import type { Language } from "../../intentions";
 import type { Analytics } from "../../platform/analytics-port";
 import type {
 	FoundIntention,
@@ -18,7 +19,11 @@ export const AgentEventType = {
 	Unavailable: "unavailable",
 } as const;
 
-export type FindIntentionsCall = { id: string; query: string };
+export type FindIntentionsCall = {
+	id: string;
+	query: string;
+	language: Language;
+};
 
 export type FindIntentionsOutcome =
 	| { kind: "found"; intentions: FoundIntention[] }

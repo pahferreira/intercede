@@ -65,7 +65,7 @@ const messagesFor = (turn: SearchAgentTurn): MessageParam[] => {
 					type: "tool_use" as const,
 					id: call.id,
 					name: ToolName.FindIntentions,
-					input: { query: call.query },
+					input: { query: call.query, language: call.language },
 				})),
 			},
 			{ role: "user", content: results.map(toolResult) },
@@ -167,7 +167,7 @@ export const createClaudeSearchAgent = (
 				.filter((block) => block.name === ToolName.FindIntentions)
 				.map((block) => ({
 					id: block.id,
-					query: findIntentionsInput.parse(block.input).query,
+					...findIntentionsInput.parse(block.input),
 				}));
 			if (calls.length > 0)
 				yield { type: AgentEventType.FindIntentions, calls };

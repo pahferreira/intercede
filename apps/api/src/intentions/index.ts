@@ -7,5 +7,5 @@ export {
 	createSubmitIntention,
 	type SubmitIntention,
 } from "./application/submit-intention";
-export type { Language } from "./domain/intention";
+export { type Language, languages } from "./domain/intention";
 export type { IntentionEvent } from "./domain/intention-event";
