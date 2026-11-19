@@ -26,6 +26,12 @@ Judgement rules for review. Biome, tsc and dependency-cruiser enforce the mechan
 - `apps/web` production code imports `@intercede/api` only with `import type` (ADR-0011). Tests reach the running app through `@intercede/api/testing`, never through a relative path into `apps/api/src`.
 - Tooling configs (`vite.config.ts`, `drizzle.config.ts`) may import a settings resolver from `apps/api/src/platform/` by relative path, so the setting stays resolved in one place.
 
+## Functions
+
+Biome enforces a block body with an explicit `return` on named arrow functions and on arrows that return another arrow (factories).
+
+- An object parameter is typed with a named type (`type CommitDeps = { database: Database }`), not an inline object type: `…Deps` for injected dependencies, `…Options` for configuration.
+
 ## Comments
 
 - Write a comment only when the code cannot carry the reason: a workaround, an external constraint, a non-obvious invariant. One line.

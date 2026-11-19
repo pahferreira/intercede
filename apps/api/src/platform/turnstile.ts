@@ -19,15 +19,16 @@ export const requireTurnstileSecret = (env: Env = process.env) => {
 	return secret;
 };
 
-export const createTurnstileVerifier =
-	({
-		secret,
-		fetch = globalThis.fetch,
-	}: {
-		secret: string;
-		fetch?: Fetch;
-	}): VerifyTurnstile =>
-	async (token) => {
+type TurnstileVerifierOptions = {
+	secret: string;
+	fetch?: Fetch;
+};
+
+export const createTurnstileVerifier = ({
+	secret,
+	fetch = globalThis.fetch,
+}: TurnstileVerifierOptions): VerifyTurnstile => {
+	return async (token) => {
 		try {
 			const response = await fetch(siteverifyUrl, {
 				method: "POST",
@@ -42,3 +43,4 @@ export const createTurnstileVerifier =
 			return false;
 		}
 	};
+};

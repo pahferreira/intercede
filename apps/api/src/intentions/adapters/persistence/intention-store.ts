@@ -23,8 +23,8 @@ const isCodeTaken = (error: unknown) => {
 const insertIntention = (
 	database: Database,
 	{ code, text, language }: Parameters<PublishIntention>[0] & { code: string },
-) =>
-	database.transaction(async (tx) => {
+) => {
+	return database.transaction(async (tx) => {
 		const [published] = await tx
 			.insert(intentions)
 			.values({ code, text, language, status: "published" })
@@ -41,10 +41,13 @@ const insertIntention = (
 		} satisfies IntentionEvent);
 		return { code: published.code };
 	});
+};
 
-export const createPublishIntention =
-	(database: Database, issueCode: () => string): PublishIntention =>
-	async (intention) => {
+export const createPublishIntention = (
+	database: Database,
+	issueCode: () => string,
+): PublishIntention => {
+	return async (intention) => {
 		for (let attempt = 1; ; attempt++) {
 			try {
 				return await insertIntention(database, {
@@ -56,3 +59,4 @@ export const createPublishIntention =
 			}
 		}
 	};
+};

@@ -13,8 +13,9 @@ type Env = Record<string, string | undefined>;
 
 export type Database = PgDatabase<PostgresJsQueryResultHKT>;
 
-export const localOrConfiguredDatabaseUrl = (env: Env = process.env) =>
-	env.DATABASE_URL ?? localDatabaseUrl;
+export const localOrConfiguredDatabaseUrl = (env: Env = process.env) => {
+	return env.DATABASE_URL ?? localDatabaseUrl;
+};
 
 export const requireDatabaseUrl = (env: Env = process.env) => {
 	const url = env.DATABASE_URL;
@@ -32,8 +33,8 @@ type DatabaseOptions = {
 export const createDatabase = (
 	url: string,
 	{ connectTimeoutSeconds = 5, onnotice }: DatabaseOptions = {},
-) =>
-	drizzle({
+) => {
+	return drizzle({
 		client: postgres(url, {
 			max: 1,
 			prepare: false,
@@ -41,12 +42,15 @@ export const createDatabase = (
 			onnotice,
 		}),
 	});
+};
 
-export const createDatabaseProbe = (database: Database) => async () => {
-	try {
-		await database.execute(sql`select 1`);
-		return true;
-	} catch {
-		return false;
-	}
+export const createDatabaseProbe = (database: Database) => {
+	return async () => {
+		try {
+			await database.execute(sql`select 1`);
+			return true;
+		} catch {
+			return false;
+		}
+	};
 };

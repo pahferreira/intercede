@@ -16,10 +16,12 @@ type PostHogSettings = {
 
 type Env = Record<string, string | undefined>;
 
-export const postHogSettings = (env: Env = process.env): PostHogSettings => ({
-	key: env.POSTHOG_KEY,
-	host: env.POSTHOG_HOST ?? "https://us.i.posthog.com",
-});
+export const postHogSettings = (env: Env = process.env): PostHogSettings => {
+	return {
+		key: env.POSTHOG_KEY,
+		host: env.POSTHOG_HOST ?? "https://us.i.posthog.com",
+	};
+};
 
 export const requirePostHogSettings = (env: Env = process.env) => {
 	const settings = postHogSettings(env);

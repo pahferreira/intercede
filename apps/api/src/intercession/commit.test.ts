@@ -12,7 +12,9 @@ import { embeddingDimensions } from "./application/embed";
 
 const visitor = "5d0c2a8e-7b1f-4c3e-9a6d-2f4b8c1e0a37";
 const otherVisitor = "9e1b7c3d-2a4f-4d6e-8b0c-1f3a5e7d9c24";
-const visitorCookie = (id: string) => `intercede_visitor=${id}`;
+const visitorCookie = (id: string) => {
+	return `intercede_visitor=${id}`;
+};
 
 const brotherJob = "0b6f6f8e-3c0e-4a8e-9a43-3f1c2d4b5a61";
 const motherSurgery = "1c7a8f9e-4d1f-4b9e-8b54-4a2d3e5c6b72";
@@ -28,11 +30,12 @@ const inCatalog = async (intentionId: string, text: string) => {
 	});
 };
 
-const suggestedTo = (visitorId: string, ...intentionIds: string[]) =>
-	recordSuggestions(testDatabase(), visitorId, intentionIds);
+const suggestedTo = (visitorId: string, ...intentionIds: string[]) => {
+	return recordSuggestions(testDatabase(), visitorId, intentionIds);
+};
 
-const commit = (intentionIds: string[], visitorId = visitor) =>
-	createTestApp().request("/api/commitments", {
+const commit = (intentionIds: string[], visitorId = visitor) => {
+	return createTestApp().request("/api/commitments", {
 		method: "POST",
 		headers: {
 			"content-type": "application/json",
@@ -40,11 +43,13 @@ const commit = (intentionIds: string[], visitorId = visitor) =>
 		},
 		body: JSON.stringify({ intentionIds }),
 	});
+};
 
-const commitmentRows = () =>
-	testDatabase().execute<{ visitor_id: string; intention_id: string }>(
+const commitmentRows = () => {
+	return testDatabase().execute<{ visitor_id: string; intention_id: string }>(
 		sql`select visitor_id, intention_id from intercession.commitments order by intention_id`,
 	);
+};
 
 test("an Intercessor commits to the Suggestions they selected and gets their full text back", async () => {
 	await inCatalog(brotherJob, "For my brother's new job");

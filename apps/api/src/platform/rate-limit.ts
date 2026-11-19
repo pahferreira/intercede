@@ -19,23 +19,23 @@ export const submissionsPerDay = (env: Env = process.env) => {
 	return limit;
 };
 
-const startOfUtcDay = (at: Date) =>
-	new Date(Date.UTC(at.getUTCFullYear(), at.getUTCMonth(), at.getUTCDate()));
+const startOfUtcDay = (at: Date) => {
+	return new Date(
+		Date.UTC(at.getUTCFullYear(), at.getUTCMonth(), at.getUTCDate()),
+	);
+};
 
-export const createDailyRateLimit =
-	(
-		database: Database,
-		{
-			action,
-			limit,
-			now = () => new Date(),
-		}: {
-			action: (typeof rateLimitedActions)[number];
-			limit: number;
-			now?: () => Date;
-		},
-	): ConsumeRateLimit =>
-	async (subject) => {
+type DailyRateLimitOptions = {
+	action: (typeof rateLimitedActions)[number];
+	limit: number;
+	now?: () => Date;
+};
+
+export const createDailyRateLimit = (
+	database: Database,
+	{ action, limit, now = () => new Date() }: DailyRateLimitOptions,
+): ConsumeRateLimit => {
+	return async (subject) => {
 		const [counter] = await database
 			.insert(rateLimitCounters)
 			.values({ action, subject, windowStart: startOfUtcDay(now()), count: 1 })
@@ -51,12 +51,14 @@ export const createDailyRateLimit =
 		if (!counter) throw new Error("the rate limit counter was not written");
 		return counter.count <= limit;
 	};
+};
 
 export const createSubmissionLimit = (
 	database: Database,
 	env: Env = process.env,
-) =>
-	createDailyRateLimit(database, {
+) => {
+	return createDailyRateLimit(database, {
 		action: "submission",
 		limit: submissionsPerDay(env),
 	});
+};

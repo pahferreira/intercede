@@ -10,13 +10,17 @@ export type Candidate = FoundIntention & {
 	alreadySuggested: boolean;
 };
 
-const score = (candidate: Candidate) =>
-	candidate.similarity -
-	(candidate.alreadySuggested ? alreadySuggestedPenalty : 0);
+const score = (candidate: Candidate) => {
+	return (
+		candidate.similarity -
+		(candidate.alreadySuggested ? alreadySuggestedPenalty : 0)
+	);
+};
 
-export const rank = (candidates: Candidate[]): FoundIntention[] =>
-	candidates
+export const rank = (candidates: Candidate[]): FoundIntention[] => {
+	return candidates
 		.filter((candidate) => candidate.similarity >= minimumSimilarity)
 		.toSorted((a, b) => score(b) - score(a))
 		.slice(0, intentionsPerSearch)
 		.map(({ intentionId, text }) => ({ intentionId, text }));
+};

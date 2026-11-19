@@ -11,8 +11,8 @@ export const createTestSweep = ({
 	embed = embeddingNotExpected,
 }: {
 	embed?: Embed;
-} = {}) =>
-	createSweep({
+} = {}) => {
+	return createSweep({
 		database: testDatabase(),
 		embed,
 		openAnalytics: createPostHogAnalytics({
@@ -20,3 +20,4 @@ export const createTestSweep = ({
 			host: "http://posthog.invalid",
 		}),
 	});
+};

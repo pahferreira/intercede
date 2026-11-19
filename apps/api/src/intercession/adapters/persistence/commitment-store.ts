@@ -7,8 +7,8 @@ import { catalog, commitments, suggestions } from "./schema";
 export const findCommittable = (
 	database: Database,
 	{ visitorId, intentionIds }: CommitmentBatch,
-): Promise<Commitment[]> =>
-	database
+): Promise<Commitment[]> => {
+	return database
 		.selectDistinct({ intentionId: catalog.intentionId, text: catalog.text })
 		.from(catalog)
 		.innerJoin(
@@ -23,6 +23,7 @@ export const findCommittable = (
 			),
 		)
 		.where(inArray(catalog.intentionId, intentionIds));
+};
 
 export const recordCommitments = async (
 	database: Database,

@@ -7,9 +7,11 @@ import { intentions, outbox } from "./adapters/persistence/schema";
 import type { Moderate } from "./application/moderate";
 import type { Language } from "./domain/intention";
 
-const publishes =
-	(language: Language): Moderate =>
-	async () => ({ ok: true, value: { publishable: true, language } });
+const publishes = (language: Language): Moderate => {
+	return async () => {
+		return { ok: true, value: { publishable: true, language } };
+	};
+};
 
 const visitor = "0b6f6f8e-3c0e-4a8e-9a43-3f1c2d4b5a6e";
 
@@ -17,12 +19,13 @@ const submit = (
 	app: ReturnType<typeof createTestApp>,
 	text: string,
 	headers: Record<string, string> = {},
-) =>
-	app.request("/api/intentions", {
+) => {
+	return app.request("/api/intentions", {
 		method: "POST",
 		headers: { "content-type": "application/json", ...headers },
 		body: JSON.stringify({ text, turnstileToken: "turnstile-token" }),
 	});
+};
 
 test("a text the moderation passes is published with its detected language", async () => {
 	const app = createTestApp({ moderate: publishes("pt") });
@@ -231,7 +234,9 @@ test("a submission without a Turnstile token is refused before moderation", asyn
 	await nothingPersisted();
 });
 
-const asVisitor = (id: string) => ({ cookie: `intercede_visitor=${id}` });
+const asVisitor = (id: string) => {
+	return { cookie: `intercede_visitor=${id}` };
+};
 
 const countingModeration = () => {
 	const moderated: string[] = [];

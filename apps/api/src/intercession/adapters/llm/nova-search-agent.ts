@@ -37,8 +37,8 @@ const novaTools: Tool[] = tools.map(({ name, description, inputSchema }) => ({
 	},
 }));
 
-const toolResult = ({ call, outcome }: FindIntentionsResult): ContentBlock =>
-	outcome.kind === "found"
+const toolResult = ({ call, outcome }: FindIntentionsResult): ContentBlock => {
+	return outcome.kind === "found"
 		? {
 				toolResult: {
 					toolUseId: call.id,
@@ -52,26 +52,30 @@ const toolResult = ({ call, outcome }: FindIntentionsResult): ContentBlock =>
 					status: "error",
 				},
 			};
+};
 
-const messagesFor = ({ entry, steps }: SearchAgentTurn): Message[] => [
-	{ role: "user", content: [{ text: asEntry(entry) }] },
-	...steps.flatMap((results): Message[] => [
-		{
-			role: "assistant",
-			content: results.map(({ call }) => ({
-				toolUse: {
-					toolUseId: call.id,
-					name: "find_intentions",
-					input: { query: call.query },
-				},
-			})),
-		},
-		{ role: "user", content: results.map(toolResult) },
-	]),
-];
+const messagesFor = ({ entry, steps }: SearchAgentTurn): Message[] => {
+	return [
+		{ role: "user", content: [{ text: asEntry(entry) }] },
+		...steps.flatMap((results): Message[] => [
+			{
+				role: "assistant",
+				content: results.map(({ call }) => ({
+					toolUse: {
+						toolUseId: call.id,
+						name: "find_intentions",
+						input: { query: call.query },
+					},
+				})),
+			},
+			{ role: "user", content: results.map(toolResult) },
+		]),
+	];
+};
 
-const toolChoiceFor = ({ mustPresent }: SearchAgentTurn): ToolChoice =>
-	mustPresent ? { tool: { name: "present_suggestions" } } : { any: {} };
+const toolChoiceFor = ({ mustPresent }: SearchAgentTurn): ToolChoice => {
+	return mustPresent ? { tool: { name: "present_suggestions" } } : { any: {} };
+};
 
 export const createNovaSearchAgent = (
 	options: BedrockRuntimeClientConfig = {},

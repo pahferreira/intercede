@@ -46,9 +46,8 @@ const eventStreamFrame = ([eventType, body]: [string, unknown]) => {
 type ToolUse = { id: string; name: string; inputChunks: string[] };
 type Reply = { status: number; body: Buffer; contentType: string };
 
-const novaStreams =
-	(...toolUses: ToolUse[]) =>
-	(): Reply => {
+const novaStreams = (...toolUses: ToolUse[]) => {
+	return (): Reply => {
 		const events: [string, unknown][] = [
 			["messageStart", { role: "assistant" }],
 		];
@@ -81,6 +80,7 @@ const novaStreams =
 			contentType: "application/vnd.amazon.eventstream",
 		};
 	};
+};
 
 type SentRequest = { url: string; body: Record<string, unknown> };
 type HttpRequest = {
@@ -129,13 +129,14 @@ function recordingAnalytics() {
 	return { analytics, generations, exceptions };
 }
 
-const agentFor = (bedrock: ReturnType<typeof fakeBedrock>) =>
-	createNovaSearchAgent({
+const agentFor = (bedrock: ReturnType<typeof fakeBedrock>) => {
+	return createNovaSearchAgent({
 		region: "us-east-1",
 		credentials: { accessKeyId: "AKIATEST", secretAccessKey: "secret" },
 		maxAttempts: 1,
 		requestHandler: bedrock.requestHandler,
 	});
+};
 
 const firstTurn: SearchAgentTurn = {
 	entry: "Someone looking for work",

@@ -25,12 +25,13 @@ export function useChat() {
 	const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
 	const searching = useRef<AbortController | null>(null);
 
-	const deselect = (intentionIds: string[]) =>
-		setSelected((current) => {
+	const deselect = (intentionIds: string[]) => {
+		return setSelected((current) => {
 			const next = new Set(current);
 			for (const intentionId of intentionIds) next.delete(intentionId);
 			return next;
 		});
+	};
 
 	const commit = useCommit({ selected, onUnavailable: deselect });
 
@@ -47,10 +48,16 @@ export function useChat() {
 		setSelected(new Set());
 	}, [chatOpen, navigate]);
 
-	useEffect(() => () => searching.current?.abort(), []);
+	useEffect(
+		() => () => {
+			return searching.current?.abort();
+		},
+		[],
+	);
 
-	const update = (change: (current: Exchange) => Exchange) =>
-		setExchange((current) => (current ? change(current) : current));
+	const update = (change: (current: Exchange) => Exchange) => {
+		return setExchange((current) => (current ? change(current) : current));
+	};
 
 	const stream = async (entry: string, signal: AbortSignal) => {
 		const response = await client.api.search.$post(
@@ -100,8 +107,8 @@ export function useChat() {
 		});
 	};
 
-	const toggle = (intentionId: string, checked: boolean) =>
-		setSelected((current) => {
+	const toggle = (intentionId: string, checked: boolean) => {
+		return setSelected((current) => {
 			const next = new Set(current);
 			if (checked) {
 				next.add(intentionId);
@@ -110,6 +117,7 @@ export function useChat() {
 			}
 			return next;
 		});
+	};
 
 	return {
 		exchange: chatOpen ? exchange : null,

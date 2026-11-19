@@ -60,8 +60,9 @@ export function renderInvisibleWidget(
 	host.append(container);
 	let pending: PromiseWithResolvers<string> | undefined;
 	let executed = false;
-	const fail = () =>
-		pending?.reject(new Error("the Turnstile challenge failed"));
+	const fail = () => {
+		return pending?.reject(new Error("the Turnstile challenge failed"));
+	};
 	const widgetId = api.render(container, {
 		sitekey,
 		execution: "execute",

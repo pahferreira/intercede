@@ -28,17 +28,19 @@ const withDatabaseName = (url: URL, name: string) => {
 	return renamed.toString();
 };
 
-export const testDatabaseUrl = (env = process.env) =>
-	withDatabaseName(
+export const testDatabaseUrl = (env = process.env) => {
+	return withDatabaseName(
 		requireLocalUrl(localOrConfiguredDatabaseUrl(env)),
 		testDatabaseName,
 	);
+};
 
-const createSetupDatabase = (url: string) =>
-	createDatabase(url, {
+const createSetupDatabase = (url: string) => {
+	return createDatabase(url, {
 		connectTimeoutSeconds: setupConnectTimeoutSeconds,
 		onnotice: () => {},
 	});
+};
 
 const createIfMissing = async (url: URL) => {
 	const name = url.pathname.slice(1);

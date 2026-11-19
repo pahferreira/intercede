@@ -22,10 +22,12 @@ afterEach(() => {
 	initAnalytics(undefined, posthog);
 });
 
-const publishes: SubmitIntention = async () => ({
-	ok: true,
-	value: { code: "INT-7K3QD" },
-});
+const publishes: SubmitIntention = async () => {
+	return {
+		ok: true,
+		value: { code: "INT-7K3QD" },
+	};
+};
 
 async function publish(locale: "en" | "pt-BR", submit: string) {
 	const rendered = await renderAt("/", locale, publishes);

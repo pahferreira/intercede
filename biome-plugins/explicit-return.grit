@@ -1,0 +1,12 @@
+language js
+
+or {
+	JsVariableDeclarator(initializer=JsInitializerClause(expression=JsArrowFunctionExpression(body=$body))) where {
+		$body <: not JsFunctionBody(),
+		register_diagnostic(span=$body, message="Give arrow functions a block body with an explicit `return`.")
+	},
+	JsArrowFunctionExpression(body=JsArrowFunctionExpression(body=$body)) where {
+		$body <: not JsFunctionBody(),
+		register_diagnostic(span=$body, message="Give arrow functions a block body with an explicit `return`.")
+	}
+}

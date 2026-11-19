@@ -122,16 +122,19 @@ function recordingAnalytics() {
 	return { analytics, generations, exceptions };
 }
 
-const agentFor = (bedrock: ReturnType<typeof fakeBedrock>) =>
-	createClaudeSearchAgent({
+const agentFor = (bedrock: ReturnType<typeof fakeBedrock>) => {
+	return createClaudeSearchAgent({
 		awsRegion: "us-east-1",
-		providerChainResolver: async () => async () => ({
-			accessKeyId: "AKIATEST",
-			secretAccessKey: "secret",
-		}),
+		providerChainResolver: async () => async () => {
+			return {
+				accessKeyId: "AKIATEST",
+				secretAccessKey: "secret",
+			};
+		},
 		maxRetries: 0,
 		fetch: bedrock.fetch,
 	});
+};
 
 const firstTurn: SearchAgentTurn = {
 	entry: "Someone looking for work",

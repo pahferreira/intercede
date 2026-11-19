@@ -15,8 +15,8 @@ const submission = z.object({
 	turnstileToken: z.string().min(1).max(2048),
 });
 
-export const intentionRoutes = (submitIntention: SubmitIntention) =>
-	new Hono<AnalyticsEnv>()
+export const intentionRoutes = (submitIntention: SubmitIntention) => {
+	return new Hono<AnalyticsEnv>()
 		.use("/intentions", visitorCookie)
 		.post("/intentions", zValidator("json", submission), async (c) => {
 			const submitted = await submitIntention(
@@ -43,3 +43,4 @@ export const intentionRoutes = (submitIntention: SubmitIntention) =>
 			}
 			return c.json({ status: "moderation_unavailable" } as const, 503);
 		});
+};
