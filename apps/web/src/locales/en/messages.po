@@ -8,7 +8,7 @@ msgstr ""
 "Language: en\n"
 
 #. placeholder {0}: props.commitments
-#: src/ui/IntentionCard.tsx:21
+#: src/ui/IntentionCard.tsx:27
 msgid "{0, plural, one {<0><1># person</1> committed to pray for this</0>} other {<2><3># people</3> committed to pray for this</2>}}"
 msgstr "{0, plural, one {<0><1># person</1> committed to pray for this</0>} other {<2><3># people</3> committed to pray for this</2>}}"
 
@@ -20,6 +20,10 @@ msgstr "A place where you can share your faith around the world"
 #: src/routes/pray.tsx:111
 msgid "Ask for prayer"
 msgstr "Ask for prayer"
+
+#: src/routes/pray.tsx:173
+msgid "Be the first to ask for prayer"
+msgstr "Be the first to ask for prayer"
 
 #: src/routes/submit.tsx:62
 msgid "Between {minLength} and {maxLength} characters."
@@ -33,7 +37,7 @@ msgstr "Commit to pray for this intention"
 msgid "Committed intentions"
 msgstr "Committed intentions"
 
-#: src/routes/pray.tsx:200
+#: src/routes/pray.tsx:216
 msgid "Committing…"
 msgstr "Committing…"
 
@@ -49,7 +53,7 @@ msgstr "Copy link"
 msgid "Couldn't load this prayer request."
 msgstr "Couldn't load this prayer request."
 
-#: src/routes/pray.tsx:193
+#: src/routes/pray.tsx:209
 msgid "Couldn't save your commitment."
 msgstr "Couldn't save your commitment."
 
@@ -65,9 +69,13 @@ msgstr "Dismiss"
 msgid "Have a good prayer"
 msgstr "Have a good prayer"
 
-#: src/routes/pray.tsx:203
+#: src/routes/pray.tsx:219
 msgid "I commit!"
 msgstr "I commit!"
+
+#: src/routes/pray.tsx:165
+msgid "I couldn't find a close match. These are still waiting for prayer:"
+msgstr "I couldn't find a close match. These are still waiting for prayer:"
 
 #: src/routes/pray.tsx:55
 msgid "Intention {code}"
@@ -102,6 +110,10 @@ msgstr "Looking for intentions…"
 msgid "New search"
 msgstr "New search"
 
+#: src/routes/pray.tsx:171
+msgid "No intentions yet."
+msgstr "No intentions yet."
+
 #: src/ui/Message.tsx:44
 msgid "Not sent."
 msgstr "Not sent."
@@ -119,7 +131,7 @@ msgstr "Pray for someone too"
 msgid "Published"
 msgstr "Published"
 
-#: src/ui/IntentionCard.tsx:20
+#: src/ui/IntentionCard.tsx:23
 msgid "Published {published}"
 msgstr "Published {published}"
 
@@ -147,11 +159,11 @@ msgstr "Show less"
 msgid "Show more"
 msgstr "Show more"
 
-#: src/routes/pray.tsx:184
+#: src/routes/pray.tsx:200
 msgid "Some of the intentions you chose are no longer available."
 msgstr "Some of the intentions you chose are no longer available."
 
-#: src/routes/pray.tsx:179
+#: src/routes/pray.tsx:195
 #: src/routes/submit.tsx:90
 msgid "Something went wrong. Please try again."
 msgstr "Something went wrong. Please try again."
@@ -172,15 +184,15 @@ msgstr "Submit your prayer request"
 msgid "Submitting…"
 msgstr "Submitting…"
 
-#: src/routes/pray.tsx:162
+#: src/routes/pray.tsx:178
 msgid "Suggestions"
 msgstr "Suggestions"
 
-#: src/routes/pray.tsx:217
+#: src/routes/pray.tsx:233
 msgid "Tell me more…"
 msgstr "Tell me more…"
 
-#: src/ui/IntentionCard.tsx:37
+#: src/ui/IntentionCard.tsx:44
 msgid "This prayer request is no longer being suggested"
 msgstr "This prayer request is no longer being suggested"
 

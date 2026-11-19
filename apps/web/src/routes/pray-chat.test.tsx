@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import type { SearchEvent, Suggestion } from "@intercede/api";
+import type { SearchEvent, Suggestion, SuggestionMatch } from "@intercede/api";
 import { fireEvent, screen } from "@testing-library/react";
 import {
 	controlledSearch,
@@ -37,12 +37,15 @@ function suggestion(n: number): Suggestion {
 	};
 }
 
-function answered(suggestions: Suggestion[]): SearchEvent[] {
+function answered(
+	suggestions: Suggestion[],
+	match: SuggestionMatch = "close",
+): SearchEvent[] {
 	return [
 		{ type: "status", data: { status: "searching" } },
 		{ type: "note_delta", data: { text: "Here are some " } },
 		{ type: "note_delta", data: { text: "people to pray for." } },
-		{ type: "suggestions", data: { suggestions } },
+		{ type: "suggestions", data: { match, suggestions } },
 		{ type: "done", data: {} },
 	];
 }
@@ -131,6 +134,66 @@ test("sending an Entry and showing its Suggestions are counted", async () => {
 		{ event: "suggestions_shown", properties: { count: 3, fallback: false } },
 	]);
 });
+
+const fallbackCopy = {
+	en: {
+		noMatch:
+			"I couldn't find a close match. These are still waiting for prayer:",
+		empty: "No intentions yet.",
+		askForPrayer: "Be the first to ask for prayer",
+	},
+	"pt-BR": {
+		noMatch:
+			"Não encontrei nada muito próximo. Estas intenções ainda esperam por oração:",
+		empty: "Ainda não há intenções.",
+		askForPrayer: "Seja a primeira pessoa a pedir oração",
+	},
+} as const;
+
+function unattended(n: number): Suggestion {
+	return { intentionId: `intention-${n}`, text: `Intention number ${n}` };
+}
+
+test.each(["en", "pt-BR"] as const)(
+	"in %s, with no close match the Intentions still waiting for prayer are shown to commit to",
+	async (locale) => {
+		await sendEntry(
+			locale,
+			searchOf(answered([unattended(1), unattended(2)], "fallback")),
+		);
+
+		expect(await screen.findByText(fallbackCopy[locale].noMatch)).toBeDefined();
+		expect(screen.getByText("Intention number 2")).toBeDefined();
+		expect(
+			screen.getAllByRole("checkbox", { name: labels[locale].commit }),
+		).toHaveLength(2);
+	},
+);
+
+test("showing the fallback Intentions is counted as a fallback", async () => {
+	await sendEntry("en", searchOf(answered([1, 2].map(unattended), "fallback")));
+	await screen.findByText("Intention number 2");
+
+	expect(events).toEqual([
+		{ event: "entry_sent", properties: {} },
+		{ event: "suggestions_shown", properties: { count: 2, fallback: true } },
+	]);
+});
+
+test.each(["en", "pt-BR"] as const)(
+	"in %s, an empty Catalog says so and links to asking for prayer",
+	async (locale) => {
+		await sendEntry(locale, searchOf(answered([], "empty_catalog")));
+
+		expect(await screen.findByText(fallbackCopy[locale].empty)).toBeDefined();
+		expect(screen.queryByText(fallbackCopy[locale].noMatch)).toBeNull();
+		expect(
+			screen
+				.getByRole("link", { name: fallbackCopy[locale].askForPrayer })
+				.getAttribute("href"),
+		).toBe("/?ask=true");
+	},
+);
 
 test("an answer with no Suggestions is not counted as shown", async () => {
 	await sendEntry("en", searchOf(answered([])));

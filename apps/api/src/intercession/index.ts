@@ -10,4 +10,8 @@ export { createKeepCatalogInStep } from "./application/keep-catalog-in-step";
 export { createSearch, type Search } from "./application/search";
 export type { Clarification, SearchAgent } from "./application/search-agent";
 export type { Commitment } from "./domain/commitment";
-export type { SearchEvent, Suggestion } from "./domain/search-event";
+export type {
+	SearchEvent,
+	Suggestion,
+	SuggestionMatch,
+} from "./domain/search-event";

@@ -158,6 +158,21 @@ function Chat(props: ChatProps) {
 						streaming={exchange.status === "answering"}
 					/>
 				)}
+				{exchange.match === "fallback" && (
+					<AssistantReply
+						paragraphs={[
+							t`I couldn't find a close match. These are still waiting for prayer:`,
+						]}
+					/>
+				)}
+				{exchange.match === "empty_catalog" && (
+					<p className="max-w-reply text-body-lg text-ivory">
+						<Trans>No intentions yet.</Trans>{" "}
+						<Link to="/" search={{ ask: true }}>
+							<Trans>Be the first to ask for prayer</Trans>
+						</Link>
+					</p>
+				)}
 				{exchange.suggestions.length > 0 && (
 					<ul aria-label={t`Suggestions`} className="flex flex-col gap-space-3">
 						{exchange.suggestions.map((suggestion) => (

@@ -12,7 +12,7 @@ function overflowsClamp(element: HTMLElement) {
 
 type SuggestionCardProps = {
 	text: string;
-	whyNote: string;
+	whyNote?: string;
 	checked: boolean;
 	onCheckedChange: (checked: boolean) => void;
 };
@@ -89,7 +89,9 @@ export function SuggestionCard(props: SuggestionCardProps) {
 						{expanded ? t`Show less` : t`Show more`}
 					</button>
 				)}
-				<p className="text-small text-ivory-muted">{props.whyNote}</p>
+				{props.whyNote && (
+					<p className="text-small text-ivory-muted">{props.whyNote}</p>
+				)}
 			</div>
 		</article>
 	);
