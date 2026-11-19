@@ -211,11 +211,11 @@ test.each([
 	},
 );
 
-test("'Pray for others' goes to /pray and is counted", async () => {
+test("'Pray for Others' goes to /pray and is counted", async () => {
 	await renderAt("/", "en");
 
 	fireEvent.click(
-		await screen.findByRole("button", { name: "Pray for others" }),
+		await screen.findByRole("button", { name: "Pray for Others" }),
 	);
 
 	expect(
@@ -227,7 +227,7 @@ test("'Pray for others' goes to /pray and is counted", async () => {
 test("after a skip, / goes straight to /pray", async () => {
 	const first = await renderAt("/", "en");
 	fireEvent.click(
-		await screen.findByRole("button", { name: "Pray for others" }),
+		await screen.findByRole("button", { name: "Pray for Others" }),
 	);
 	await screen.findByRole("textbox", { name: entryLabel });
 	first.unmount();
@@ -254,8 +254,13 @@ test("after a submit, / goes straight to /pray", async () => {
 });
 
 test.each([
-	["en", "Skip", "Ask for prayer", "Submit your prayer intention"],
-	["pt-BR", "Pular", "Pedir oração", "Envie sua intenção de oração"],
+	["en", "Pray for Others", "Ask for prayer", "Submit your prayer intention"],
+	[
+		"pt-BR",
+		"Rezar pelos Outros",
+		"Pedir oração",
+		"Envie sua intenção de oração",
+	],
 ] as const)(
 	"Ask for prayer in %s opens the Submit screen even after a skip",
 	async (locale, skip, ask, heading) => {
@@ -320,7 +325,7 @@ test.each([
 	[
 		"en",
 		"Submit",
-		"Skip",
+		"Pray for Others",
 		entryLabel,
 		"You've reached today's limit for intentions. Come back tomorrow, or skip to pray for others.",
 	],
