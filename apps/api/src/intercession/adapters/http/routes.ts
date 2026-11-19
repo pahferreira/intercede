@@ -9,8 +9,11 @@ import { internalError, type SearchEvent } from "../../domain/search-event";
 
 const entryLength = { min: 1, max: 1000 };
 
+const text = z.string().trim().min(entryLength.min).max(entryLength.max);
+
 const searchRequest = z.object({
-	entry: z.string().trim().min(entryLength.min).max(entryLength.max),
+	entry: text,
+	clarification: z.object({ question: text, answer: text }).optional(),
 });
 
 const asFrame = (event: SearchEvent) => {
@@ -24,12 +27,15 @@ export const searchRoutes = (search: Search) => {
 	return new Hono<AnalyticsEnv>()
 		.use("/search", visitorCookie)
 		.post("/search", zValidator("json", searchRequest), (c) => {
-			const { entry } = c.req.valid("json");
+			const { entry, clarification } = c.req.valid("json");
 			const visitorId = c.var.visitorId;
 			const analytics = c.var.analytics;
 			return streamSSE(c, async (stream) => {
 				try {
-					for await (const event of search({ entry, visitorId }, analytics)) {
+					for await (const event of search(
+						{ entry, clarification, visitorId },
+						analytics,
+					)) {
 						await stream.writeSSE(asFrame(event));
 					}
 				} catch (error) {

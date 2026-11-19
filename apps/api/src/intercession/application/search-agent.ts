@@ -19,10 +19,14 @@ export type AgentEvent =
 	| { type: "note_delta"; text: string }
 	| { type: "find_intentions"; calls: FindIntentionsCall[] }
 	| { type: "present_suggestions"; suggestions: PresentedSuggestion[] }
+	| { type: "ask_clarifying_question"; question: string }
 	| { type: "unavailable" };
+
+export type Clarification = { question: string; answer: string };
 
 export type SearchAgentTurn = {
 	entry: string;
+	clarification?: Clarification;
 	steps: FindIntentionsResult[][];
 	mustPresent: boolean;
 };

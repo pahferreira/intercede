@@ -15,12 +15,13 @@ import type {
 } from "../../application/search-agent";
 import {
 	asEntry,
+	askClarifyingQuestionInput,
 	findIntentionsInput,
 	instructions,
 	limitReachedResult,
 	noteSoFar,
 	presentSuggestionsInput,
-	tools,
+	toolsFor,
 } from "./search-instructions";
 
 const model = {
@@ -28,11 +29,13 @@ const model = {
 	usdPerMillionTokens: { input: 0.1, output: 0.5 },
 };
 
-const claudeTools: Tool[] = tools.map(({ name, description, inputSchema }) => ({
-	name,
-	description,
-	input_schema: inputSchema,
-}));
+const claudeToolsFor = (turn: SearchAgentTurn): Tool[] => {
+	return toolsFor(turn).map(({ name, description, inputSchema }) => ({
+		name,
+		description,
+		input_schema: inputSchema,
+	}));
+};
 
 const toolResult = ({ call, outcome }: FindIntentionsResult) => {
 	return outcome.kind === "found"
@@ -49,10 +52,10 @@ const toolResult = ({ call, outcome }: FindIntentionsResult) => {
 			};
 };
 
-const messagesFor = ({ entry, steps }: SearchAgentTurn): MessageParam[] => {
+const messagesFor = (turn: SearchAgentTurn): MessageParam[] => {
 	return [
-		{ role: "user", content: asEntry(entry) },
-		...steps.flatMap((results): MessageParam[] => [
+		{ role: "user", content: asEntry(turn) },
+		...turn.steps.flatMap((results): MessageParam[] => [
 			{
 				role: "assistant",
 				content: results.map(({ call }) => ({
@@ -91,7 +94,7 @@ export const createClaudeSearchAgent = (
 				model: model.id,
 				max_tokens: 1024,
 				system: instructions,
-				tools: claudeTools,
+				tools: claudeToolsFor(turn),
 				tool_choice: toolChoiceFor(turn),
 				messages: messagesFor(turn),
 			});
@@ -145,6 +148,16 @@ export const createClaudeSearchAgent = (
 					presentation.input,
 				);
 				yield { type: "present_suggestions", suggestions };
+				return;
+			}
+			const question = toolUses.find(
+				(block) => block.name === "ask_clarifying_question",
+			);
+			if (question) {
+				yield {
+					type: "ask_clarifying_question",
+					question: askClarifyingQuestionInput.parse(question.input).question,
+				};
 				return;
 			}
 			const calls = toolUses

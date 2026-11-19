@@ -16,12 +16,13 @@ import type {
 } from "../../application/search-agent";
 import {
 	asEntry,
+	askClarifyingQuestionInput,
 	findIntentionsInput,
 	instructions,
 	limitReachedResult,
 	noteSoFar,
 	presentSuggestionsInput,
-	tools,
+	toolsFor,
 } from "./search-instructions";
 
 const model = {
@@ -29,13 +30,15 @@ const model = {
 	usdPerMillionTokens: { input: 0.06, output: 0.24 },
 };
 
-const novaTools: Tool[] = tools.map(({ name, description, inputSchema }) => ({
-	toolSpec: {
-		name,
-		description,
-		inputSchema: { json: inputSchema } as ToolInputSchema,
-	},
-}));
+const novaToolsFor = (turn: SearchAgentTurn): Tool[] => {
+	return toolsFor(turn).map(({ name, description, inputSchema }) => ({
+		toolSpec: {
+			name,
+			description,
+			inputSchema: { json: inputSchema } as ToolInputSchema,
+		},
+	}));
+};
 
 const toolResult = ({ call, outcome }: FindIntentionsResult): ContentBlock => {
 	return outcome.kind === "found"
@@ -54,10 +57,10 @@ const toolResult = ({ call, outcome }: FindIntentionsResult): ContentBlock => {
 			};
 };
 
-const messagesFor = ({ entry, steps }: SearchAgentTurn): Message[] => {
+const messagesFor = (turn: SearchAgentTurn): Message[] => {
 	return [
-		{ role: "user", content: [{ text: asEntry(entry) }] },
-		...steps.flatMap((results): Message[] => [
+		{ role: "user", content: [{ text: asEntry(turn) }] },
+		...turn.steps.flatMap((results): Message[] => [
 			{
 				role: "assistant",
 				content: results.map(({ call }) => ({
@@ -94,7 +97,10 @@ export const createNovaSearchAgent = (
 					system: [{ text: instructions }],
 					messages: messagesFor(turn),
 					inferenceConfig: { maxTokens: 1024, temperature: 0 },
-					toolConfig: { tools: novaTools, toolChoice: toolChoiceFor(turn) },
+					toolConfig: {
+						tools: novaToolsFor(turn),
+						toolChoice: toolChoiceFor(turn),
+					},
 				}),
 			);
 			const inputs = new Map<
@@ -149,6 +155,17 @@ export const createNovaSearchAgent = (
 					JSON.parse(presentation.json),
 				);
 				yield { type: "present_suggestions", suggestions };
+				return;
+			}
+			const question = toolUses.find(
+				(toolUse) => toolUse.name === "ask_clarifying_question",
+			);
+			if (question) {
+				yield {
+					type: "ask_clarifying_question",
+					question: askClarifyingQuestionInput.parse(JSON.parse(question.json))
+						.question,
+				};
 				return;
 			}
 			const calls = toolUses

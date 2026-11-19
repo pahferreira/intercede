@@ -64,11 +64,12 @@ const send = (
 	app: ReturnType<typeof createTestApp>,
 	entry: string,
 	headers: Record<string, string> = {},
+	clarification?: { question: string; answer: string },
 ) => {
 	return app.request("/api/search", {
 		method: "POST",
 		headers: { "content-type": "application/json", ...headers },
-		body: JSON.stringify({ entry }),
+		body: JSON.stringify({ entry, clarification }),
 	});
 };
 
@@ -123,6 +124,84 @@ test("an Entry streams the note and the Suggestions found in the Catalog", async
 		{ type: "done", data: {} },
 	]);
 });
+
+test("an Entry too vague to search gets the agent's Clarifying Question", async () => {
+	const app = createTestApp({
+		agent: scripted([
+			{
+				type: "ask_clarifying_question",
+				question: "Who would you like to pray for?",
+			},
+		]),
+	});
+
+	const response = await send(app, "pray");
+
+	expect(await eventsOf(response)).toEqual([
+		{ type: "status", data: { status: "searching" } },
+		{ type: "question", data: { question: "Who would you like to pray for?" } },
+		{ type: "done", data: {} },
+	]);
+});
+
+const clarified = {
+	question: "Who would you like to pray for?",
+	answer: "My sister, she is sick",
+};
+
+test("the answer to the Clarifying Question continues the turn with the Entry", async () => {
+	const turns: SearchAgentTurn[] = [];
+	const app = createTestApp({
+		agent: async function* (turn) {
+			turns.push(structuredClone(turn));
+			yield { type: "present_suggestions", suggestions: [] };
+		},
+	});
+
+	const response = await send(app, "pray", {}, clarified);
+
+	expect(await eventsOf(response)).toEqual([
+		{ type: "status", data: { status: "searching" } },
+		{ type: "suggestions", data: { suggestions: [] } },
+		{ type: "done", data: {} },
+	]);
+	expect(turns).toEqual([
+		{ entry: "pray", clarification: clarified, steps: [], mustPresent: false },
+	]);
+});
+
+test("an agent asking a second Clarifying Question ends the stream with an error", async () => {
+	const app = createTestApp({
+		agent: scripted([
+			{ type: "ask_clarifying_question", question: "And who else?" },
+		]),
+	});
+
+	const response = await send(app, "pray", {}, clarified);
+
+	expect(await eventsOf(response)).toEqual([
+		{ type: "status", data: { status: "searching" } },
+		{ type: "error", data: { reason: "internal" } },
+	]);
+});
+
+test.each([
+	["an empty answer", { ...clarified, answer: "  " }],
+	[
+		"an answer longer than 1000 characters",
+		{ ...clarified, answer: "a".repeat(1001) },
+	],
+	["an empty question", { ...clarified, question: "" }],
+])(
+	"a Clarification with %s is refused before the agent runs",
+	async (_, clarification) => {
+		const app = createTestApp();
+
+		const response = await send(app, "pray", {}, clarification);
+
+		expect(response.status).toBe(400);
+	},
+);
 
 const keepsSearching = () => {
 	const turns: SearchAgentTurn[] = [];

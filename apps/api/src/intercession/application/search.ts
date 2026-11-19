@@ -12,13 +12,14 @@ import { rank } from "../domain/ranking";
 import { internalError, type SearchEvent } from "../domain/search-event";
 import type { Embed } from "./embed";
 import type {
+	Clarification,
 	FindIntentionsCall,
 	FindIntentionsResult,
 	SearchAgent,
 } from "./search-agent";
 
 export type Search = (
-	request: { entry: string; visitorId: string },
+	request: { entry: string; clarification?: Clarification; visitorId: string },
 	analytics: Analytics,
 ) => AsyncIterable<SearchEvent>;
 
@@ -32,7 +33,7 @@ export const createSearch = ({
 	agent: SearchAgent;
 }): Search => {
 	return async function* (
-		{ entry, visitorId },
+		{ entry, clarification, visitorId },
 		analytics,
 	): AsyncGenerator<SearchEvent> {
 		yield { type: "status", data: { status: "searching" } };
@@ -69,7 +70,7 @@ export const createSearch = ({
 			const mustPresent = searchesLeft === 0;
 			let calls: FindIntentionsCall[] | undefined;
 			for await (const event of agent(
-				{ entry, steps, mustPresent },
+				{ entry, clarification, steps, mustPresent },
 				analytics,
 			)) {
 				switch (event.type) {
@@ -90,6 +91,14 @@ export const createSearch = ({
 						yield { type: "done", data: {} };
 						return;
 					}
+					case "ask_clarifying_question":
+						if (clarification) {
+							yield internalError;
+							return;
+						}
+						yield { type: "question", data: { question: event.question } };
+						yield { type: "done", data: {} };
+						return;
 					case "unavailable":
 						yield internalError;
 						return;
