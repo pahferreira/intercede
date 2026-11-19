@@ -136,8 +136,8 @@ msgid "Show more"
 msgstr "Show more"
 
 #: src/routes/submit.tsx:96
-msgid "Skip"
-msgstr "Skip"
+msgid "Pray for Others"
+msgstr "Pray for Others"
 
 #: src/routes/pray.tsx:169
 msgid "Some of the intentions you chose are no longer available."

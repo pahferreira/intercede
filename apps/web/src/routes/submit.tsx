@@ -93,7 +93,7 @@ export function Submit() {
 				<div ref={turnstile.container} />
 				<div className="flex justify-end gap-space-3">
 					<Button variant="secondary" onClick={skip}>
-						<Trans>Skip</Trans>
+						<Trans>Pray for Others</Trans>
 					</Button>
 					<Button
 						variant="primary"
