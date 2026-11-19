@@ -66,7 +66,9 @@ test("the Submit screen is shown in Portuguese", async () => {
 			name: "Envie sua intenção de oração",
 		}),
 	).toBeDefined();
-	expect(screen.getByRole("button", { name: "Pular" })).toBeDefined();
+	expect(
+		screen.getByRole("button", { name: "Rezar pelos Outros" }),
+	).toBeDefined();
 	expect(screen.getByRole("button", { name: "Enviar" })).toBeDefined();
 });
 
@@ -321,7 +323,7 @@ test.each([
 	[
 		"pt-BR",
 		"Enviar",
-		"Pular",
+		"Rezar pelos Outros",
 		"O que está no seu coração para rezar hoje?",
 		"Você atingiu o limite de intenções de hoje. Volte amanhã ou pule para rezar pelos outros.",
 	],
