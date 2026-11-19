@@ -4,6 +4,8 @@ import type {
 	PresentedSuggestion,
 } from "../domain/presentation";
 
+export const askClarifyingQuestion = "ask_clarifying_question";
+
 export type FindIntentionsCall = { id: string; query: string };
 
 export type FindIntentionsOutcome =
@@ -19,7 +21,7 @@ export type AgentEvent =
 	| { type: "note_delta"; text: string }
 	| { type: "find_intentions"; calls: FindIntentionsCall[] }
 	| { type: "present_suggestions"; suggestions: PresentedSuggestion[] }
-	| { type: "ask_clarifying_question"; question: string }
+	| { type: typeof askClarifyingQuestion; question: string }
 	| { type: "unavailable" };
 
 export type Clarification = { question: string; answer: string };

@@ -1,4 +1,4 @@
-import type { Suggestion } from "@intercede/api";
+import type { Clarification, Suggestion } from "@intercede/api";
 import {
 	useNavigate,
 	useRouteContext,
@@ -10,12 +10,9 @@ import { isChatOpen } from "../chat";
 import { readSearchEvents } from "../search-stream";
 import { useCommit } from "./useCommit";
 
-type Clarification = { question: string; answer: string };
-
 export type Exchange = {
 	entry: string;
-	question?: string;
-	answer?: string;
+	clarification?: { question: string; answer?: string };
 	status: "searching" | "answering" | "done" | "failed";
 	note: string;
 	suggestions: Suggestion[];
@@ -97,7 +94,7 @@ export function useChat() {
 				update((current) => ({
 					...current,
 					status: "answering",
-					question: event.data.question,
+					clarification: { question: event.data.question },
 				}));
 			} else if (event.type === "done") {
 				update((current) => ({ ...current, status: "done" }));
@@ -126,10 +123,15 @@ export function useChat() {
 		run(entry);
 	};
 
+	const unansweredQuestion =
+		exchange?.clarification?.answer === undefined
+			? exchange?.clarification?.question
+			: undefined;
+
 	const answer = (text: string) => {
-		if (!exchange?.question || exchange.answer !== undefined) return;
-		const clarification = { question: exchange.question, answer: text };
-		setExchange({ ...exchange, ...clarification, status: "searching" });
+		if (!exchange || unansweredQuestion === undefined) return;
+		const clarification = { question: unansweredQuestion, answer: text.trim() };
+		setExchange({ ...exchange, clarification, status: "searching" });
 		run(exchange.entry, clarification);
 	};
 
@@ -148,6 +150,7 @@ export function useChat() {
 	return {
 		exchange: chatOpen ? exchange : null,
 		selected,
+		awaitingAnswer: unansweredQuestion !== undefined,
 		send,
 		answer,
 		toggle,

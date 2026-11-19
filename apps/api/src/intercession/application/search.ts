@@ -11,11 +11,12 @@ import {
 import { rank } from "../domain/ranking";
 import { internalError, type SearchEvent } from "../domain/search-event";
 import type { Embed } from "./embed";
-import type {
-	Clarification,
-	FindIntentionsCall,
-	FindIntentionsResult,
-	SearchAgent,
+import {
+	askClarifyingQuestion,
+	type Clarification,
+	type FindIntentionsCall,
+	type FindIntentionsResult,
+	type SearchAgent,
 } from "./search-agent";
 
 export type Search = (
@@ -91,7 +92,7 @@ export const createSearch = ({
 						yield { type: "done", data: {} };
 						return;
 					}
-					case "ask_clarifying_question":
+					case askClarifyingQuestion:
 						if (clarification) {
 							yield internalError;
 							return;

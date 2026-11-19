@@ -9,11 +9,13 @@ import { internalError, type SearchEvent } from "../../domain/search-event";
 
 const entryLength = { min: 1, max: 1000 };
 
-const text = z.string().trim().min(entryLength.min).max(entryLength.max);
+const boundedText = z.string().trim().min(entryLength.min).max(entryLength.max);
 
 const searchRequest = z.object({
-	entry: text,
-	clarification: z.object({ question: text, answer: text }).optional(),
+	entry: boundedText,
+	clarification: z
+		.object({ question: boundedText, answer: boundedText })
+		.optional(),
 });
 
 const asFrame = (event: SearchEvent) => {

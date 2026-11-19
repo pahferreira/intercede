@@ -8,20 +8,22 @@ import {
 	type ToolChoice,
 	type ToolInputSchema,
 } from "@aws-sdk/client-bedrock-runtime";
-import type {
-	AgentEvent,
-	FindIntentionsResult,
-	SearchAgent,
-	SearchAgentTurn,
+import {
+	type AgentEvent,
+	askClarifyingQuestion,
+	type FindIntentionsResult,
+	type SearchAgent,
+	type SearchAgentTurn,
 } from "../../application/search-agent";
 import {
 	asEntry,
-	askClarifyingQuestionInput,
+	clarifyingQuestionFrom,
 	findIntentionsInput,
 	instructions,
 	limitReachedResult,
 	noteSoFar,
 	presentSuggestionsInput,
+	type ToolDefinition,
 	toolsFor,
 } from "./search-instructions";
 
@@ -30,14 +32,18 @@ const model = {
 	usdPerMillionTokens: { input: 0.06, output: 0.24 },
 };
 
-const novaToolsFor = (turn: SearchAgentTurn): Tool[] => {
-	return toolsFor(turn).map(({ name, description, inputSchema }) => ({
+const asNovaTool = ({
+	name,
+	description,
+	inputSchema,
+}: ToolDefinition): Tool => {
+	return {
 		toolSpec: {
 			name,
 			description,
 			inputSchema: { json: inputSchema } as ToolInputSchema,
 		},
-	}));
+	};
 };
 
 const toolResult = ({ call, outcome }: FindIntentionsResult): ContentBlock => {
@@ -98,7 +104,7 @@ export const createNovaSearchAgent = (
 					messages: messagesFor(turn),
 					inferenceConfig: { maxTokens: 1024, temperature: 0 },
 					toolConfig: {
-						tools: novaToolsFor(turn),
+						tools: toolsFor(turn).map(asNovaTool),
 						toolChoice: toolChoiceFor(turn),
 					},
 				}),
@@ -158,14 +164,10 @@ export const createNovaSearchAgent = (
 				return;
 			}
 			const question = toolUses.find(
-				(toolUse) => toolUse.name === "ask_clarifying_question",
+				(toolUse) => toolUse.name === askClarifyingQuestion,
 			);
 			if (question) {
-				yield {
-					type: "ask_clarifying_question",
-					question: askClarifyingQuestionInput.parse(JSON.parse(question.json))
-						.question,
-				};
+				yield clarifyingQuestionFrom(JSON.parse(question.json));
 				return;
 			}
 			const calls = toolUses

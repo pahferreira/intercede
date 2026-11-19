@@ -87,6 +87,7 @@ export const createApp = ({
 
 export type AppType = ReturnType<typeof createApp>;
 export type {
+	Clarification,
 	Commitment,
 	SearchEvent,
 	Suggestion,

@@ -125,6 +125,7 @@ function EntryForm(props: EntryFormProps) {
 type ChatProps = {
 	exchange: Exchange;
 	selected: ReadonlySet<string>;
+	awaitingAnswer: boolean;
 	onToggle: (intentionId: string, checked: boolean) => void;
 	commit: CommitControls;
 	onAnswer: (answer: string) => void;
@@ -137,18 +138,18 @@ function Chat(props: ChatProps) {
 	const [reply, setReply] = useState("");
 	const exchange = props.exchange;
 	const paragraphs = asParagraphs(exchange.note);
-	const awaitingAnswer =
-		exchange.question !== undefined && exchange.answer === undefined;
 
 	return (
 		<div className="flex flex-col gap-space-5">
 			<Thread>
 				<EntryBubble text={exchange.entry} />
-				{exchange.question !== undefined && (
-					<AssistantReply paragraphs={asParagraphs(exchange.question)} />
+				{exchange.clarification && (
+					<AssistantReply
+						paragraphs={asParagraphs(exchange.clarification.question)}
+					/>
 				)}
-				{exchange.answer !== undefined && (
-					<EntryBubble text={exchange.answer} />
+				{exchange.clarification?.answer !== undefined && (
+					<EntryBubble text={exchange.clarification.answer} />
 				)}
 				{exchange.status === "searching" && <SearchingStatus />}
 				{paragraphs.length > 0 && (
@@ -204,14 +205,14 @@ function Chat(props: ChatProps) {
 					</div>
 				)}
 			</Thread>
-			{awaitingAnswer && (
+			{props.awaitingAnswer && (
 				<div className="sticky bottom-0 -mx-space-4 bg-violet md:mx-0">
 					<MessageBox
 						value={reply}
 						onChange={setReply}
 						onSubmit={(text) => {
 							setReply("");
-							props.onAnswer(text.trim());
+							props.onAnswer(text);
 						}}
 						placeholder={t`Tell me more…`}
 					/>
@@ -231,6 +232,7 @@ export function Pray() {
 			<Chat
 				exchange={exchange}
 				selected={chat.selected}
+				awaitingAnswer={chat.awaitingAnswer}
 				onToggle={chat.toggle}
 				commit={chat.commit}
 				onAnswer={chat.answer}

@@ -33,7 +33,7 @@ msgstr "Comprometer-me a rezar por esta intenção"
 msgid "Committed intentions"
 msgstr "Intenções assumidas"
 
-#: src/routes/pray.tsx:199
+#: src/routes/pray.tsx:200
 msgid "Committing…"
 msgstr "Salvando…"
 
@@ -45,7 +45,7 @@ msgstr "Copiado"
 msgid "Copy link"
 msgstr "Copiar link"
 
-#: src/routes/pray.tsx:192
+#: src/routes/pray.tsx:193
 msgid "Couldn't save your commitment."
 msgstr "Não foi possível salvar seu compromisso."
 
@@ -65,7 +65,7 @@ msgstr "Acompanhamento"
 msgid "Have a good prayer"
 msgstr "Tenha uma boa oração"
 
-#: src/routes/pray.tsx:202
+#: src/routes/pray.tsx:203
 msgid "I commit!"
 msgstr "Eu me comprometo!"
 
@@ -139,11 +139,11 @@ msgstr "Mostrar menos"
 msgid "Show more"
 msgstr "Mostrar mais"
 
-#: src/routes/pray.tsx:183
+#: src/routes/pray.tsx:184
 msgid "Some of the intentions you chose are no longer available."
 msgstr "Algumas das intenções que você escolheu não estão mais disponíveis."
 
-#: src/routes/pray.tsx:178
+#: src/routes/pray.tsx:179
 #: src/routes/submit.tsx:90
 msgid "Something went wrong. Please try again."
 msgstr "Algo deu errado. Tente novamente."
@@ -164,11 +164,11 @@ msgstr "Envie sua intenção de oração"
 msgid "Submitting…"
 msgstr "Enviando…"
 
-#: src/routes/pray.tsx:161
+#: src/routes/pray.tsx:162
 msgid "Suggestions"
 msgstr "Sugestões"
 
-#: src/routes/pray.tsx:216
+#: src/routes/pray.tsx:217
 msgid "Tell me more…"
 msgstr "Conte-me mais…"
 

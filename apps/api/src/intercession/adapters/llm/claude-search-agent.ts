@@ -7,20 +7,22 @@ import type {
 	Tool,
 	ToolChoice,
 } from "@anthropic-ai/sdk/resources/messages";
-import type {
-	AgentEvent,
-	FindIntentionsResult,
-	SearchAgent,
-	SearchAgentTurn,
+import {
+	type AgentEvent,
+	askClarifyingQuestion,
+	type FindIntentionsResult,
+	type SearchAgent,
+	type SearchAgentTurn,
 } from "../../application/search-agent";
 import {
 	asEntry,
-	askClarifyingQuestionInput,
+	clarifyingQuestionFrom,
 	findIntentionsInput,
 	instructions,
 	limitReachedResult,
 	noteSoFar,
 	presentSuggestionsInput,
+	type ToolDefinition,
 	toolsFor,
 } from "./search-instructions";
 
@@ -29,12 +31,12 @@ const model = {
 	usdPerMillionTokens: { input: 0.1, output: 0.5 },
 };
 
-const claudeToolsFor = (turn: SearchAgentTurn): Tool[] => {
-	return toolsFor(turn).map(({ name, description, inputSchema }) => ({
-		name,
-		description,
-		input_schema: inputSchema,
-	}));
+const asClaudeTool = ({
+	name,
+	description,
+	inputSchema,
+}: ToolDefinition): Tool => {
+	return { name, description, input_schema: inputSchema };
 };
 
 const toolResult = ({ call, outcome }: FindIntentionsResult) => {
@@ -94,7 +96,7 @@ export const createClaudeSearchAgent = (
 				model: model.id,
 				max_tokens: 1024,
 				system: instructions,
-				tools: claudeToolsFor(turn),
+				tools: toolsFor(turn).map(asClaudeTool),
 				tool_choice: toolChoiceFor(turn),
 				messages: messagesFor(turn),
 			});
@@ -151,13 +153,10 @@ export const createClaudeSearchAgent = (
 				return;
 			}
 			const question = toolUses.find(
-				(block) => block.name === "ask_clarifying_question",
+				(block) => block.name === askClarifyingQuestion,
 			);
 			if (question) {
-				yield {
-					type: "ask_clarifying_question",
-					question: askClarifyingQuestionInput.parse(question.input).question,
-				};
+				yield clarifyingQuestionFrom(question.input);
 				return;
 			}
 			const calls = toolUses
