@@ -12,14 +12,17 @@ const submission = z.object({
 		.trim()
 		.min(intentionTextLength.min)
 		.max(intentionTextLength.max),
+	turnstileToken: z.string().min(1).max(2048),
 });
 
 export const intentionRoutes = (submitIntention: SubmitIntention) =>
 	new Hono<AnalyticsEnv>()
 		.use("/intentions", visitorCookie)
 		.post("/intentions", zValidator("json", submission), async (c) => {
-			const { text } = c.req.valid("json");
-			const submitted = await submitIntention(text, c.var.analytics);
+			const submitted = await submitIntention(
+				{ ...c.req.valid("json"), visitorId: c.var.visitorId },
+				c.var.analytics,
+			);
 			if (submitted.ok) {
 				return c.json(
 					{ status: "published", ...submitted.value } as const,
@@ -31,6 +34,12 @@ export const intentionRoutes = (submitIntention: SubmitIntention) =>
 					{ status: "rejected", reasons: submitted.error.reasons } as const,
 					422,
 				);
+			}
+			if (submitted.error.kind === "limit_reached") {
+				return c.json({ status: "limit_reached" } as const, 429);
+			}
+			if (submitted.error.kind === "verification_failed") {
+				return c.json({ status: "verification_failed" } as const, 403);
 			}
 			return c.json({ status: "moderation_unavailable" } as const, 503);
 		});

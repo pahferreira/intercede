@@ -24,7 +24,7 @@ const publish = async (text: string, language: Language = "en") => {
 	const response = await app.request("/api/intentions", {
 		method: "POST",
 		headers: { "content-type": "application/json" },
-		body: JSON.stringify({ text }),
+		body: JSON.stringify({ text, turnstileToken: "turnstile-token" }),
 	});
 	expect(response.status).toBe(201);
 };

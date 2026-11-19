@@ -6,10 +6,17 @@ import {
 	createDatabaseProbe,
 	localOrConfiguredDatabaseUrl,
 } from "./platform/database";
+import { createSubmissionLimit } from "./platform/rate-limit";
+import { createTurnstileVerifier } from "./platform/turnstile";
+
+const alwaysPassesTurnstileSecret = "1x0000000000000000000000000000000AA";
 
 const database = createDatabase(localOrConfiguredDatabaseUrl());
 const isDatabaseReachable = createDatabaseProbe(database);
 const openAnalytics = createPostHogAnalytics(postHogSettings());
+const verifyTurnstile = createTurnstileVerifier({
+	secret: process.env.TURNSTILE_SECRET_KEY ?? alwaysPassesTurnstileSecret,
+});
 
 const server = Bun.serve({
 	port: Number(process.env.API_PORT ?? 3000),
@@ -19,6 +26,8 @@ const server = Bun.serve({
 		submitIntention: createSubmitIntention({
 			database,
 			moderate: createNovaModerator(),
+			verifyTurnstile,
+			consumeSubmissionLimit: createSubmissionLimit(database),
 		}),
 	}).fetch,
 });

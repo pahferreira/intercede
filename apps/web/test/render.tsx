@@ -1,6 +1,7 @@
 import { type AppDependencies, createApp } from "@intercede/api/testing";
 import { createMemoryHistory } from "@tanstack/react-router";
 import { render } from "@testing-library/react";
+import { StrictMode } from "react";
 import { createApiClient } from "../src/api";
 import { App } from "../src/app";
 import { type Locale, switchLocale } from "../src/i18n";
@@ -28,5 +29,9 @@ export async function renderAt(
 	});
 	const client = createApiClient(app.request);
 	const history = createMemoryHistory({ initialEntries: [path] });
-	return render(<App client={client} history={history} />);
+	return render(
+		<StrictMode>
+			<App client={client} history={history} />
+		</StrictMode>,
+	);
 }

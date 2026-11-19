@@ -2,6 +2,7 @@
 
 interface ImportMetaEnv {
 	readonly POSTHOG_KEY?: string;
+	readonly TURNSTILE_SITE_KEY: string;
 }
 
 declare module "*.po" {

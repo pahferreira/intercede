@@ -4,6 +4,7 @@ import {
 	type RejectionReason,
 	useSubmissionIntention,
 } from "../hooks/useSubmissionIntention";
+import { useTurnstile } from "../hooks/useTurnstile";
 import { Button } from "../ui/Button";
 import { Textarea } from "../ui/Textarea";
 import { useSubmitRoute } from "./useSubmitRoute";
@@ -15,7 +16,11 @@ export function Submit() {
 	const { t } = useLingui();
 	const [text, setText] = useState("");
 	const { onPublished, skip } = useSubmitRoute();
-	const submission = useSubmissionIntention({ onPublished });
+	const turnstile = useTurnstile();
+	const submission = useSubmissionIntention({
+		onPublished,
+		turnstileToken: turnstile.token,
+	});
 	const result = submission.data;
 
 	const outsideLimits =
@@ -76,11 +81,25 @@ export function Submit() {
 						</Trans>
 					</p>
 				)}
+				{result?.status === "verification_failed" && (
+					<p role="alert" className="text-small text-notice">
+						<Trans>Couldn't verify, try again.</Trans>
+					</p>
+				)}
+				{result?.status === "limit_reached" && (
+					<p role="alert" className="text-small text-notice">
+						<Trans>
+							You've reached today's limit for intentions. Come back tomorrow,
+							or skip to pray for others.
+						</Trans>
+					</p>
+				)}
 				{submission.isError && (
 					<p role="alert" className="text-small text-danger">
 						<Trans>Something went wrong. Please try again.</Trans>
 					</p>
 				)}
+				<div ref={turnstile.container} />
 				<div className="flex justify-end gap-space-3">
 					<Button variant="secondary" onClick={skip}>
 						<Trans>Skip</Trans>

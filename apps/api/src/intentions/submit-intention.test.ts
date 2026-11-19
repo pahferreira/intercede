@@ -11,11 +11,17 @@ const publishes =
 	(language: Language): Moderate =>
 	async () => ({ ok: true, value: { publishable: true, language } });
 
-const submit = (app: ReturnType<typeof createTestApp>, text: string) =>
+const visitor = "0b6f6f8e-3c0e-4a8e-9a43-3f1c2d4b5a6e";
+
+const submit = (
+	app: ReturnType<typeof createTestApp>,
+	text: string,
+	headers: Record<string, string> = {},
+) =>
 	app.request("/api/intentions", {
 		method: "POST",
-		headers: { "content-type": "application/json" },
-		body: JSON.stringify({ text }),
+		headers: { "content-type": "application/json", ...headers },
+		body: JSON.stringify({ text, turnstileToken: "turnstile-token" }),
 	});
 
 test("a text the moderation passes is published with its detected language", async () => {
@@ -176,13 +182,8 @@ test("a first submission issues an anonymous Visitor cookie", async () => {
 test("a returning Visitor keeps its cookie", async () => {
 	const app = createTestApp({ moderate: publishes("en") });
 
-	const response = await app.request("/api/intentions", {
-		method: "POST",
-		headers: {
-			"content-type": "application/json",
-			cookie: "intercede_visitor=0b6f6f8e-3c0e-4a8e-9a43-3f1c2d4b5a6e",
-		},
-		body: JSON.stringify({ text: "For my brother's new job" }),
+	const response = await submit(app, "For my brother's new job", {
+		cookie: `intercede_visitor=${visitor}`,
 	});
 
 	expect(response.status).toBe(201);
@@ -196,6 +197,109 @@ test.each([
 	const app = createTestApp({ moderate: publishes("en") });
 
 	const response = await submit(app, text);
+
+	expect(response.status).toBe(201);
+});
+
+test("a failed Turnstile check is answered with 403 and never moderated", async () => {
+	const tokens: string[] = [];
+	const app = createTestApp({
+		verifyTurnstile: async (token) => {
+			tokens.push(token);
+			return false;
+		},
+	});
+
+	const response = await submit(app, "For my brother's new job");
+
+	expect(response.status).toBe(403);
+	expect(await response.json()).toEqual({ status: "verification_failed" });
+	expect(tokens).toEqual(["turnstile-token"]);
+	await nothingPersisted();
+});
+
+test("a submission without a Turnstile token is refused before moderation", async () => {
+	const app = createTestApp();
+
+	const response = await app.request("/api/intentions", {
+		method: "POST",
+		headers: { "content-type": "application/json" },
+		body: JSON.stringify({ text: "For my brother's new job" }),
+	});
+
+	expect(response.status).toBe(400);
+	await nothingPersisted();
+});
+
+const asVisitor = (id: string) => ({ cookie: `intercede_visitor=${id}` });
+
+const countingModeration = () => {
+	const moderated: string[] = [];
+	const moderate: Moderate = async (text) => {
+		moderated.push(text);
+		return { ok: true, value: { publishable: true, language: "en" } };
+	};
+	return { moderated, moderate };
+};
+
+test("a Visitor past the daily submission limit is answered with 429 and never moderated", async () => {
+	const moderation = countingModeration();
+	const app = createTestApp({ moderate: moderation.moderate });
+	for (const text of [
+		"First intention",
+		"Second intention",
+		"Third intention",
+	]) {
+		expect((await submit(app, text, asVisitor(visitor))).status).toBe(201);
+	}
+
+	const response = await submit(app, "Fourth intention", asVisitor(visitor));
+
+	expect(response.status).toBe(429);
+	expect(await response.json()).toEqual({ status: "limit_reached" });
+	expect(moderation.moderated).toEqual([
+		"First intention",
+		"Second intention",
+		"Third intention",
+	]);
+	expect(await testDatabase().select().from(intentions)).toHaveLength(3);
+});
+
+test("the submission limit is counted per Visitor", async () => {
+	const app = createTestApp({ moderate: publishes("en") });
+	for (const text of [
+		"First intention",
+		"Second intention",
+		"Third intention",
+	]) {
+		await submit(app, text, asVisitor(visitor));
+	}
+
+	const response = await submit(
+		app,
+		"Another Visitor's intention",
+		asVisitor("5d1c2b3a-4e5f-4a6b-8c7d-9e0f1a2b3c4d"),
+	);
+
+	expect(response.status).toBe(201);
+});
+
+test("a failed Turnstile check does not count towards the submission limit", async () => {
+	let human = false;
+	const app = createTestApp({
+		moderate: publishes("en"),
+		verifyTurnstile: async () => human,
+	});
+	for (const text of ["First attempt", "Second attempt", "Third attempt"]) {
+		expect((await submit(app, text, asVisitor(visitor))).status).toBe(403);
+	}
+	human = true;
+
+	const response = await submit(
+		app,
+		"For my brother's new job",
+		asVisitor(visitor),
+	);
 
 	expect(response.status).toBe(201);
 });

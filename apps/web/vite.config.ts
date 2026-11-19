@@ -10,9 +10,23 @@ const postHogAssetsHost = postHogHost.replace(
 	"-assets.i.posthog.com",
 );
 
-export default defineConfig({
+const alwaysPassesTurnstileSiteKey = "1x00000000000000000000AA";
+
+const turnstileSiteKey = (command: "build" | "serve") => {
+	const siteKey = process.env.TURNSTILE_SITE_KEY;
+	if (siteKey) return siteKey;
+	if (command === "build") throw new Error("TURNSTILE_SITE_KEY is not set");
+	return alwaysPassesTurnstileSiteKey;
+};
+
+export default defineConfig(({ command }) => ({
 	plugins: [lingui({ macroTransform: true }), react(), tailwindcss()],
 	envPrefix: ["VITE_", "POSTHOG_KEY"],
+	define: {
+		"import.meta.env.TURNSTILE_SITE_KEY": JSON.stringify(
+			turnstileSiteKey(command),
+		),
+	},
 	server: {
 		proxy: {
 			"/api": `http://localhost:${process.env.API_PORT ?? 3000}`,
@@ -28,4 +42,4 @@ export default defineConfig({
 			},
 		},
 	},
-});
+}));
