@@ -7,6 +7,7 @@ import {
 	redirect,
 } from "@tanstack/react-router";
 import type { ApiClient } from "./api";
+import { rememberedCommitments } from "./commitments";
 import { Layout } from "./layout";
 import { Committed } from "./routes/committed";
 import { FollowUp } from "./routes/follow-up";
@@ -46,6 +47,11 @@ const prayRoute = createRoute({
 const committedRoute = createRoute({
 	getParentRoute: () => rootRoute,
 	path: "/pray/committed",
+	beforeLoad: () => {
+		if (rememberedCommitments().length === 0) {
+			throw redirect({ to: "/pray" });
+		}
+	},
 	component: Committed,
 });
 

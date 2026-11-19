@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from "react";
 import { track } from "../analytics";
 import { isChatOpen } from "../chat";
 import { readSearchEvents } from "../search-stream";
+import { useCommit } from "./useCommit";
 
 export type Exchange = {
 	entry: string;
@@ -23,6 +24,15 @@ export function useChat() {
 	const [exchange, setExchange] = useState<Exchange | null>(null);
 	const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
 	const searching = useRef<AbortController | null>(null);
+
+	const deselect = (intentionIds: string[]) =>
+		setSelected((current) => {
+			const next = new Set(current);
+			for (const intentionId of intentionIds) next.delete(intentionId);
+			return next;
+		});
+
+	const commit = useCommit({ selected, onUnavailable: deselect });
 
 	useEffect(() => {
 		if (chatOpen) {
@@ -81,6 +91,7 @@ export function useChat() {
 		searching.current = controller;
 		track("entry_sent", {});
 		setSelected(new Set());
+		commit.reset();
 		setExchange({ entry, status: "searching", note: "", suggestions: [] });
 		navigate({ to: "/pray", search: { chat: true } });
 		stream(entry, controller.signal).catch(() => {
@@ -105,5 +116,6 @@ export function useChat() {
 		selected,
 		send,
 		toggle,
+		commit,
 	};
 }

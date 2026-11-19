@@ -11,12 +11,18 @@ export type SubmitIntention = AppDependencies["submitIntention"];
 
 export type Search = AppDependencies["search"];
 
+export type Commit = AppDependencies["commit"];
+
 const submissionNotExpected: SubmitIntention = async () => {
 	throw new Error("this test does not expect a submission");
 };
 
 const searchNotExpected: Search = () => {
 	throw new Error("this test does not expect a search");
+};
+
+const commitNotExpected: Commit = async () => {
+	throw new Error("this test does not expect a commit");
 };
 
 export function searchOf(events: SearchEvent[]): Search {
@@ -65,6 +71,7 @@ export async function renderAt(
 	locale: Locale,
 	submitIntention = submissionNotExpected,
 	search = searchNotExpected,
+	commit = commitNotExpected,
 ) {
 	await switchLocale(locale);
 	const app = createApp({
@@ -76,6 +83,7 @@ export async function renderAt(
 		}),
 		submitIntention,
 		search,
+		commit,
 	});
 	const client = createApiClient(app.request);
 	const history = createMemoryHistory({ initialEntries: [path] });

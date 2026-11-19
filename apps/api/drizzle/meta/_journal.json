@@ -43,6 +43,13 @@
       "when": 1795094504259,
       "tag": "0005_intercession_suggestions",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1795102373497,
+      "tag": "0006_intercession_commitments",
+      "breakpoints": true
     }
   ]
 }

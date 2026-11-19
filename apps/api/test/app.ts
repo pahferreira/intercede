@@ -1,6 +1,7 @@
 import { type AppDependencies, createApp } from "../src/app";
 import { createSubmitIntention, type Moderate } from "../src/intentions";
 import {
+	createCommit,
 	createSearch,
 	type Embed,
 	type SearchAgent,
@@ -52,5 +53,6 @@ export const createTestApp = ({
 			consumeSubmissionLimit: createSubmissionLimit(testDatabase(), {}),
 		}),
 		search: createSearch({ database: testDatabase(), embed, agent }),
+		commit: createCommit({ database: testDatabase() }),
 		...overrides,
 	});

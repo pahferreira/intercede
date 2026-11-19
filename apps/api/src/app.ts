@@ -1,6 +1,11 @@
 import { Hono } from "hono";
 import { intentionRoutes, type SubmitIntention } from "./intentions";
-import { type Search, searchRoutes } from "./intercession";
+import {
+	type Commit,
+	commitRoutes,
+	type Search,
+	searchRoutes,
+} from "./intercession";
 import type {
 	Analytics,
 	AnalyticsEnv,
@@ -34,6 +39,7 @@ export type AppDependencies = {
 	openAnalytics: OpenAnalytics;
 	submitIntention: SubmitIntention;
 	search: Search;
+	commit: Commit;
 };
 
 export const createApp = ({
@@ -41,6 +47,7 @@ export const createApp = ({
 	openAnalytics,
 	submitIntention,
 	search,
+	commit,
 }: AppDependencies) =>
 	new Hono<AnalyticsEnv>()
 		.basePath("/api")
@@ -74,7 +81,12 @@ export const createApp = ({
 			return c.json({ status: "error", database: "unreachable" } as const, 503);
 		})
 		.route("/", intentionRoutes(submitIntention))
-		.route("/", searchRoutes(search));
+		.route("/", searchRoutes(search))
+		.route("/", commitRoutes(commit));
 
 export type AppType = ReturnType<typeof createApp>;
-export type { SearchEvent, Suggestion } from "./intercession";
+export type {
+	Commitment,
+	SearchEvent,
+	Suggestion,
+} from "./intercession";

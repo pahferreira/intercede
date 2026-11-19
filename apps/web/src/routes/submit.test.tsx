@@ -66,7 +66,9 @@ test("the Submit screen is shown in Portuguese", async () => {
 			name: "Envie sua intenção de oração",
 		}),
 	).toBeDefined();
-	expect(screen.getByRole("button", { name: "Pular" })).toBeDefined();
+	expect(
+		screen.getByRole("button", { name: "Rezar pelos Outros" }),
+	).toBeDefined();
 	expect(screen.getByRole("button", { name: "Enviar" })).toBeDefined();
 });
 
@@ -209,10 +211,12 @@ test.each([
 	},
 );
 
-test("Skip goes to /pray and is counted", async () => {
+test("'Pray for Others' goes to /pray and is counted", async () => {
 	await renderAt("/", "en");
 
-	fireEvent.click(await screen.findByRole("button", { name: "Skip" }));
+	fireEvent.click(
+		await screen.findByRole("button", { name: "Pray for Others" }),
+	);
 
 	expect(
 		await screen.findByRole("textbox", { name: entryLabel }),
@@ -222,7 +226,9 @@ test("Skip goes to /pray and is counted", async () => {
 
 test("after a skip, / goes straight to /pray", async () => {
 	const first = await renderAt("/", "en");
-	fireEvent.click(await screen.findByRole("button", { name: "Skip" }));
+	fireEvent.click(
+		await screen.findByRole("button", { name: "Pray for Others" }),
+	);
 	await screen.findByRole("textbox", { name: entryLabel });
 	first.unmount();
 
@@ -248,8 +254,13 @@ test("after a submit, / goes straight to /pray", async () => {
 });
 
 test.each([
-	["en", "Skip", "Ask for prayer", "Submit your prayer intention"],
-	["pt-BR", "Pular", "Pedir oração", "Envie sua intenção de oração"],
+	["en", "Pray for Others", "Ask for prayer", "Submit your prayer intention"],
+	[
+		"pt-BR",
+		"Rezar pelos Outros",
+		"Pedir oração",
+		"Envie sua intenção de oração",
+	],
 ] as const)(
 	"Ask for prayer in %s opens the Submit screen even after a skip",
 	async (locale, skip, ask, heading) => {
@@ -314,14 +325,14 @@ test.each([
 	[
 		"en",
 		"Submit",
-		"Skip",
+		"Pray for Others",
 		entryLabel,
 		"You've reached today's limit for intentions. Come back tomorrow, or skip to pray for others.",
 	],
 	[
 		"pt-BR",
 		"Enviar",
-		"Pular",
+		"Rezar pelos Outros",
 		"O que está no seu coração para rezar hoje?",
 		"Você atingiu o limite de intenções de hoje. Volte amanhã ou pule para rezar pelos outros.",
 	],
