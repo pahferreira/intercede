@@ -53,9 +53,11 @@ export type TurnstileWidget = {
 
 export function renderInvisibleWidget(
 	api: TurnstileApi,
-	container: HTMLElement,
+	host: HTMLElement,
 	sitekey: string,
 ): TurnstileWidget {
+	const container = document.createElement("div");
+	host.append(container);
 	let pending: PromiseWithResolvers<string> | undefined;
 	let executed = false;
 	const fail = () =>
@@ -77,6 +79,9 @@ export function renderInvisibleWidget(
 			api.execute(widgetId);
 			return pending.promise;
 		},
-		remove: () => api.remove(widgetId),
+		remove: () => {
+			api.remove(widgetId);
+			container.remove();
+		},
 	};
 }

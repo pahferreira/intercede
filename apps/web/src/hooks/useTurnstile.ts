@@ -25,10 +25,11 @@ export function useTurnstile() {
 	useEffect(() => {
 		const element = container.current;
 		if (!element) return;
-		const rendering = render(widget, element);
+		render(widget, element);
 		return () => {
+			const rendering = widget.current;
 			widget.current = undefined;
-			rendering.then(
+			rendering?.then(
 				(rendered) => rendered.remove(),
 				() => {},
 			);

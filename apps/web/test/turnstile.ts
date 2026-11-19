@@ -5,10 +5,16 @@ export class FakeTurnstile implements TurnstileApi {
 	ending: "timeout" | "unsupported" | undefined;
 	executions = 0;
 	private widgets = new Map<string, TurnstileOptions>();
+	private containers = new Map<HTMLElement, string>();
+	private rendered = 0;
 
-	render(_container: HTMLElement, options: TurnstileOptions) {
-		const id = `widget-${this.widgets.size + 1}`;
+	render(container: HTMLElement, options: TurnstileOptions) {
+		const existing = this.containers.get(container);
+		if (existing) return existing;
+		this.rendered++;
+		const id = `widget-${this.rendered}`;
 		this.widgets.set(id, options);
+		this.containers.set(container, id);
 		return id;
 	}
 
@@ -31,6 +37,9 @@ export class FakeTurnstile implements TurnstileApi {
 
 	remove(widgetId: string) {
 		this.widgets.delete(widgetId);
+		for (const [container, id] of this.containers) {
+			if (id === widgetId) this.containers.delete(container);
+		}
 	}
 }
 
