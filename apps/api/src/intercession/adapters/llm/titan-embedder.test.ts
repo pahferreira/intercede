@@ -47,7 +47,9 @@ const embedding = Array.from(
 
 const titanAnswers =
 	(answer: unknown = { embedding, inputTextTokenCount: 8 }) =>
-	(): Reply => ({ status: 200, body: answer });
+	(): Reply => {
+		return { status: 200, body: answer };
+	};
 
 function recordingAnalytics() {
 	const generations: LlmGeneration[] = [];
@@ -64,13 +66,14 @@ function recordingAnalytics() {
 	return { analytics, generations, exceptions };
 }
 
-const embedderFor = (bedrock: ReturnType<typeof fakeBedrock>) =>
-	createTitanEmbedder({
+const embedderFor = (bedrock: ReturnType<typeof fakeBedrock>) => {
+	return createTitanEmbedder({
 		region: "us-east-1",
 		credentials: { accessKeyId: "AKIATEST", secretAccessKey: "secret" },
 		maxAttempts: 1,
 		requestHandler: bedrock.requestHandler,
 	});
+};
 
 test("a text comes back as Titan's 512-dimension embedding", async () => {
 	const bedrock = fakeBedrock(titanAnswers());

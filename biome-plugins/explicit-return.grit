@@ -1,0 +1,27 @@
+language js
+
+or {
+	JsVariableDeclarator(initializer=JsInitializerClause(expression=$arrow)) where {
+		$arrow <: JsArrowFunctionExpression(body=$body),
+		$body <: not or {
+			JsFunctionBody(),
+			JsArrowFunctionExpression()
+		},
+		$arrow <: r"[\s\S]*\n[\s\S]*",
+		register_diagnostic(span=$body, message="Only a one-line arrow function may skip `return`; give this one a block body.")
+	},
+	JsArrowFunctionExpression(body=JsArrowFunctionExpression(body=$body)) where {
+		$body <: not or {
+			JsFunctionBody(),
+			JsArrowFunctionExpression()
+		},
+		register_diagnostic(span=$body, message="The innermost arrow of a curried function needs a block body with an explicit `return`.")
+	},
+	JsReturnStatement(argument=JsArrowFunctionExpression(body=$body)) where {
+		$body <: not or {
+			JsFunctionBody(),
+			JsArrowFunctionExpression()
+		},
+		register_diagnostic(span=$body, message="A returned arrow function needs a block body with an explicit `return`.")
+	}
+}

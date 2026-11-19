@@ -12,10 +12,12 @@ export type Commit = (
 	batch: CommitmentBatch,
 ) => Promise<Result<Commitment[], NotSuggested>>;
 
+type CommitDeps = { database: Database };
+
 export const createCommit =
-	({ database }: { database: Database }): Commit =>
-	({ visitorId, intentionIds }) =>
-		database.transaction(async (tx) => {
+	({ database }: CommitDeps): Commit =>
+	({ visitorId, intentionIds }) => {
+		return database.transaction(async (tx) => {
 			const requested = [...new Set(intentionIds)];
 			const committable = new Map(
 				(await findCommittable(tx, { visitorId, intentionIds: requested })).map(
@@ -35,3 +37,4 @@ export const createCommit =
 				value: requested.flatMap((id) => committable.get(id) ?? []),
 			};
 		});
+	};

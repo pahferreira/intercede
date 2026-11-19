@@ -13,14 +13,13 @@ type KeepCatalogInStep = (
 	analytics: Analytics,
 ) => Promise<Result<void, EmbeddingUnavailable>>;
 
+type KeepCatalogInStepDeps = {
+	database: Database;
+	embed: Embed;
+};
+
 export const createKeepCatalogInStep =
-	({
-		database,
-		embed,
-	}: {
-		database: Database;
-		embed: Embed;
-	}): KeepCatalogInStep =>
+	({ database, embed }: KeepCatalogInStepDeps): KeepCatalogInStep =>
 	async (event, analytics) => {
 		switch (event.type) {
 			case "IntentionArchived":

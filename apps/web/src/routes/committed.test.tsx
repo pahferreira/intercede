@@ -105,17 +105,19 @@ async function openSuggestions(
 	return rendered;
 }
 
-const selectionBoxes = (locale: keyof typeof labels) =>
-	screen.getAllByRole<HTMLInputElement>("checkbox", {
+const selectionBoxes = (locale: keyof typeof labels) => {
+	return screen.getAllByRole<HTMLInputElement>("checkbox", {
 		name: labels[locale].select,
 	});
+};
 
 test.each(["en", "pt-BR"] as const)(
 	"in %s, I commit! shows only while at least one Suggestion is checked",
 	async (locale) => {
 		await openSuggestions(locale);
-		const commit = () =>
-			screen.queryByRole("button", { name: labels[locale].commit });
+		const commit = () => {
+			return screen.queryByRole("button", { name: labels[locale].commit });
+		};
 		const [first] = selectionBoxes(locale) as [HTMLInputElement];
 
 		expect(commit()).toBeNull();

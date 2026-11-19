@@ -39,28 +39,30 @@ function fakeBedrock(reply: () => Reply) {
 	return { requests, requestHandler };
 }
 
-const novaAnswers = (verdict: unknown) => (): Reply => ({
-	status: 200,
-	body: {
-		output: {
-			message: {
-				role: "assistant",
-				content: [
-					{
-						toolUse: {
-							toolUseId: "tooluse_test",
-							name: "record_verdict",
-							input: verdict,
+const novaAnswers = (verdict: unknown) => (): Reply => {
+	return {
+		status: 200,
+		body: {
+			output: {
+				message: {
+					role: "assistant",
+					content: [
+						{
+							toolUse: {
+								toolUseId: "tooluse_test",
+								name: "record_verdict",
+								input: verdict,
+							},
 						},
-					},
-				],
+					],
+				},
 			},
+			stopReason: "tool_use",
+			usage: { inputTokens: 400, outputTokens: 20, totalTokens: 420 },
+			metrics: { latencyMs: 300 },
 		},
-		stopReason: "tool_use",
-		usage: { inputTokens: 400, outputTokens: 20, totalTokens: 420 },
-		metrics: { latencyMs: 300 },
-	},
-});
+	};
+};
 
 function recordingAnalytics() {
 	const generations: LlmGeneration[] = [];
@@ -77,13 +79,14 @@ function recordingAnalytics() {
 	return { analytics, generations, exceptions };
 }
 
-const moderatorFor = (bedrock: ReturnType<typeof fakeBedrock>) =>
-	createNovaModerator({
+const moderatorFor = (bedrock: ReturnType<typeof fakeBedrock>) => {
+	return createNovaModerator({
 		region: "us-east-1",
 		credentials: { accessKeyId: "AKIATEST", secretAccessKey: "secret" },
 		maxAttempts: 1,
 		requestHandler: bedrock.requestHandler,
 	});
+};
 
 test("a publishable text comes back with the language Nova detected", async () => {
 	const bedrock = fakeBedrock(novaAnswers({ language: "pt", reasons: [] }));

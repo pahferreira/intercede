@@ -14,15 +14,18 @@ import type { SearchEvent } from "./domain/search-event";
 
 const queryAxis = 0;
 
-const embeddingAt = (position: number) =>
-	Array.from({ length: embeddingDimensions }, (_, index) =>
+const embeddingAt = (position: number) => {
+	return Array.from({ length: embeddingDimensions }, (_, index) =>
 		index === position ? 1 : 0,
 	);
+};
 
-const embedsQuery: Embed = async () => ({
-	ok: true,
-	value: embeddingAt(queryAxis),
-});
+const embedsQuery: Embed = async () => {
+	return {
+		ok: true,
+		value: embeddingAt(queryAxis),
+	};
+};
 
 let ownAxis = queryAxis;
 
@@ -50,25 +53,27 @@ const inCatalog = async (
 
 const brotherJob = "0b6f6f8e-3c0e-4a8e-9a43-3f1c2d4b5a61";
 
-const scripted = (...steps: AgentEvent[][]): SearchAgent =>
-	async function* () {
+const scripted = (...steps: AgentEvent[][]): SearchAgent => {
+	return async function* () {
 		const step = steps.shift() ?? [];
 		yield* step;
 	};
+};
 
 const send = (
 	app: ReturnType<typeof createTestApp>,
 	entry: string,
 	headers: Record<string, string> = {},
-) =>
-	app.request("/api/search", {
+) => {
+	return app.request("/api/search", {
 		method: "POST",
 		headers: { "content-type": "application/json", ...headers },
 		body: JSON.stringify({ entry }),
 	});
+};
 
-const eventsOf = async (response: Response): Promise<SearchEvent[]> =>
-	(await response.text())
+const eventsOf = async (response: Response): Promise<SearchEvent[]> => {
+	return (await response.text())
 		.split("\n\n")
 		.filter((frame) => frame.trim() !== "")
 		.map((frame) => {
@@ -76,6 +81,7 @@ const eventsOf = async (response: Response): Promise<SearchEvent[]> =>
 			const data = /^data: (.+)$/m.exec(frame)?.[1];
 			return { type, data: JSON.parse(data ?? "null") } as SearchEvent;
 		});
+};
 
 test("an Entry streams the note and the Suggestions found in the Catalog", async () => {
 	await inCatalog(brotherJob, "For my brother's new job");
@@ -276,11 +282,12 @@ const foundBy = async (
 		: [];
 };
 
-const searchesOnce = () =>
-	recordingTurns(
+const searchesOnce = () => {
+	return recordingTurns(
 		[{ type: "find_intentions", calls: [{ id: "c1", query: "a new job" }] }],
 		[{ type: "present_suggestions", suggestions: [] }],
 	);
+};
 
 const sisterExams = "0b6f6f8e-3c0e-4a8e-9a43-3f1c2d4b5a62";
 const friendHealth = "0b6f6f8e-3c0e-4a8e-9a43-3f1c2d4b5a63";
@@ -320,12 +327,13 @@ const intentionIds = Array.from(
 	(_, index) => `0b6f6f8e-3c0e-4a8e-9a43-3f1c2d4b5a7${index}`,
 );
 
-const suggestionIdsOf = (events: SearchEvent[]) =>
-	events.flatMap((event) =>
+const suggestionIdsOf = (events: SearchEvent[]) => {
+	return events.flatMap((event) =>
 		event.type === "suggestions"
 			? event.data.suggestions.map((suggestion) => suggestion.intentionId)
 			: [],
 	);
+};
 
 test("Suggestions only reference Intentions found in this request, once each, at most 5", async () => {
 	for (const [index, id] of intentionIds.entries()) {

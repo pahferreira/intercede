@@ -129,13 +129,14 @@ function recordingAnalytics() {
 	return { analytics, generations, exceptions };
 }
 
-const agentFor = (bedrock: ReturnType<typeof fakeBedrock>) =>
-	createNovaSearchAgent({
+const agentFor = (bedrock: ReturnType<typeof fakeBedrock>) => {
+	return createNovaSearchAgent({
 		region: "us-east-1",
 		credentials: { accessKeyId: "AKIATEST", secretAccessKey: "secret" },
 		maxAttempts: 1,
 		requestHandler: bedrock.requestHandler,
 	});
+};
 
 const firstTurn: SearchAgentTurn = {
 	entry: "Someone looking for work",

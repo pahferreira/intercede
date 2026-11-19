@@ -7,10 +7,11 @@ import type { Language } from "../intentions";
 import { catalog } from "./adapters/persistence/schema";
 import { type Embed, embeddingDimensions } from "./application/embed";
 
-const embeddingOf = (text: string) =>
-	Array.from({ length: embeddingDimensions }, (_, index) =>
+const embeddingOf = (text: string) => {
+	return Array.from({ length: embeddingDimensions }, (_, index) =>
 		index === text.length ? 1 : 0,
 	);
+};
 
 const embeds: Embed = async (text) => ({ ok: true, value: embeddingOf(text) });
 
@@ -53,10 +54,11 @@ test("a published Intention enters the Catalog with its language and embedding",
 	]);
 });
 
-const catalogIntentionIds = async () =>
-	(await testDatabase().select().from(catalog)).map(
+const catalogIntentionIds = async () => {
+	return (await testDatabase().select().from(catalog)).map(
 		(entry) => entry.intentionId,
 	);
+};
 
 const archive = async (intentionId: string) => {
 	await testDatabase().execute(
@@ -98,10 +100,12 @@ test("a processed event is not dispatched on the next tick", async () => {
 	expect(await testDatabase().select().from(catalog)).toHaveLength(1);
 });
 
-const embeddingUnavailable: Embed = async () => ({
-	ok: false,
-	error: { kind: "embedding_unavailable" },
-});
+const embeddingUnavailable: Embed = async () => {
+	return {
+		ok: false,
+		error: { kind: "embedding_unavailable" },
+	};
+};
 
 test("a failed embedding is retried on the next tick", async () => {
 	await publish("For my brother's new job");
@@ -131,10 +135,11 @@ test("an archival waits for its Intention's failed embedding instead of overtaki
 test("one Intention's failed embedding does not hold back the others", async () => {
 	await publish("For my brother's new job");
 	await publish("For my sister's exams");
-	const embedsAllButTheBrother: Embed = async (text, analytics) =>
-		text.includes("brother")
+	const embedsAllButTheBrother: Embed = async (text, analytics) => {
+		return text.includes("brother")
 			? embeddingUnavailable(text, analytics)
 			: embeds(text, analytics);
+	};
 
 	await quietly(createTestSweep({ embed: embedsAllButTheBrother }));
 

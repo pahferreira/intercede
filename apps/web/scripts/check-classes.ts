@@ -27,11 +27,14 @@ const quoted = /"([^"\n]*)"|'([^'\n]*)'/g;
 const templated = /`([^`]*)`/g;
 const interpolation = /\$\{[^}]*\}/g;
 
-const isUnknownClass = (candidate: string) =>
-	/[-:]/.test(candidate) &&
-	!locales.some((locale) => locale === candidate) &&
-	designSystem.parseCandidate(candidate).length > 0 &&
-	designSystem.candidatesToCss([candidate])[0] === null;
+const isUnknownClass = (candidate: string) => {
+	return (
+		/[-:]/.test(candidate) &&
+		!locales.some((locale) => locale === candidate) &&
+		designSystem.parseCandidate(candidate).length > 0 &&
+		designSystem.candidatesToCss([candidate])[0] === null
+	);
+};
 
 const unknownClasses = (source: string) => {
 	const blank = (part: string) => " ".repeat(part.length);

@@ -48,8 +48,8 @@ export const createApp = ({
 	submitIntention,
 	search,
 	commit,
-}: AppDependencies) =>
-	new Hono<AnalyticsEnv>()
+}: AppDependencies) => {
+	return new Hono<AnalyticsEnv>()
 		.basePath("/api")
 		.use(async (c, next) => {
 			const analytics = openAnalytics();
@@ -83,6 +83,7 @@ export const createApp = ({
 		.route("/", intentionRoutes(submitIntention))
 		.route("/", searchRoutes(search))
 		.route("/", commitRoutes(commit));
+};
 
 export type AppType = ReturnType<typeof createApp>;
 export type {

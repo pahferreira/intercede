@@ -28,11 +28,12 @@ const inCatalog = async (intentionId: string, text: string) => {
 	});
 };
 
-const suggestedTo = (visitorId: string, ...intentionIds: string[]) =>
-	recordSuggestions(testDatabase(), visitorId, intentionIds);
+const suggestedTo = (visitorId: string, ...intentionIds: string[]) => {
+	return recordSuggestions(testDatabase(), visitorId, intentionIds);
+};
 
-const commit = (intentionIds: string[], visitorId = visitor) =>
-	createTestApp().request("/api/commitments", {
+const commit = (intentionIds: string[], visitorId = visitor) => {
+	return createTestApp().request("/api/commitments", {
 		method: "POST",
 		headers: {
 			"content-type": "application/json",
@@ -40,11 +41,13 @@ const commit = (intentionIds: string[], visitorId = visitor) =>
 		},
 		body: JSON.stringify({ intentionIds }),
 	});
+};
 
-const commitmentRows = () =>
-	testDatabase().execute<{ visitor_id: string; intention_id: string }>(
+const commitmentRows = () => {
+	return testDatabase().execute<{ visitor_id: string; intention_id: string }>(
 		sql`select visitor_id, intention_id from intercession.commitments order by intention_id`,
 	);
+};
 
 test("an Intercessor commits to the Suggestions they selected and gets their full text back", async () => {
 	await inCatalog(brotherJob, "For my brother's new job");

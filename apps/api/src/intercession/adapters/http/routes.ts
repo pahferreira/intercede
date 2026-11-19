@@ -13,13 +13,15 @@ const searchRequest = z.object({
 	entry: z.string().trim().min(entryLength.min).max(entryLength.max),
 });
 
-const asFrame = (event: SearchEvent) => ({
-	event: event.type,
-	data: JSON.stringify(event.data),
-});
+const asFrame = (event: SearchEvent) => {
+	return {
+		event: event.type,
+		data: JSON.stringify(event.data),
+	};
+};
 
-export const searchRoutes = (search: Search) =>
-	new Hono<AnalyticsEnv>()
+export const searchRoutes = (search: Search) => {
+	return new Hono<AnalyticsEnv>()
 		.use("/search", visitorCookie)
 		.post("/search", zValidator("json", searchRequest), (c) => {
 			const { entry } = c.req.valid("json");
@@ -36,3 +38,4 @@ export const searchRoutes = (search: Search) =>
 				}
 			});
 		});
+};

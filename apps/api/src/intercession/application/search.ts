@@ -30,8 +30,8 @@ export const createSearch = ({
 	database: Database;
 	embed: Embed;
 	agent: SearchAgent;
-}): Search =>
-	async function* (
+}): Search => {
+	return async function* (
 		{ entry, visitorId },
 		analytics,
 	): AsyncGenerator<SearchEvent> {
@@ -111,3 +111,4 @@ export const createSearch = ({
 			steps.push(results);
 		}
 	};
+};

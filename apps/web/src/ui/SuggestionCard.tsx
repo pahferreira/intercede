@@ -33,7 +33,9 @@ export function SuggestionCard(props: SuggestionCardProps) {
 		measure();
 		const observer = new ResizeObserver(measure);
 		observer.observe(element);
-		return () => observer.disconnect();
+		return () => {
+			observer.disconnect();
+		};
 	}, []);
 
 	return (

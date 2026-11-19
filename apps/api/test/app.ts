@@ -39,8 +39,8 @@ export const createTestApp = ({
 	embed = embeddingNotExpected,
 	agent = agentNotExpected,
 	...overrides
-}: TestAppOverrides = {}) =>
-	createApp({
+}: TestAppOverrides = {}) => {
+	return createApp({
 		isDatabaseReachable: createDatabaseProbe(testDatabase()),
 		openAnalytics: createPostHogAnalytics({
 			key: undefined,
@@ -56,3 +56,4 @@ export const createTestApp = ({
 		commit: createCommit({ database: testDatabase() }),
 		...overrides,
 	});
+};

@@ -127,5 +127,6 @@
 				}
 			}
 		}
-	]
+	],
+	"plugins": ["./biome-plugins/explicit-return.grit"]
 }

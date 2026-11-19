@@ -19,8 +19,8 @@ function fakeBedrock(reply: () => Response) {
 	return { requests, fetch: fetch as typeof globalThis.fetch };
 }
 
-const claudeAnswers = (verdict: unknown) => () =>
-	Response.json({
+const claudeAnswers = (verdict: unknown) => () => {
+	return Response.json({
 		id: "msg_test",
 		type: "message",
 		role: "assistant",
@@ -30,6 +30,7 @@ const claudeAnswers = (verdict: unknown) => () =>
 		stop_sequence: null,
 		usage: { input_tokens: 400, output_tokens: 20 },
 	});
+};
 
 function recordingAnalytics() {
 	const generations: LlmGeneration[] = [];
@@ -46,16 +47,19 @@ function recordingAnalytics() {
 	return { analytics, generations, exceptions };
 }
 
-const moderatorFor = (bedrock: ReturnType<typeof fakeBedrock>) =>
-	createAnthropicModerator({
+const moderatorFor = (bedrock: ReturnType<typeof fakeBedrock>) => {
+	return createAnthropicModerator({
 		awsRegion: "us-east-1",
-		providerChainResolver: async () => async () => ({
-			accessKeyId: "AKIATEST",
-			secretAccessKey: "secret",
-		}),
+		providerChainResolver: async () => async () => {
+			return {
+				accessKeyId: "AKIATEST",
+				secretAccessKey: "secret",
+			};
+		},
 		maxRetries: 0,
 		fetch: bedrock.fetch,
 	});
+};
 
 test("a publishable text comes back with the language Claude detected", async () => {
 	const bedrock = fakeBedrock(claudeAnswers({ language: "pt", reasons: [] }));

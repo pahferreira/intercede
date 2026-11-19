@@ -13,8 +13,8 @@ const commitmentsBody = z.object({
 	intentionIds: z.array(z.uuid()).min(1).max(maxCommitmentsPerBatch),
 });
 
-export const commitRoutes = (commit: Commit) =>
-	new Hono<AnalyticsEnv>()
+export const commitRoutes = (commit: Commit) => {
+	return new Hono<AnalyticsEnv>()
 		.use("/commitments", visitorCookie)
 		.post("/commitments", zValidator("json", commitmentsBody), async (c) => {
 			const batch: CommitmentBatch = {
@@ -36,3 +36,4 @@ export const commitRoutes = (commit: Commit) =>
 				422,
 			);
 		});
+};

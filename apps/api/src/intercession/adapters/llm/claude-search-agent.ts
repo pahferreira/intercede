@@ -34,8 +34,8 @@ const claudeTools: Tool[] = tools.map(({ name, description, inputSchema }) => ({
 	input_schema: inputSchema,
 }));
 
-const toolResult = ({ call, outcome }: FindIntentionsResult) =>
-	outcome.kind === "found"
+const toolResult = ({ call, outcome }: FindIntentionsResult) => {
+	return outcome.kind === "found"
 		? {
 				type: "tool_result" as const,
 				tool_use_id: call.id,
@@ -47,25 +47,31 @@ const toolResult = ({ call, outcome }: FindIntentionsResult) =>
 				content: limitReachedResult,
 				is_error: true,
 			};
+};
 
-const messagesFor = ({ entry, steps }: SearchAgentTurn): MessageParam[] => [
-	{ role: "user", content: asEntry(entry) },
-	...steps.flatMap((results): MessageParam[] => [
-		{
-			role: "assistant",
-			content: results.map(({ call }) => ({
-				type: "tool_use" as const,
-				id: call.id,
-				name: "find_intentions",
-				input: { query: call.query },
-			})),
-		},
-		{ role: "user", content: results.map(toolResult) },
-	]),
-];
+const messagesFor = ({ entry, steps }: SearchAgentTurn): MessageParam[] => {
+	return [
+		{ role: "user", content: asEntry(entry) },
+		...steps.flatMap((results): MessageParam[] => [
+			{
+				role: "assistant",
+				content: results.map(({ call }) => ({
+					type: "tool_use" as const,
+					id: call.id,
+					name: "find_intentions",
+					input: { query: call.query },
+				})),
+			},
+			{ role: "user", content: results.map(toolResult) },
+		]),
+	];
+};
 
-const toolChoiceFor = ({ mustPresent }: SearchAgentTurn): ToolChoice =>
-	mustPresent ? { type: "tool", name: "present_suggestions" } : { type: "any" };
+const toolChoiceFor = ({ mustPresent }: SearchAgentTurn): ToolChoice => {
+	return mustPresent
+		? { type: "tool", name: "present_suggestions" }
+		: { type: "any" };
+};
 
 export const createClaudeSearchAgent = (
 	options: Omit<

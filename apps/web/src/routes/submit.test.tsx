@@ -27,17 +27,21 @@ const eventNames = () => events.map(({ event }) => event);
 
 const published = { code: "INT-7K3QD" };
 
-const publishes: SubmitIntention = async () => ({
-	ok: true,
-	value: published,
-});
+const publishes: SubmitIntention = async () => {
+	return {
+		ok: true,
+		value: published,
+	};
+};
 
 const rejects =
 	(...reasons: ("spam" | "abuse" | "personal_data" | "off_topic")[]) =>
-	async () => ({
-		ok: false as const,
-		error: { kind: "rejected" as const, reasons },
-	});
+	async () => {
+		return {
+			ok: false as const,
+			error: { kind: "rejected" as const, reasons },
+		};
+	};
 
 const textbox = () => screen.getByRole("textbox") as HTMLTextAreaElement;
 
