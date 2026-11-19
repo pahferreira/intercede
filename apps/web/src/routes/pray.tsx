@@ -99,7 +99,7 @@ function EntryForm(props: EntryFormProps) {
 			}}
 		>
 			<Textarea
-				label={t`What's in your heart to pray for today?`}
+				label={t`What would you like to pray for today?`}
 				labelStyle="title"
 				value={text}
 				onChange={setText}

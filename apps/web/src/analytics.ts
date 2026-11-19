@@ -10,8 +10,8 @@ const rejectionReasons = [
 const events = {
 	submit_viewed: {},
 	submit_skipped: {},
-	intention_submitted: {},
-	intention_rejected: { reason: rejectionReasons },
+	prayer_request_submitted: {},
+	prayer_request_rejected: { reason: rejectionReasons },
 	entry_sent: {},
 	clarifying_question_shown: {},
 	refinement_sent: { n: "count" },

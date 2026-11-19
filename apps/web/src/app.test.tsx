@@ -13,7 +13,7 @@ test("/intention/:code renders its stub screen", async () => {
 
 test("language toggle marks the current language as pressed", async () => {
 	await renderAt("/", "pt-BR");
-	await screen.findByRole("heading", { name: "Envie sua intenção de oração" });
+	await screen.findByRole("heading", { name: "Envie seu pedido de oração" });
 
 	const group = screen.getByRole("group", { name: "Idioma" });
 	expect(group).toBeDefined();
@@ -27,7 +27,7 @@ test("language toggle marks the current language as pressed", async () => {
 
 test("language toggle switches the page language and remembers it", async () => {
 	await renderAt("/", "en");
-	await screen.findByRole("heading", { name: "Submit your prayer intention" });
+	await screen.findByRole("heading", { name: "Submit your prayer request" });
 	expect(
 		screen.getByRole("button", { name: "English", pressed: true }),
 	).toBeDefined();
@@ -36,7 +36,7 @@ test("language toggle switches the page language and remembers it", async () => 
 
 	expect(
 		await screen.findByRole("heading", {
-			name: "Envie sua intenção de oração",
+			name: "Envie seu pedido de oração",
 		}),
 	).toBeDefined();
 	expect(localStorage.getItem("intercede.locale")).toBe("pt-BR");
@@ -45,7 +45,7 @@ test("language toggle switches the page language and remembers it", async () => 
 
 	expect(
 		await screen.findByRole("heading", {
-			name: "Submit your prayer intention",
+			name: "Submit your prayer request",
 		}),
 	).toBeDefined();
 	expect(localStorage.getItem("intercede.locale")).toBe("en");

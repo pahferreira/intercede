@@ -3,7 +3,7 @@ import { fireEvent, screen } from "@testing-library/react";
 import { renderAt, type SubmitIntention } from "../../test/render";
 import { initAnalytics } from "../analytics";
 
-const entryLabel = "What's in your heart to pray for today?";
+const entryLabel = "What would you like to pray for today?";
 
 let events: { event: string; properties: unknown }[] = [];
 const posthog = {

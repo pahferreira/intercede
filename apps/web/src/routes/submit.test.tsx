@@ -4,7 +4,7 @@ import { renderAt, type SubmitIntention } from "../../test/render";
 import { installTurnstile } from "../../test/turnstile";
 import { initAnalytics } from "../analytics";
 
-const entryLabel = "What's in your heart to pray for today?";
+const entryLabel = "What would you like to pray for today?";
 
 let events: { event: string; properties: unknown }[] = [];
 const posthog = {
@@ -55,7 +55,7 @@ test("the Submit screen is shown and counted as viewed", async () => {
 
 	expect(
 		await screen.findByRole("heading", {
-			name: "Submit your prayer intention",
+			name: "Submit your prayer request",
 		}),
 	).toBeDefined();
 	expect(screen.getByText("Welcome to")).toBeDefined();
@@ -67,7 +67,7 @@ test("the Submit screen is shown in Portuguese", async () => {
 
 	expect(
 		await screen.findByRole("heading", {
-			name: "Envie sua intenção de oração",
+			name: "Envie seu pedido de oração",
 		}),
 	).toBeDefined();
 	expect(
@@ -131,7 +131,7 @@ test("a published Intention goes to /pray and is counted", async () => {
 			turnstileToken: "turnstile-token-1",
 		},
 	]);
-	expect(eventNames()).toEqual(["submit_viewed", "intention_submitted"]);
+	expect(eventNames()).toEqual(["submit_viewed", "prayer_request_submitted"]);
 });
 
 test.each([
@@ -183,8 +183,11 @@ test("each rejection reason is counted, never the text", async () => {
 
 	expect(events).toEqual([
 		{ event: "submit_viewed", properties: {} },
-		{ event: "intention_rejected", properties: { reason: "personal_data" } },
-		{ event: "intention_rejected", properties: { reason: "spam" } },
+		{
+			event: "prayer_request_rejected",
+			properties: { reason: "personal_data" },
+		},
+		{ event: "prayer_request_rejected", properties: { reason: "spam" } },
 	]);
 });
 
@@ -192,12 +195,12 @@ test.each([
 	[
 		"en",
 		"Submit",
-		"We couldn't check your intention right now. Please try again in a moment.",
+		"We couldn't check your prayer request right now. Please try again in a moment.",
 	],
 	[
 		"pt-BR",
 		"Enviar",
-		"Não conseguimos verificar sua intenção agora. Tente novamente em instantes.",
+		"Não conseguimos verificar seu pedido agora. Tente novamente em instantes.",
 	],
 ] as const)(
 	"an unavailable moderation in %s asks to try again and keeps the text",
@@ -258,13 +261,8 @@ test("after a submit, / goes straight to /pray", async () => {
 });
 
 test.each([
-	["en", "Pray for Others", "Ask for prayer", "Submit your prayer intention"],
-	[
-		"pt-BR",
-		"Rezar pelos Outros",
-		"Pedir oração",
-		"Envie sua intenção de oração",
-	],
+	["en", "Pray for Others", "Ask for prayer", "Submit your prayer request"],
+	["pt-BR", "Rezar pelos Outros", "Pedir oração", "Envie seu pedido de oração"],
 ] as const)(
 	"Ask for prayer in %s opens the Submit screen even after a skip",
 	async (locale, skip, ask, heading) => {
@@ -331,14 +329,14 @@ test.each([
 		"Submit",
 		"Pray for Others",
 		entryLabel,
-		"You've reached today's limit for intentions. Come back tomorrow, or skip to pray for others.",
+		"You've reached today's limit for prayer requests. Come back tomorrow, or skip to pray for others.",
 	],
 	[
 		"pt-BR",
 		"Enviar",
 		"Rezar pelos Outros",
-		"O que está no seu coração para rezar hoje?",
-		"Você atingiu o limite de intenções de hoje. Volte amanhã ou pule para rezar pelos outros.",
+		"Pelo que você quer interceder hoje?",
+		"Você atingiu o limite de pedidos de oração de hoje. Volte amanhã ou pule para rezar pelos outros.",
 	],
 ] as const)(
 	"a reached submission limit in %s is shown inline and Skip still works",

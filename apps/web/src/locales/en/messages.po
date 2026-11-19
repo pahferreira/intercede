@@ -157,8 +157,8 @@ msgid "Submit"
 msgstr "Submit"
 
 #: src/routes/submit.tsx:51
-msgid "Submit your prayer intention"
-msgstr "Submit your prayer intention"
+msgid "Submit your prayer request"
+msgstr "Submit your prayer request"
 
 #: src/routes/submit.tsx:103
 msgid "Submitting…"
@@ -173,37 +173,37 @@ msgid "Tell me more…"
 msgstr "Tell me more…"
 
 #: src/ui/IntentionCard.tsx:37
-msgid "This intention is no longer being suggested"
-msgstr "This intention is no longer being suggested"
+msgid "This prayer request is no longer being suggested"
+msgstr "This prayer request is no longer being suggested"
 
 #: src/routes/submit.tsx:30
 msgid "Use initials instead of full names, and leave out contact details."
 msgstr "Use initials instead of full names, and leave out contact details."
 
 #: src/routes/submit.tsx:69
-msgid "We couldn't check your intention right now. Please try again in a moment."
-msgstr "We couldn't check your intention right now. Please try again in a moment."
+msgid "We couldn't check your prayer request right now. Please try again in a moment."
+msgstr "We couldn't check your prayer request right now. Please try again in a moment."
 
 #: src/ui/Hero.tsx:7
 msgid "Welcome to"
 msgstr "Welcome to"
 
 #: src/routes/pray.tsx:102
-msgid "What's in your heart to pray for today?"
-msgstr "What's in your heart to pray for today?"
+msgid "What would you like to pray for today?"
+msgstr "What would you like to pray for today?"
 
 #: src/routes/committed.tsx:12
 msgid "You committed to pray for these intentions:"
 msgstr "You committed to pray for these intentions:"
 
 #: src/routes/submit.tsx:82
-msgid "You've reached today's limit for intentions. Come back tomorrow, or skip to pray for others."
-msgstr "You've reached today's limit for intentions. Come back tomorrow, or skip to pray for others."
-
-#: src/routes/submit.tsx:61
-msgid "Your intention can't be published yet:"
-msgstr "Your intention can't be published yet:"
+msgid "You've reached today's limit for prayer requests. Come back tomorrow, or skip to pray for others."
+msgstr "You've reached today's limit for prayer requests. Come back tomorrow, or skip to pray for others."
 
 #: src/routes/submit.tsx:54
-msgid "Your prayer intention"
-msgstr "Your prayer intention"
+msgid "Your prayer request"
+msgstr "Your prayer request"
+
+#: src/routes/submit.tsx:61
+msgid "Your prayer request can't be published yet:"
+msgstr "Your prayer request can't be published yet:"

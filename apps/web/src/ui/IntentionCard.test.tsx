@@ -43,7 +43,7 @@ test("shows the full text, the publication date and how many committed", async (
 		screen.getByText(textContent("7 people committed to pray for this")),
 	).toBeDefined();
 	expect(
-		screen.queryByText("This intention is no longer being suggested"),
+		screen.queryByText("This prayer request is no longer being suggested"),
 	).toBeNull();
 });
 
@@ -55,25 +55,25 @@ test("one commitment reads in the singular", async () => {
 	).toBeDefined();
 });
 
-test("an archived intention says it is no longer suggested", async () => {
+test("an archived prayer request says it is no longer suggested", async () => {
 	await renderCard("en", { archived: true });
 
 	expect(
-		screen.getByText("This intention is no longer being suggested"),
+		screen.getByText("This prayer request is no longer being suggested"),
 	).toBeDefined();
 });
 
 test("the meta line speaks Portuguese", async () => {
 	await renderCard("pt-BR", { archived: true });
 
-	expect(screen.getByText("Publicada em 12 de nov. de 2026")).toBeDefined();
+	expect(screen.getByText("Publicado em 12 de nov. de 2026")).toBeDefined();
 	expect(
 		screen.getByText(
-			textContent("7 pessoas se comprometeram a rezar por esta intenção"),
+			textContent("7 pessoas se comprometeram a rezar por este pedido"),
 		),
 	).toBeDefined();
 	expect(
-		screen.getByText("Esta intenção não está mais sendo sugerida"),
+		screen.getByText("Este pedido não está mais sendo sugerido"),
 	).toBeDefined();
 });
 
@@ -82,7 +82,7 @@ test("one commitment reads in the Portuguese singular", async () => {
 
 	expect(
 		screen.getByText(
-			textContent("1 pessoa se comprometeu a rezar por esta intenção"),
+			textContent("1 pessoa se comprometeu a rezar por este pedido"),
 		),
 	).toBeDefined();
 });
@@ -92,7 +92,7 @@ test("no commitments read in the Portuguese plural", async () => {
 
 	expect(
 		screen.getByText(
-			textContent("0 pessoas se comprometeram a rezar por esta intenção"),
+			textContent("0 pessoas se comprometeram a rezar por este pedido"),
 		),
 	).toBeDefined();
 });

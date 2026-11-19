@@ -41,12 +41,12 @@ export function useSubmissionIntention(options: SubmissionIntentionOptions) {
 		},
 		onSuccess: (result) => {
 			if (result.status === "published") {
-				track("intention_submitted", {});
+				track("prayer_request_submitted", {});
 				return options.onPublished?.(result);
 			}
 			if (result.status === "rejected") {
 				for (const reason of result.reasons) {
-					track("intention_rejected", { reason });
+					track("prayer_request_rejected", { reason });
 				}
 			}
 		},

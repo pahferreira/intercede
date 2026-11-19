@@ -48,17 +48,17 @@ export function Submit() {
 				}}
 			>
 				<h1 className="font-display text-title">
-					<Trans>Submit your prayer intention</Trans>
+					<Trans>Submit your prayer request</Trans>
 				</h1>
 				<Textarea
-					label={t`Your prayer intention`}
+					label={t`Your prayer request`}
 					value={text}
 					onChange={setText}
 					minLength={minLength}
 					maxLength={maxLength}
 					hint={
 						moderationHints.length > 0
-							? t`Your intention can't be published yet:`
+							? t`Your prayer request can't be published yet:`
 							: t`Between ${minLength} and ${maxLength} characters.`
 					}
 					moderationHints={moderationHints}
@@ -67,8 +67,8 @@ export function Submit() {
 				{result?.status === "moderation_unavailable" && (
 					<p role="alert" className="text-small text-notice">
 						<Trans>
-							We couldn't check your intention right now. Please try again in a
-							moment.
+							We couldn't check your prayer request right now. Please try again
+							in a moment.
 						</Trans>
 					</p>
 				)}
@@ -80,8 +80,8 @@ export function Submit() {
 				{result?.status === "limit_reached" && (
 					<p role="alert" className="text-small text-notice">
 						<Trans>
-							You've reached today's limit for intentions. Come back tomorrow,
-							or skip to pray for others.
+							You've reached today's limit for prayer requests. Come back
+							tomorrow, or skip to pray for others.
 						</Trans>
 					</p>
 				)}

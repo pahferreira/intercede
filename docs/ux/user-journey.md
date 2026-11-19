@@ -19,13 +19,13 @@ No locale prefix. "Ask for prayer" always opens the submit screen, even within t
 
 Design: `Main`, `Submit-Rejected` · `Desktop-Submit`, `Desktop-Submit-Rejected`. The app shell (header, EN/PT segmented language toggle) follows `Main` and `Desktop-Submit` on every screen.
 
-Hero ("Welcome to Intercede", tagline), heading "Submit your pray intention", textarea (10–1000 characters), **Skip** and **Submit**. The language toggle is visible.
+Hero ("Welcome to Intercede", tagline), heading "Submit your prayer request", textarea (10–1000 characters), **Skip** and **Submit**. The language toggle is visible.
 
 - **Submitting:** Turnstile runs invisibly; the button shows a spinner and the textarea is locked while moderation runs (~1–3 s).
 - **Rejected:** the text stays in the textarea; the Moderation Verdict's reasons appear inline as actionable hints ("Use initials instead of full names"). The Requester edits and resubmits, or skips.
 - **Published:** go to `/pray` with the success confirmation (see 2).
 - **Skip:** go to `/pray`; remember the skip for 24 h.
-- **Moderation unavailable (503):** "We couldn't check your intention right now. Please try again in a moment." Text kept.
+- **Moderation unavailable (503):** "We couldn't check your prayer request right now. Please try again in a moment." Text kept.
 - **Submission limit reached (3/day):** inline message; Skip still available.
 - **Turnstile failed:** inline "Couldn't verify, try again". Text kept.
 
@@ -33,7 +33,7 @@ Hero ("Welcome to Intercede", tagline), heading "Submit your pray intention", te
 
 Design: `Entry-Published` · `Desktop-Entry-Published`. Reached by Skip, the Entry screen is the same without the success confirmation.
 
-Same hero, heading "What's in your heart to pray for today?", textarea, **Start**. Turnstile runs invisibly on Start.
+Same hero, heading "What would you like to pray for today?", textarea, **Start**. Turnstile runs invisibly on Start.
 
 **Success confirmation** (only after publishing): a dismissible notice at the top: "Published ✓ — Intention INT-7K3QD" with a **Copy** button for the follow-up URL `/intention/<Intention Code>`. The URL carries the Intention Code, never the Intention id. The Intention Code is also kept in `localStorage`. The notice stays until dismissed.
 
@@ -70,7 +70,7 @@ Design: `Committed` · `Desktop-Committed`.
 
 Design: `FollowUp` · `Desktop-FollowUp`.
 
-The Intention text, its publication date, and "**N people committed to pray for this**" (committed, not prayed). If Archived: "This intention is no longer being suggested", count still shown. Unknown Intention Code: a neutral "Link not found". One call to action: **Pray for someone too** → `/pray`.
+The Intention text, its publication date, and "**N people committed to pray for this**" (committed, not prayed). If Archived: "This prayer request is no longer being suggested", count still shown. Unknown Intention Code: a neutral "Link not found". One call to action: **Pray for someone too** → `/pray`.
 
 ## Cross-cutting rules
 
@@ -105,7 +105,7 @@ Installable (manifest, icons) with no custom install prompt; only the browser's 
 
 No user text ever leaves in an event, through any channel:
 
-- **Funnel events** go through `track` and carry only counts and enums: `submit_viewed`, `submit_skipped`, `intention_submitted`, `intention_rejected{reason}`, `entry_sent`, `clarifying_question_shown`, `refinement_sent{n}`, `suggestions_shown{count, fallback}`, `commit_clicked{count}`, `followup_link_copied`, `followup_viewed`.
+- **Funnel events** go through `track` and carry only counts and enums: `submit_viewed`, `submit_skipped`, `prayer_request_submitted`, `prayer_request_rejected{reason}`, `entry_sent`, `clarifying_question_shown`, `refinement_sent{n}`, `suggestions_shown{count, fallback}`, `commit_clicked{count}`, `followup_link_copied`, `followup_viewed`.
 - **Page views and page leaves** are captured, including client-side route changes, so visitors, sessions, bounce rate and referrers are counted.
 - **Exceptions** are captured on the web and the API with their type and stack, never their message.
 - **URLs** in any event have the Intention Code replaced: `/intention/<code>` becomes `/intention/:code`.

@@ -43,7 +43,7 @@ const answered: SearchEvent[] = [
 
 const labels = {
 	en: {
-		entry: "What's in your heart to pray for today?",
+		entry: "What would you like to pray for today?",
 		start: "Start",
 		select: "Commit to pray for this intention",
 		commit: "I commit!",
@@ -57,7 +57,7 @@ const labels = {
 		submit: "Submit",
 	},
 	"pt-BR": {
-		entry: "O que está no seu coração para rezar hoje?",
+		entry: "Pelo que você quer interceder hoje?",
 		start: "Começar",
 		select: "Comprometer-me a rezar por esta intenção",
 		commit: "Eu me comprometo!",
