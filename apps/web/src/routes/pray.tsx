@@ -18,7 +18,8 @@ import {
 import { StatusMessage } from "../ui/StatusMessage";
 import { SuggestionCard } from "../ui/SuggestionCard";
 import { Textarea } from "../ui/Textarea";
-import { type Exchange, usePrayRoute } from "./usePrayRoute";
+import { type Exchange, useChat } from "./useChat";
+import { usePrayRoute } from "./usePrayRoute";
 
 const minLength = 1;
 const maxLength = 1000;
@@ -166,8 +167,8 @@ function Chat(props: ChatProps) {
 }
 
 export function Pray() {
-	const { notice, copied, copy, dismiss, exchange, selected, send, toggle } =
-		usePrayRoute();
+	const { notice, copied, copy, dismiss } = usePrayRoute();
+	const { exchange, selected, send, toggle } = useChat();
 
 	if (exchange) {
 		return <Chat exchange={exchange} selected={selected} onToggle={toggle} />;
