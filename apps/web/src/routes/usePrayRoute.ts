@@ -30,5 +30,10 @@ export function usePrayRoute() {
 		setCopied(true);
 	};
 
-	return { notice, copied, copy, dismiss };
+	return {
+		notice,
+		copied,
+		copy,
+		dismiss,
+	};
 }

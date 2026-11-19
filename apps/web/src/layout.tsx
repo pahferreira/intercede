@@ -1,13 +1,25 @@
-import { Outlet } from "@tanstack/react-router";
+import { Trans } from "@lingui/react/macro";
+import { Outlet, useSearch } from "@tanstack/react-router";
 import markOnDark from "./assets/logos/intercede-mark-on-dark.svg";
+import { isChatOpen } from "./chat";
 import { LanguageToggle } from "./language-toggle";
+import { Link } from "./ui/Link";
 
 export function Layout() {
+	const chatOpen = useSearch({ strict: false, select: isChatOpen });
+
 	return (
 		<div className="flex min-h-dvh flex-col px-space-4 pt-space-3 pb-space-5 md:px-space-5">
-			<header className="flex items-center justify-between">
+			<header className="flex items-center justify-between gap-space-3">
 				<img src={markOnDark} alt="Intercede" className="h-control-md" />
-				<LanguageToggle />
+				<div className="flex items-center gap-space-4">
+					{chatOpen && (
+						<Link to="/pray">
+							<Trans>New search</Trans>
+						</Link>
+					)}
+					<LanguageToggle />
+				</div>
 			</header>
 			<main className="pt-space-5">
 				<Outlet />

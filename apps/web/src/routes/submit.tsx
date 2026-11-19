@@ -6,6 +6,7 @@ import {
 } from "../hooks/useSubmissionIntention";
 import { useTurnstile } from "../hooks/useTurnstile";
 import { Button } from "../ui/Button";
+import { Hero } from "../ui/Hero";
 import { Textarea } from "../ui/Textarea";
 import { useSubmitRoute } from "./useSubmitRoute";
 
@@ -38,17 +39,7 @@ export function Submit() {
 
 	return (
 		<div className="mx-auto flex w-full max-w-column-form flex-col gap-space-6 md:gap-space-7">
-			<section className="flex flex-col gap-space-1">
-				<p className="text-eyebrow text-ivory-muted">
-					<Trans>Welcome to</Trans>
-				</p>
-				<p className="font-display text-display md:text-display-xl">
-					Intercede
-				</p>
-				<p className="text-body text-ivory-muted">
-					<Trans>A place where you can share your faith around the world</Trans>
-				</p>
-			</section>
+			<Hero />
 			<form
 				className="flex flex-col gap-space-4"
 				onSubmit={(event) => {

@@ -1,7 +1,8 @@
-import { eq } from "drizzle-orm";
+import { and, cosineDistance, eq, exists, sql } from "drizzle-orm";
 import type { Language } from "../../../intentions";
 import type { Database } from "../../../platform/database";
-import { catalog } from "./schema";
+import { type Candidate, candidatesPerSearch } from "../../domain/ranking";
+import { catalog, suggestions } from "./schema";
 
 export const putInCatalog = async (
 	database: Database,
@@ -24,4 +25,31 @@ export const removeFromCatalog = async (
 	intentionId: string,
 ) => {
 	await database.delete(catalog).where(eq(catalog.intentionId, intentionId));
+};
+
+export const findCandidatesInCatalog = (
+	database: Database,
+	{ embedding, visitorId }: { embedding: number[]; visitorId: string },
+): Promise<Candidate[]> => {
+	const distance = cosineDistance(catalog.embedding, embedding);
+	return database
+		.select({
+			intentionId: catalog.intentionId,
+			text: catalog.text,
+			similarity: sql<number>`1 - (${distance})`.mapWith(Number),
+			alreadySuggested: exists(
+				database
+					.select()
+					.from(suggestions)
+					.where(
+						and(
+							eq(suggestions.visitorId, visitorId),
+							eq(suggestions.intentionId, catalog.intentionId),
+						),
+					),
+			).mapWith(Boolean),
+		})
+		.from(catalog)
+		.orderBy(distance)
+		.limit(candidatesPerSearch);
 };

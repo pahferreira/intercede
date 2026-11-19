@@ -1,5 +1,10 @@
 import { createApp } from "./app";
 import { createNovaModerator, createSubmitIntention } from "./intentions";
+import {
+	createNovaSearchAgent,
+	createSearch,
+	createTitanEmbedder,
+} from "./intercession";
 import { createPostHogAnalytics, postHogSettings } from "./platform/analytics";
 import {
 	createDatabase,
@@ -28,6 +33,11 @@ const server = Bun.serve({
 			moderate: createNovaModerator(),
 			verifyTurnstile,
 			consumeSubmissionLimit: createSubmissionLimit(database),
+		}),
+		search: createSearch({
+			database,
+			embed: createTitanEmbedder(),
+			agent: createNovaSearchAgent(),
 		}),
 	}).fetch,
 });

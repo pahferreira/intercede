@@ -2,6 +2,11 @@ import { streamHandle } from "hono/aws-lambda";
 import { createApp } from "../app";
 import { createNovaModerator, createSubmitIntention } from "../intentions";
 import {
+	createNovaSearchAgent,
+	createSearch,
+	createTitanEmbedder,
+} from "../intercession";
+import {
 	createPostHogAnalytics,
 	requirePostHogSettings,
 } from "../platform/analytics";
@@ -32,6 +37,11 @@ export const handler = streamHandle(
 			moderate: createNovaModerator(),
 			verifyTurnstile,
 			consumeSubmissionLimit: createSubmissionLimit(database),
+		}),
+		search: createSearch({
+			database,
+			embed: createTitanEmbedder(),
+			agent: createNovaSearchAgent(),
 		}),
 	}),
 );

@@ -5,9 +5,24 @@ import {
 	IconCopy,
 	IconX,
 } from "@tabler/icons-react";
-import { Link } from "@tanstack/react-router";
+import { useState } from "react";
 import { Button } from "../ui/Button";
+import { Hero } from "../ui/Hero";
+import { Link } from "../ui/Link";
+import {
+	AssistantReply,
+	EntryBubble,
+	SearchingStatus,
+	Thread,
+} from "../ui/Message";
+import { StatusMessage } from "../ui/StatusMessage";
+import { SuggestionCard } from "../ui/SuggestionCard";
+import { Textarea } from "../ui/Textarea";
+import { type Exchange, useChat } from "./useChat";
 import { usePrayRoute } from "./usePrayRoute";
+
+const minLength = 1;
+const maxLength = 1000;
 
 type PublishedNoticeProps = {
 	code: string;
@@ -64,11 +79,103 @@ function PublishedNotice(props: PublishedNoticeProps) {
 	);
 }
 
-export function Pray() {
-	const { notice, copied, copy, dismiss } = usePrayRoute();
+type EntryFormProps = {
+	onSend: (entry: string) => void;
+};
+
+function EntryForm(props: EntryFormProps) {
+	const { t } = useLingui();
+	const [text, setText] = useState("");
+	const entry = text.trim();
 
 	return (
-		<>
+		<form
+			className="flex flex-col gap-space-4"
+			onSubmit={(event) => {
+				event.preventDefault();
+				props.onSend(entry);
+			}}
+		>
+			<Textarea
+				label={t`What's in your heart to pray for today?`}
+				labelStyle="title"
+				value={text}
+				onChange={setText}
+				minLength={minLength}
+				maxLength={maxLength}
+			/>
+			<div className="flex items-center justify-between gap-space-3">
+				<Link to="/" search={{ ask: true }}>
+					<Trans>Ask for prayer</Trans>
+				</Link>
+				<Button
+					variant="primary"
+					type="submit"
+					disabled={entry.length < minLength || text.length > maxLength}
+				>
+					<Trans>Start</Trans>
+				</Button>
+			</div>
+		</form>
+	);
+}
+
+type ChatProps = {
+	exchange: Exchange;
+	selected: ReadonlySet<string>;
+	onToggle: (intentionId: string, checked: boolean) => void;
+};
+
+function Chat(props: ChatProps) {
+	const { t } = useLingui();
+	const exchange = props.exchange;
+	const paragraphs = exchange.note.split(/\n{2,}/).filter(Boolean);
+
+	return (
+		<Thread>
+			<EntryBubble text={exchange.entry} />
+			{exchange.status === "searching" && <SearchingStatus />}
+			{paragraphs.length > 0 && (
+				<AssistantReply
+					paragraphs={paragraphs}
+					streaming={exchange.status === "answering"}
+				/>
+			)}
+			{exchange.suggestions.length > 0 && (
+				<ul aria-label={t`Suggestions`} className="flex flex-col gap-space-3">
+					{exchange.suggestions.map((suggestion) => (
+						<li key={suggestion.intentionId}>
+							<SuggestionCard
+								text={suggestion.text}
+								whyNote={suggestion.whyNote}
+								checked={props.selected.has(suggestion.intentionId)}
+								onCheckedChange={(checked) =>
+									props.onToggle(suggestion.intentionId, checked)
+								}
+							/>
+						</li>
+					))}
+				</ul>
+			)}
+			{exchange.status === "failed" && (
+				<StatusMessage tone="danger">
+					<Trans>Something went wrong. Please try again.</Trans>
+				</StatusMessage>
+			)}
+		</Thread>
+	);
+}
+
+export function Pray() {
+	const { notice, copied, copy, dismiss } = usePrayRoute();
+	const { exchange, selected, send, toggle } = useChat();
+
+	if (exchange) {
+		return <Chat exchange={exchange} selected={selected} onToggle={toggle} />;
+	}
+
+	return (
+		<div className="mx-auto flex w-full max-w-column-form flex-col gap-space-6 md:gap-space-7">
 			{notice && (
 				<PublishedNotice
 					code={notice.code}
@@ -77,12 +184,8 @@ export function Pray() {
 					onDismiss={dismiss}
 				/>
 			)}
-			<h1>
-				<Trans>Pray</Trans>
-			</h1>
-			<Link to="/" search={{ ask: true }}>
-				<Trans>Ask for prayer</Trans>
-			</Link>
-		</>
+			<Hero />
+			<EntryForm onSend={send} />
+		</div>
 	);
 }

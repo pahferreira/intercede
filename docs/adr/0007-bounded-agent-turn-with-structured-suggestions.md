@@ -1,6 +1,6 @@
 # A bounded agent turn with structured, server-validated suggestions
 
-The Intercessor writes one Entry and gets up to 5 Suggestions, not an open-ended chat. Behind it is one tool-use turn: Claude may call `find_intentions` up to 3 times, then must answer through `present_suggestions` (Intention ids plus a short note) or ask a single Clarifying Question. Up to 2 Refinements follow. This keeps cost and UX predictable and evals writable, while still exercising tool calling, streaming, and multi-turn handling.
+The Intercessor writes one Entry and gets up to 5 Suggestions, not an open-ended chat. Behind it is one tool-use turn: the model may call `find_intentions` up to 3 times, then must answer through `present_suggestions` (Intention ids plus a short note) or ask a single Clarifying Question. Up to 2 Refinements follow. This keeps cost and UX predictable and evals writable, while still exercising tool calling, streaming, and multi-turn handling.
 
 ## Consequences
 

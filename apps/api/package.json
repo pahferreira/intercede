@@ -10,6 +10,7 @@
 	},
 	"scripts": {
 		"dev": "bun --watch src/dev.ts",
+		"sweep": "bun src/dev-sweep.ts",
 		"build": "bun build src/handlers/api.ts src/handlers/sweeper.ts --target=node --format=esm --minify --sourcemap=linked --outdir=dist --entry-naming=[name].mjs",
 		"lint": "biome check .",
 		"typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.test.json",

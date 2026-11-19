@@ -38,6 +38,8 @@ const submitRoute = createRoute({
 const prayRoute = createRoute({
 	getParentRoute: () => rootRoute,
 	path: "/pray",
+	validateSearch: (search): { chat?: true } =>
+		search.chat === true || search.chat === "true" ? { chat: true } : {},
 	component: Pray,
 });
 
