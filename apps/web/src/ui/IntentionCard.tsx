@@ -34,7 +34,7 @@ export function IntentionCard(props: IntentionCardProps) {
 					}
 				/>
 				{props.archived && (
-					<span>{t`This intention is no longer being suggested`}</span>
+					<span>{t`This prayer request is no longer being suggested`}</span>
 				)}
 			</p>
 		</article>

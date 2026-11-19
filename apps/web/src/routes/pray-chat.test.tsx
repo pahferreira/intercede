@@ -49,7 +49,7 @@ function answered(suggestions: Suggestion[]): SearchEvent[] {
 
 const labels = {
 	en: {
-		entry: "What's in your heart to pray for today?",
+		entry: "What would you like to pray for today?",
 		start: "Start",
 		newSearch: "New search",
 		commit: "Commit to pray for this intention",
@@ -57,7 +57,7 @@ const labels = {
 		send: "Send",
 	},
 	"pt-BR": {
-		entry: "O que está no seu coração para rezar hoje?",
+		entry: "Pelo que você quer interceder hoje?",
 		start: "Começar",
 		newSearch: "Nova busca",
 		commit: "Comprometer-me a rezar por esta intenção",

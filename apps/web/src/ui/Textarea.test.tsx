@@ -5,7 +5,7 @@ import { Textarea } from "./Textarea";
 test("shows the current length against the max", () => {
 	render(
 		<Textarea
-			label="Submit your prayer intention"
+			label="Submit your prayer request"
 			value="Pray for my family"
 			onChange={() => {}}
 			minLength={10}
@@ -19,7 +19,7 @@ test("shows the current length against the max", () => {
 test("a rejected field is invalid and described by its hints", () => {
 	render(
 		<Textarea
-			label="Submit your prayer intention"
+			label="Submit your prayer request"
 			value="Please pray for João Carlos Silva at Rua das Flores 120"
 			onChange={() => {}}
 			minLength={10}
@@ -32,7 +32,7 @@ test("a rejected field is invalid and described by its hints", () => {
 	);
 
 	const field = screen.getByRole("textbox", {
-		name: "Submit your prayer intention",
+		name: "Submit your prayer request",
 	});
 	const description = (field.getAttribute("aria-describedby") ?? "")
 		.split(" ")
@@ -47,7 +47,7 @@ test("a rejected field is invalid and described by its hints", () => {
 test("submitting keeps the text and makes the field read-only", () => {
 	render(
 		<Textarea
-			label="Submit your prayer intention"
+			label="Submit your prayer request"
 			value="Pray for my family"
 			onChange={() => {}}
 			minLength={10}
@@ -64,7 +64,7 @@ test("submitting keeps the text and makes the field read-only", () => {
 test("a field without hints is not invalid", () => {
 	render(
 		<Textarea
-			label="Submit your prayer intention"
+			label="Submit your prayer request"
 			value="Pray for my family"
 			onChange={() => {}}
 			minLength={10}

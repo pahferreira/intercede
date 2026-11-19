@@ -126,14 +126,17 @@ test("events carry only their allowlisted counts and enums", () => {
 		entry: "pray for my sister Maria",
 	};
 	track("suggestions_shown", leaky);
-	track("intention_rejected", { reason: "personal_data" });
+	track("prayer_request_rejected", { reason: "personal_data" });
 	track("refinement_sent", { n: 2 });
 	track("commit_clicked", { count: 1 });
 	track("followup_viewed", {});
 
 	expect(posthog.captured).toEqual([
 		{ event: "suggestions_shown", properties: { count: 3, fallback: false } },
-		{ event: "intention_rejected", properties: { reason: "personal_data" } },
+		{
+			event: "prayer_request_rejected",
+			properties: { reason: "personal_data" },
+		},
 		{ event: "refinement_sent", properties: { n: 2 } },
 		{ event: "commit_clicked", properties: { count: 1 } },
 		{ event: "followup_viewed", properties: {} },
@@ -144,13 +147,13 @@ test("free text is dropped where a count or an enum is expected", () => {
 	const posthog = fakePostHog();
 	initAnalytics("phc_test", posthog.client);
 
-	track("intention_rejected", {
+	track("prayer_request_rejected", {
 		reason: "my neighbour John Smith" as "spam",
 	});
 	track("commit_clicked", { count: "Maria" as unknown as number });
 
 	expect(posthog.captured).toEqual([
-		{ event: "intention_rejected", properties: {} },
+		{ event: "prayer_request_rejected", properties: {} },
 		{ event: "commit_clicked", properties: {} },
 	]);
 });

@@ -21,8 +21,8 @@ _Avoid_: User, account, anonymous user, session
 Receives Intentions from Requesters, decides whether they may be published, and owns their lifecycle.
 
 **Intention**:
-A prayer intention left anonymously by a Requester. Short for "Prayer Intention".
-_Avoid_: Pray intention, prayer request, post
+A cause a Requester leaves anonymously for others to pray for. Requesters know it as a prayer request ("pedido de oração"), which is how the screens they see word it.
+_Avoid_: Prayer request (outside Requester-facing copy), pray intention, post
 
 **Moderation Verdict**:
 The decision, made before an Intention exists, of whether a submitted text may be published, with the reasons when it may not (spam, abuse, personal data, off-topic). A rejected text is never kept.
@@ -41,10 +41,10 @@ _Avoid_: Label, ID, number, token
 
 ## Intercession context
 
-Helps Intercessors find Intentions that fit what is on their heart, keeps suggestions fair, and records Commitments.
+Helps Intercessors find Intentions that fit what they want to intercede for, keeps suggestions fair, and records Commitments.
 
 **Entry**:
-What an Intercessor writes to describe what they want to pray for.
+What an Intercessor writes to say what they want to intercede for, such as "for families". Never itself an Intention.
 _Avoid_: Query, prompt, search, message
 
 **Clarifying Question**:

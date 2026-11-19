@@ -10,7 +10,7 @@ msgstr ""
 #. placeholder {0}: props.commitments
 #: src/ui/IntentionCard.tsx:21
 msgid "{0, plural, one {<0><1># person</1> committed to pray for this</0>} other {<2><3># people</3> committed to pray for this</2>}}"
-msgstr "{0, plural, =0 {<2><3># pessoas</3> se comprometeram a rezar por esta intenção</2>} one {<0><1># pessoa</1> se comprometeu a rezar por esta intenção</0>} other {<2><3># pessoas</3> se comprometeram a rezar por esta intenção</2>}}"
+msgstr "{0, plural, =0 {<2><3># pessoas</3> se comprometeram a rezar por este pedido</2>} one {<0><1># pessoa</1> se comprometeu a rezar por este pedido</0>} other {<2><3># pessoas</3> se comprometeram a rezar por este pedido</2>}}"
 
 #: src/ui/Hero.tsx:11
 msgid "A place where you can share your faith around the world"
@@ -113,7 +113,7 @@ msgstr "Publicada"
 
 #: src/ui/IntentionCard.tsx:20
 msgid "Published {published}"
-msgstr "Publicada em {published}"
+msgstr "Publicado em {published}"
 
 #: src/ui/StatusMessage.tsx:36
 msgid "Retry"
@@ -157,8 +157,8 @@ msgid "Submit"
 msgstr "Enviar"
 
 #: src/routes/submit.tsx:51
-msgid "Submit your prayer intention"
-msgstr "Envie sua intenção de oração"
+msgid "Submit your prayer request"
+msgstr "Envie seu pedido de oração"
 
 #: src/routes/submit.tsx:103
 msgid "Submitting…"
@@ -173,37 +173,37 @@ msgid "Tell me more…"
 msgstr "Conte-me mais…"
 
 #: src/ui/IntentionCard.tsx:37
-msgid "This intention is no longer being suggested"
-msgstr "Esta intenção não está mais sendo sugerida"
+msgid "This prayer request is no longer being suggested"
+msgstr "Este pedido não está mais sendo sugerido"
 
 #: src/routes/submit.tsx:30
 msgid "Use initials instead of full names, and leave out contact details."
 msgstr "Use iniciais em vez de nomes completos e não inclua dados de contato."
 
 #: src/routes/submit.tsx:69
-msgid "We couldn't check your intention right now. Please try again in a moment."
-msgstr "Não conseguimos verificar sua intenção agora. Tente novamente em instantes."
+msgid "We couldn't check your prayer request right now. Please try again in a moment."
+msgstr "Não conseguimos verificar seu pedido agora. Tente novamente em instantes."
 
 #: src/ui/Hero.tsx:7
 msgid "Welcome to"
 msgstr "Bem-vindo ao"
 
 #: src/routes/pray.tsx:102
-msgid "What's in your heart to pray for today?"
-msgstr "O que está no seu coração para rezar hoje?"
+msgid "What would you like to pray for today?"
+msgstr "Pelo que você quer interceder hoje?"
 
 #: src/routes/committed.tsx:12
 msgid "You committed to pray for these intentions:"
 msgstr "Você se comprometeu a rezar por estas intenções:"
 
 #: src/routes/submit.tsx:82
-msgid "You've reached today's limit for intentions. Come back tomorrow, or skip to pray for others."
-msgstr "Você atingiu o limite de intenções de hoje. Volte amanhã ou pule para rezar pelos outros."
-
-#: src/routes/submit.tsx:61
-msgid "Your intention can't be published yet:"
-msgstr "Sua intenção ainda não pode ser publicada:"
+msgid "You've reached today's limit for prayer requests. Come back tomorrow, or skip to pray for others."
+msgstr "Você atingiu o limite de pedidos de oração de hoje. Volte amanhã ou pule para rezar pelos outros."
 
 #: src/routes/submit.tsx:54
-msgid "Your prayer intention"
-msgstr "Sua intenção de oração"
+msgid "Your prayer request"
+msgstr "Seu pedido de oração"
+
+#: src/routes/submit.tsx:61
+msgid "Your prayer request can't be published yet:"
+msgstr "Seu pedido ainda não pode ser publicado:"

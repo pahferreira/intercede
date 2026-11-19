@@ -65,7 +65,7 @@ const typeStyles = [
 	{
 		name: "title",
 		className: "text-title",
-		sample: "What's in your heart to pray for today?",
+		sample: "What would you like to pray for today?",
 	},
 	{
 		name: "heading",
@@ -417,7 +417,7 @@ export function DesignSystem() {
 					{textareaStates.map(({ name, ...state }) => (
 						<Token key={name} name={name}>
 							<TextareaDemo
-								label="Submit your prayer intention"
+								label="Submit your prayer request"
 								labelStyle="title"
 								placeholder="Share what you'd like others to pray for. No names needed."
 								hint="Anonymous. 10 to 1000 characters."
