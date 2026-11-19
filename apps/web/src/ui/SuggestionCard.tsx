@@ -30,12 +30,14 @@ export function SuggestionCard(props: SuggestionCardProps) {
 			return;
 		}
 		const measure = () => {
-			return setOverflows(overflowsClamp(element));
+			setOverflows(overflowsClamp(element));
 		};
 		measure();
 		const observer = new ResizeObserver(measure);
 		observer.observe(element);
-		return () => observer.disconnect();
+		return () => {
+			observer.disconnect();
+		};
 	}, []);
 
 	return (

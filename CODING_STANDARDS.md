@@ -28,7 +28,7 @@ Judgement rules for review. Biome, tsc and dependency-cruiser enforce the mechan
 
 ## Functions
 
-Biome enforces a block body with an explicit `return` on named arrow functions and on arrows that return another arrow (factories).
+Biome enforces a block body on named arrow functions and on any arrow returned from another function, whether as its expression body or through `return` (factories).
 
 - An object parameter is typed with a named type (`type CommitDeps = { database: Database }`), not an inline object type: `…Deps` for injected dependencies, `…Options` for configuration.
 

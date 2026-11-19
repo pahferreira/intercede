@@ -26,9 +26,12 @@ async function renderCard(
 }
 
 function textContent(content: string) {
-	return (_: string, element: Element | null) =>
-		element?.textContent === content &&
-		[...element.children].every((child) => child.textContent !== content);
+	return (_: string, element: Element | null) => {
+		return (
+			element?.textContent === content &&
+			[...element.children].every((child) => child.textContent !== content)
+		);
+	};
 }
 
 test("shows the full text, the publication date and how many committed", async () => {

@@ -87,10 +87,11 @@ const claudeStreams = (...toolUses: ToolUse[]) => {
 		},
 		{ type: "message_stop" },
 	);
-	return () =>
-		new Response(Buffer.concat(events.map(eventStreamFrame)), {
+	return () => {
+		return new Response(Buffer.concat(events.map(eventStreamFrame)), {
 			headers: { "content-type": "application/vnd.amazon.eventstream" },
 		});
+	};
 };
 
 type SentRequest = { url: string; body: Record<string, unknown> };

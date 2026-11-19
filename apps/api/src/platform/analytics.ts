@@ -54,7 +54,9 @@ export const createPostHogAnalytics = ({
 	fetch,
 }: PostHogSettings): OpenAnalytics => {
 	if (!key) {
-		return () => disabledAnalytics;
+		return () => {
+			return disabledAnalytics;
+		};
 	}
 	return () => {
 		const client = new PostHog(key, {
