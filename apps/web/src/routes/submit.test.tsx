@@ -315,19 +315,19 @@ test.each([
 		"en",
 		"Submit",
 		"Skip",
-		"Pray",
+		entryLabel,
 		"You've reached today's limit for intentions. Come back tomorrow, or skip to pray for others.",
 	],
 	[
 		"pt-BR",
 		"Enviar",
 		"Pular",
-		"Rezar",
+		"O que está no seu coração para rezar hoje?",
 		"Você atingiu o limite de intenções de hoje. Volte amanhã ou pule para rezar pelos outros.",
 	],
 ] as const)(
 	"a reached submission limit in %s is shown inline and Skip still works",
-	async (locale, submit, skip, pray, message) => {
+	async (locale, submit, skip, entry, message) => {
 		await renderAt("/", locale, async () => ({
 			ok: false,
 			error: { kind: "limit_reached" },
@@ -340,7 +340,7 @@ test.each([
 
 		fireEvent.click(screen.getByRole("button", { name: skip }));
 
-		expect(await screen.findByRole("heading", { name: pray })).toBeDefined();
+		expect(await screen.findByRole("textbox", { name: entry })).toBeDefined();
 	},
 );
 
@@ -370,5 +370,7 @@ test("Turnstile that failed to load is loaded again on the next try", async () =
 	installTurnstile();
 	fireEvent.click(screen.getByRole("button", { name: "Submit" }));
 
-	expect(await screen.findByRole("heading", { name: "Pray" })).toBeDefined();
+	expect(
+		await screen.findByRole("textbox", { name: entryLabel }),
+	).toBeDefined();
 });
