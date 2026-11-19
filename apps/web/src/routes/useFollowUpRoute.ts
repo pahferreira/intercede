@@ -6,7 +6,7 @@ import { track } from "../analytics";
 export function useFollowUpRoute() {
 	const { code } = useParams({ from: "/intention/$code" });
 	const { client } = useRouteContext({ from: "__root__" });
-	const viewed = useRef(false);
+	const viewed = useRef<string>(undefined);
 
 	const query = useQuery({
 		queryKey: ["follow-up", code],
@@ -27,10 +27,10 @@ export function useFollowUpRoute() {
 		query.data && query.data.status !== "not_found" ? query.data : undefined;
 
 	useEffect(() => {
-		if (!intention || viewed.current) return;
-		viewed.current = true;
+		if (!intention || viewed.current === code) return;
+		viewed.current = code;
 		track("followup_viewed", {});
-	}, [intention]);
+	}, [intention, code]);
 
 	return {
 		intention,

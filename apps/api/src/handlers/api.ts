@@ -45,8 +45,8 @@ export const handler = streamHandle(
 			consumeSubmissionLimit: createSubmissionLimit(database),
 		}),
 		findFollowUp: createFindFollowUp({
-			database: database,
-			countCommitments: createCountCommitments({ database: database }),
+			database,
+			countCommitments: createCountCommitments({ database }),
 		}),
 		search: createSearch({
 			database,

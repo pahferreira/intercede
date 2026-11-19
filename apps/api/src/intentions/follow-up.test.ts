@@ -3,15 +3,13 @@ import { sql } from "drizzle-orm";
 import { createTestApp } from "../../test/app";
 import { testDatabase } from "../../test/database";
 import { intentions } from "./adapters/persistence/schema";
+import type { IntentionStatus } from "./domain/intention";
 
 const followUp = (code: string) => {
 	return createTestApp().request(`/api/intentions/${code}`);
 };
 
-const published = async (
-	code: string,
-	status: "published" | "archived" = "published",
-) => {
+const stored = async (code: string, status: IntentionStatus = "published") => {
 	const [intention] = await testDatabase()
 		.insert(intentions)
 		.values({
@@ -37,7 +35,7 @@ const committed = async (
 };
 
 test("a published Intention's follow-up shows its text, publication date and Commitment count", async () => {
-	await published("INT-7K3QD");
+	await stored("INT-7K3QD");
 
 	const response = await followUp("INT-7K3QD");
 
@@ -51,7 +49,7 @@ test("a published Intention's follow-up shows its text, publication date and Com
 });
 
 test("the count is of people, so a Visitor who commits on several days counts once", async () => {
-	const brotherJob = await published("INT-7K3QD");
+	const brotherJob = await stored("INT-7K3QD");
 	await committed(brotherJob, "5d0c2a8e-7b1f-4c3e-9a6d-2f4b8c1e0a37");
 	await committed(
 		brotherJob,
@@ -59,7 +57,7 @@ test("the count is of people, so a Visitor who commits on several days counts on
 		"2026-11-14",
 	);
 	await committed(brotherJob, "9e1b7c3d-2a4f-4d6e-8b0c-1f3a5e7d9c24");
-	const otherIntention = await published("INT-2M8XR");
+	const otherIntention = await stored("INT-2M8XR");
 	await committed(otherIntention, "9e1b7c3d-2a4f-4d6e-8b0c-1f3a5e7d9c24");
 
 	const response = await followUp("INT-7K3QD");
@@ -68,7 +66,7 @@ test("the count is of people, so a Visitor who commits on several days counts on
 });
 
 test("an Archived Intention's follow-up says so and still shows its count", async () => {
-	const brotherJob = await published("INT-7K3QD", "archived");
+	const brotherJob = await stored("INT-7K3QD", "archived");
 	await committed(brotherJob, "5d0c2a8e-7b1f-4c3e-9a6d-2f4b8c1e0a37");
 
 	const response = await followUp("INT-7K3QD");
@@ -83,7 +81,7 @@ test("an Archived Intention's follow-up says so and still shows its count", asyn
 test.each(["INT-2M8XR", "not-a-code", "%27%3B%20drop%20table"])(
 	"the unknown code %s is answered the same, whether missing or invalid",
 	async (code) => {
-		await published("INT-7K3QD");
+		await stored("INT-7K3QD");
 
 		const response = await followUp(code);
 

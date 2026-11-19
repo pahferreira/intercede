@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import { fireEvent, screen } from "@testing-library/react";
+import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import { type FindFollowUp, renderAt } from "../../test/render";
 import { initAnalytics } from "../analytics";
 
@@ -47,8 +47,13 @@ const labels = {
 	},
 } as const;
 
+type FollowUpStatus = Extract<
+	Awaited<ReturnType<FindFollowUp>>,
+	{ ok: true }
+>["value"]["status"];
+
 const followUpOf = (
-	status: "published" | "archived",
+	status: FollowUpStatus,
 	codes: string[] = [],
 ): FindFollowUp => {
 	return async (code) => {
@@ -186,4 +191,16 @@ test("an unknown Intention Code is not counted as a follow-up view", async () =>
 	expect(events.filter((event) => event.event === "followup_viewed")).toEqual(
 		[],
 	);
+});
+
+test("moving to another Intention's follow-up counts a second view", async () => {
+	const { history } = await openFollowUp("en", followUpOf("published"));
+	await screen.findByText(text);
+
+	act(() => history.push("/intention/INT-2M8XR"));
+	await waitFor(() => {
+		expect(
+			events.filter((event) => event.event === "followup_viewed"),
+		).toHaveLength(2);
+	});
 });
