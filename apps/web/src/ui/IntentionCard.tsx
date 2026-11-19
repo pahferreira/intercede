@@ -1,4 +1,5 @@
 import { Plural, useLingui } from "@lingui/react/macro";
+import { IconCalendar, IconHeartHandshake } from "@tabler/icons-react";
 
 type IntentionCardProps = {
 	text: string;
@@ -15,24 +16,30 @@ export function IntentionCard(props: IntentionCardProps) {
 		<article className="flex flex-col gap-space-2 rounded-lg border-2 border-line bg-violet-raised p-space-4 shadow-sm">
 			<p className="text-body-lg">{props.text}</p>
 			<p className="flex flex-wrap gap-x-space-3 gap-y-space-1 text-small text-ivory-muted">
-				<time
-					dateTime={props.publishedAt.toISOString()}
-				>{t`Published ${published}`}</time>
-				<Plural
-					value={props.commitments}
-					one={
-						<span>
-							<strong className="text-ivory"># person</strong> committed to pray
-							for this
-						</span>
-					}
-					other={
-						<span>
-							<strong className="text-ivory"># people</strong> committed to pray
-							for this
-						</span>
-					}
-				/>
+				<div className="flex gap-space-1 items-center">
+					<IconCalendar />
+					<time
+						dateTime={props.publishedAt.toISOString()}
+					>{t`Published ${published}`}</time>
+				</div>
+				<div className="flex gap-space-1 items-center">
+					<IconHeartHandshake />
+					<Plural
+						value={props.commitments}
+						one={
+							<span>
+								<strong className="text-ivory"># person</strong> committed to
+								pray for this
+							</span>
+						}
+						other={
+							<span>
+								<strong className="text-ivory"># people</strong> committed to
+								pray for this
+							</span>
+						}
+					/>
+				</div>
 				{props.archived && (
 					<span>{t`This prayer request is no longer being suggested`}</span>
 				)}
