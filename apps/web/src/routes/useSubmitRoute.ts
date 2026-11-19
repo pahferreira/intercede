@@ -2,7 +2,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
 import { track } from "../analytics";
 import { type PublishedIntention, rememberPublished } from "../follow-ups";
-import { rememberSubmitOrSkip } from "../submit-gate";
+import { rememberSubmitOrSkip, rememberSubmitted } from "../submit-gate";
 
 export function useSubmitRoute() {
 	const navigate = useNavigate();
@@ -21,6 +21,7 @@ export function useSubmitRoute() {
 
 	const onPublished = (intention: PublishedIntention) => {
 		rememberPublished(intention);
+		rememberSubmitted();
 		return leave();
 	};
 

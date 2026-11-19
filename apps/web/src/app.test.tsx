@@ -2,13 +2,12 @@ import { expect, test } from "bun:test";
 import { fireEvent, screen, within } from "@testing-library/react";
 import { renderAt } from "../test/render";
 
-test.each([
-	["/pray/committed", "Committed"],
-	["/intention/INT-7K3QD", "Follow-up"],
-] as const)("%s renders its stub screen", async (path, heading) => {
-	await renderAt(path, "en");
+test("/intention/:code renders its stub screen", async () => {
+	await renderAt("/intention/INT-7K3QD", "en");
 
-	expect(await screen.findByRole("heading", { name: heading })).toBeDefined();
+	expect(
+		await screen.findByRole("heading", { name: "Follow-up" }),
+	).toBeDefined();
 	expect(screen.getByRole("group", { name: "Language" })).toBeDefined();
 });
 

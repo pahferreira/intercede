@@ -1,6 +1,7 @@
 import { createApp } from "./app";
 import { createNovaModerator, createSubmitIntention } from "./intentions";
 import {
+	createCommit,
 	createNovaSearchAgent,
 	createSearch,
 	createTitanEmbedder,
@@ -39,6 +40,7 @@ const server = Bun.serve({
 			embed: createTitanEmbedder(),
 			agent: createNovaSearchAgent(),
 		}),
+		commit: createCommit({ database }),
 	}).fetch,
 });
 

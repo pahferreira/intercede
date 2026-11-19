@@ -1,6 +1,9 @@
+import { sql } from "drizzle-orm";
 import {
+	date,
 	index,
 	pgSchema,
+	primaryKey,
 	text,
 	timestamp,
 	uuid,
@@ -33,5 +36,24 @@ export const suggestions = intercessionSchema.table(
 			table.intentionId,
 			table.suggestedAt,
 		),
+	],
+);
+
+export const commitments = intercessionSchema.table(
+	"commitments",
+	{
+		visitorId: uuid("visitor_id").notNull(),
+		intentionId: uuid("intention_id").notNull(),
+		committedOn: date("committed_on")
+			.notNull()
+			.default(sql`(now() at time zone 'utc')::date`),
+		committedAt: timestamp("committed_at", { withTimezone: true })
+			.notNull()
+			.defaultNow(),
+	},
+	(table) => [
+		primaryKey({
+			columns: [table.visitorId, table.intentionId, table.committedOn],
+		}),
 	],
 );

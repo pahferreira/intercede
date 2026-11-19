@@ -2,6 +2,7 @@ import { streamHandle } from "hono/aws-lambda";
 import { createApp } from "../app";
 import { createNovaModerator, createSubmitIntention } from "../intentions";
 import {
+	createCommit,
 	createNovaSearchAgent,
 	createSearch,
 	createTitanEmbedder,
@@ -43,5 +44,6 @@ export const handler = streamHandle(
 			embed: createTitanEmbedder(),
 			agent: createNovaSearchAgent(),
 		}),
+		commit: createCommit({ database }),
 	}),
 );

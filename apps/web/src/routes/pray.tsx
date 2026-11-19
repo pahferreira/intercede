@@ -124,6 +124,10 @@ type ChatProps = {
 	exchange: Exchange;
 	selected: ReadonlySet<string>;
 	onToggle: (intentionId: string, checked: boolean) => void;
+	committing: boolean;
+	commitFailed: boolean;
+	onCommit: () => void;
+	onRetryCommit: () => void;
 };
 
 function Chat(props: ChatProps) {
@@ -162,16 +166,45 @@ function Chat(props: ChatProps) {
 					<Trans>Something went wrong. Please try again.</Trans>
 				</StatusMessage>
 			)}
+			{props.selected.size > 0 && (
+				<div className="sticky bottom-space-4 flex flex-col items-center gap-space-2 pt-space-3">
+					{props.commitFailed && (
+						<StatusMessage tone="danger" onRetry={props.onRetryCommit}>
+							<Trans>Couldn't save your commitment.</Trans>
+						</StatusMessage>
+					)}
+					<Button
+						variant="primary"
+						size="lg"
+						loading={props.committing}
+						loadingLabel={<Trans>Committing…</Trans>}
+						onClick={props.onCommit}
+					>
+						<Trans>I commit!</Trans>
+					</Button>
+				</div>
+			)}
 		</Thread>
 	);
 }
 
 export function Pray() {
 	const { notice, copied, copy, dismiss } = usePrayRoute();
-	const { exchange, selected, send, toggle } = useChat();
+	const chat = useChat();
+	const exchange = chat.exchange;
 
 	if (exchange) {
-		return <Chat exchange={exchange} selected={selected} onToggle={toggle} />;
+		return (
+			<Chat
+				exchange={exchange}
+				selected={chat.selected}
+				onToggle={chat.toggle}
+				committing={chat.committing}
+				commitFailed={chat.commitFailed}
+				onCommit={chat.commit}
+				onRetryCommit={chat.retryCommit}
+			/>
+		);
 	}
 
 	return (
@@ -185,7 +218,7 @@ export function Pray() {
 				/>
 			)}
 			<Hero />
-			<EntryForm onSend={send} />
+			<EntryForm onSend={chat.send} />
 		</div>
 	);
 }

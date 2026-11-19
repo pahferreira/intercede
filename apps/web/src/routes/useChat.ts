@@ -1,4 +1,5 @@
 import type { Suggestion } from "@intercede/api";
+import { useMutation } from "@tanstack/react-query";
 import {
 	useNavigate,
 	useRouteContext,
@@ -7,6 +8,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { track } from "../analytics";
 import { isChatOpen } from "../chat";
+import { rememberCommitted } from "../committed-cards";
 import { readSearchEvents } from "../search-stream";
 
 export type Exchange = {
@@ -100,10 +102,37 @@ export function useChat() {
 			return next;
 		});
 
+	const commitment = useMutation({
+		mutationFn: async (intentionIds: string[]) => {
+			const response = await client.api.commitments.$post({
+				json: { intentionIds },
+			});
+			if (response.status !== 201) {
+				throw new Error(`unexpected status ${response.status}`);
+			}
+			return (await response.json()).commitments;
+		},
+		onSuccess: (commitments) => {
+			rememberCommitted(commitments);
+			return navigate({ to: "/pray/committed" });
+		},
+	});
+
+	const retryCommit = () => commitment.mutate([...selected]);
+
+	const commit = () => {
+		track("commit_clicked", { count: selected.size });
+		retryCommit();
+	};
+
 	return {
 		exchange: chatOpen ? exchange : null,
 		selected,
 		send,
 		toggle,
+		commit,
+		retryCommit,
+		committing: commitment.isPending,
+		commitFailed: commitment.isError,
 	};
 }
