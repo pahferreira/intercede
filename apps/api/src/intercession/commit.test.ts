@@ -12,9 +12,7 @@ import { embeddingDimensions } from "./application/embed";
 
 const visitor = "5d0c2a8e-7b1f-4c3e-9a6d-2f4b8c1e0a37";
 const otherVisitor = "9e1b7c3d-2a4f-4d6e-8b0c-1f3a5e7d9c24";
-const visitorCookie = (id: string) => {
-	return `intercede_visitor=${id}`;
-};
+const visitorCookie = (id: string) => `intercede_visitor=${id}`;
 
 const brotherJob = "0b6f6f8e-3c0e-4a8e-9a43-3f1c2d4b5a61";
 const motherSurgery = "1c7a8f9e-4d1f-4b9e-8b54-4a2d3e5c6b72";

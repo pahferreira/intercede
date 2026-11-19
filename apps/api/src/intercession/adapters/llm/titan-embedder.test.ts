@@ -45,13 +45,11 @@ const embedding = Array.from(
 	(_, index) => index / embeddingDimensions,
 );
 
-const titanAnswers = (
-	answer: unknown = { embedding, inputTextTokenCount: 8 },
-) => {
-	return (): Reply => {
+const titanAnswers =
+	(answer: unknown = { embedding, inputTextTokenCount: 8 }) =>
+	(): Reply => {
 		return { status: 200, body: answer };
 	};
-};
 
 function recordingAnalytics() {
 	const generations: LlmGeneration[] = [];

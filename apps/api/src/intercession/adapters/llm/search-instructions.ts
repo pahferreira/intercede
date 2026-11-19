@@ -11,9 +11,7 @@ Search the Catalog with find_intentions. You may call it at most ${maxFindIntent
 - note: one or two warm sentences introducing the suggestions, written to the Intercessor in the Entry's language. Write the note first.
 If nothing fits, present an empty list and say so gently in the note.`;
 
-export const asEntry = (entry: string) => {
-	return `<entry>\n${entry}\n</entry>`;
-};
+export const asEntry = (entry: string) => `<entry>\n${entry}\n</entry>`;
 
 export const findIntentionsInput = z.object({
 	query: z.string().min(1),

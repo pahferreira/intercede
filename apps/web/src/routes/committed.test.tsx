@@ -73,8 +73,9 @@ const labels = {
 	},
 } as const;
 
-const commitsAll = (batches: string[][] = []): Commit => {
-	return async ({ intentionIds }) => {
+const commitsAll =
+	(batches: string[][] = []): Commit =>
+	async ({ intentionIds }) => {
 		batches.push(intentionIds);
 		return {
 			ok: true,
@@ -83,7 +84,6 @@ const commitsAll = (batches: string[][] = []): Commit => {
 				.map(({ intentionId, text }) => ({ intentionId, text })),
 		};
 	};
-};
 
 async function openSuggestions(
 	locale: keyof typeof labels,

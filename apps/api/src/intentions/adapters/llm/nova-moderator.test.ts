@@ -39,30 +39,28 @@ function fakeBedrock(reply: () => Reply) {
 	return { requests, requestHandler };
 }
 
-const novaAnswers = (verdict: unknown) => {
-	return (): Reply => {
-		return {
-			status: 200,
-			body: {
-				output: {
-					message: {
-						role: "assistant",
-						content: [
-							{
-								toolUse: {
-									toolUseId: "tooluse_test",
-									name: "record_verdict",
-									input: verdict,
-								},
+const novaAnswers = (verdict: unknown) => (): Reply => {
+	return {
+		status: 200,
+		body: {
+			output: {
+				message: {
+					role: "assistant",
+					content: [
+						{
+							toolUse: {
+								toolUseId: "tooluse_test",
+								name: "record_verdict",
+								input: verdict,
 							},
-						],
-					},
+						},
+					],
 				},
-				stopReason: "tool_use",
-				usage: { inputTokens: 400, outputTokens: 20, totalTokens: 420 },
-				metrics: { latencyMs: 300 },
 			},
-		};
+			stopReason: "tool_use",
+			usage: { inputTokens: 400, outputTokens: 20, totalTokens: 420 },
+			metrics: { latencyMs: 300 },
+		},
 	};
 };
 

@@ -23,9 +23,7 @@ afterEach(() => {
 	initAnalytics(undefined, posthog);
 });
 
-const eventNames = () => {
-	return events.map(({ event }) => event);
-};
+const eventNames = () => events.map(({ event }) => event);
 
 const published = { code: "INT-7K3QD" };
 
@@ -36,20 +34,16 @@ const publishes: SubmitIntention = async () => {
 	};
 };
 
-const rejects = (
-	...reasons: ("spam" | "abuse" | "personal_data" | "off_topic")[]
-) => {
-	return async () => {
+const rejects =
+	(...reasons: ("spam" | "abuse" | "personal_data" | "off_topic")[]) =>
+	async () => {
 		return {
 			ok: false as const,
 			error: { kind: "rejected" as const, reasons },
 		};
 	};
-};
 
-const textbox = () => {
-	return screen.getByRole("textbox") as HTMLTextAreaElement;
-};
+const textbox = () => screen.getByRole("textbox") as HTMLTextAreaElement;
 
 async function write(text: string) {
 	const field = (await screen.findByRole("textbox")) as HTMLTextAreaElement;

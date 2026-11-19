@@ -19,19 +19,17 @@ function fakeBedrock(reply: () => Response) {
 	return { requests, fetch: fetch as typeof globalThis.fetch };
 }
 
-const claudeAnswers = (verdict: unknown) => {
-	return () => {
-		return Response.json({
-			id: "msg_test",
-			type: "message",
-			role: "assistant",
-			model: "global.anthropic.claude-haiku-5-5",
-			content: [{ type: "text", text: JSON.stringify(verdict) }],
-			stop_reason: "end_turn",
-			stop_sequence: null,
-			usage: { input_tokens: 400, output_tokens: 20 },
-		});
-	};
+const claudeAnswers = (verdict: unknown) => () => {
+	return Response.json({
+		id: "msg_test",
+		type: "message",
+		role: "assistant",
+		model: "global.anthropic.claude-haiku-5-5",
+		content: [{ type: "text", text: JSON.stringify(verdict) }],
+		stop_reason: "end_turn",
+		stop_sequence: null,
+		usage: { input_tokens: 400, output_tokens: 20 },
+	});
 };
 
 function recordingAnalytics() {

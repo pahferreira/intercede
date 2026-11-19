@@ -32,9 +32,7 @@ export function useCommit(options: UseCommitOptions) {
 		},
 	});
 
-	const sendSelected = () => {
-		return mutation.mutate([...options.selected]);
-	};
+	const sendSelected = () => mutation.mutate([...options.selected]);
 
 	return {
 		commit: () => {

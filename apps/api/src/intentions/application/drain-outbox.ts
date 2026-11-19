@@ -14,8 +14,9 @@ type OutboxDrain = { dispatched: number; pending: number };
 
 type DrainOutbox = (dispatch: DispatchIntentionEvent) => Promise<OutboxDrain>;
 
-export const createDrainOutbox = (database: Database): DrainOutbox => {
-	return async (dispatch) => {
+export const createDrainOutbox =
+	(database: Database): DrainOutbox =>
+	async (dispatch) => {
 		const pending = await pendingEvents(database);
 		const heldIntentions = new Set<string>();
 		let dispatched = 0;
@@ -32,4 +33,3 @@ export const createDrainOutbox = (database: Database): DrainOutbox => {
 		}
 		return { dispatched, pending: pending.length - dispatched };
 	};
-};

@@ -43,11 +43,9 @@ const insertIntention = (
 	});
 };
 
-export const createPublishIntention = (
-	database: Database,
-	issueCode: () => string,
-): PublishIntention => {
-	return async (intention) => {
+export const createPublishIntention =
+	(database: Database, issueCode: () => string): PublishIntention =>
+	async (intention) => {
 		for (let attempt = 1; ; attempt++) {
 			try {
 				return await insertIntention(database, {
@@ -59,4 +57,3 @@ export const createPublishIntention = (
 			}
 		}
 	};
-};

@@ -46,8 +46,9 @@ const eventStreamFrame = ([eventType, body]: [string, unknown]) => {
 type ToolUse = { id: string; name: string; inputChunks: string[] };
 type Reply = { status: number; body: Buffer; contentType: string };
 
-const novaStreams = (...toolUses: ToolUse[]) => {
-	return (): Reply => {
+const novaStreams =
+	(...toolUses: ToolUse[]) =>
+	(): Reply => {
 		const events: [string, unknown][] = [
 			["messageStart", { role: "assistant" }],
 		];
@@ -80,7 +81,6 @@ const novaStreams = (...toolUses: ToolUse[]) => {
 			contentType: "application/vnd.amazon.eventstream",
 		};
 	};
-};
 
 type SentRequest = { url: string; body: Record<string, unknown> };
 type HttpRequest = {

@@ -44,13 +44,11 @@ export const createDatabase = (
 	});
 };
 
-export const createDatabaseProbe = (database: Database) => {
-	return async () => {
-		try {
-			await database.execute(sql`select 1`);
-			return true;
-		} catch {
-			return false;
-		}
-	};
+export const createDatabaseProbe = (database: Database) => async () => {
+	try {
+		await database.execute(sql`select 1`);
+		return true;
+	} catch {
+		return false;
+	}
 };

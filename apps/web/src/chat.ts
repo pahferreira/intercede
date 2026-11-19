@@ -1,3 +1,1 @@
-export const isChatOpen = (search: { chat?: true }) => {
-	return search.chat === true;
-};
+export const isChatOpen = (search: { chat?: true }) => search.chat === true;

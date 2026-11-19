@@ -31,11 +31,12 @@ type DailyRateLimitOptions = {
 	now?: () => Date;
 };
 
-export const createDailyRateLimit = (
-	database: Database,
-	{ action, limit, now = () => new Date() }: DailyRateLimitOptions,
-): ConsumeRateLimit => {
-	return async (subject) => {
+export const createDailyRateLimit =
+	(
+		database: Database,
+		{ action, limit, now = () => new Date() }: DailyRateLimitOptions,
+	): ConsumeRateLimit =>
+	async (subject) => {
 		const [counter] = await database
 			.insert(rateLimitCounters)
 			.values({ action, subject, windowStart: startOfUtcDay(now()), count: 1 })
@@ -51,7 +52,6 @@ export const createDailyRateLimit = (
 		if (!counter) throw new Error("the rate limit counter was not written");
 		return counter.count <= limit;
 	};
-};
 
 export const createSubmissionLimit = (
 	database: Database,

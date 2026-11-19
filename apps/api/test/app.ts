@@ -23,9 +23,7 @@ const moderationNotExpected: Moderate = async () => {
 	throw new Error("this test does not expect a moderation call");
 };
 
-const passesTurnstile: VerifyTurnstile = async () => {
-	return true;
-};
+const passesTurnstile: VerifyTurnstile = async () => true;
 
 const embeddingNotExpected: Embed = async () => {
 	throw new Error("this test does not expect an embedding call");

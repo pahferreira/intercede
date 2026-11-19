@@ -18,11 +18,9 @@ type KeepCatalogInStepDeps = {
 	embed: Embed;
 };
 
-export const createKeepCatalogInStep = ({
-	database,
-	embed,
-}: KeepCatalogInStepDeps): KeepCatalogInStep => {
-	return async (event, analytics) => {
+export const createKeepCatalogInStep =
+	({ database, embed }: KeepCatalogInStepDeps): KeepCatalogInStep =>
+	async (event, analytics) => {
 		switch (event.type) {
 			case "IntentionArchived":
 				await removeFromCatalog(database, event.payload.intentionId);
@@ -41,4 +39,3 @@ export const createKeepCatalogInStep = ({
 			}
 		}
 	};
-};

@@ -14,8 +14,9 @@ export type Commit = (
 
 type CommitDeps = { database: Database };
 
-export const createCommit = ({ database }: CommitDeps): Commit => {
-	return ({ visitorId, intentionIds }) => {
+export const createCommit =
+	({ database }: CommitDeps): Commit =>
+	({ visitorId, intentionIds }) => {
 		return database.transaction(async (tx) => {
 			const requested = [...new Set(intentionIds)];
 			const committable = new Map(
@@ -37,4 +38,3 @@ export const createCommit = ({ database }: CommitDeps): Commit => {
 			};
 		});
 	};
-};

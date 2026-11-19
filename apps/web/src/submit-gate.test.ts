@@ -4,9 +4,7 @@ import {
 	submittedOrSkippedRecently,
 } from "./submit-gate";
 
-const hours = (n: number) => {
-	return n * 60 * 60 * 1000;
-};
+const hours = (n: number) => n * 60 * 60 * 1000;
 const now = Date.parse("2026-11-16T12:00:00Z");
 
 test("a browser that never submitted or skipped is shown the Submit screen", () => {

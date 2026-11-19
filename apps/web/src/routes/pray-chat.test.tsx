@@ -140,9 +140,7 @@ test("checking a Suggestion selects it, and unchecking clears it", async () => {
 	const checkboxes = screen.getAllByRole<HTMLInputElement>("checkbox", {
 		name: labels.en.commit,
 	});
-	const checked = () => {
-		return checkboxes.map((checkbox) => checkbox.checked);
-	};
+	const checked = () => checkboxes.map((checkbox) => checkbox.checked);
 	const [first] = checkboxes as [HTMLInputElement];
 
 	fireEvent.click(first);

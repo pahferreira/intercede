@@ -37,9 +37,7 @@ const isUnknownClass = (candidate: string) => {
 };
 
 const unknownClasses = (source: string) => {
-	const blank = (part: string) => {
-		return " ".repeat(part.length);
-	};
+	const blank = (part: string) => " ".repeat(part.length);
 	const bodies = [
 		...[...source.matchAll(quoted)].map((match) => ({
 			text: match[1] ?? match[2] ?? "",

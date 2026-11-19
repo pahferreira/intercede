@@ -29,9 +29,7 @@ export function SuggestionCard(props: SuggestionCardProps) {
 		if (!element) {
 			return;
 		}
-		const measure = () => {
-			setOverflows(overflowsClamp(element));
-		};
+		const measure = () => setOverflows(overflowsClamp(element));
 		measure();
 		const observer = new ResizeObserver(measure);
 		observer.observe(element);

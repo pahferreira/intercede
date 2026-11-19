@@ -13,9 +13,7 @@ const embeddingOf = (text: string) => {
 	);
 };
 
-const embeds: Embed = async (text) => {
-	return { ok: true, value: embeddingOf(text) };
-};
+const embeds: Embed = async (text) => ({ ok: true, value: embeddingOf(text) });
 
 const publish = async (text: string, language: Language = "en") => {
 	const app = createTestApp({
