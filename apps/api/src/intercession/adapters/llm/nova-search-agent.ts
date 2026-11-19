@@ -10,10 +10,11 @@ import {
 } from "@aws-sdk/client-bedrock-runtime";
 import {
 	type AgentEvent,
-	askClarifyingQuestion,
+	AgentEventType,
 	type FindIntentionsResult,
 	type SearchAgent,
 	type SearchAgentTurn,
+	ToolName,
 } from "../../application/search-agent";
 import {
 	asEntry,
@@ -72,7 +73,7 @@ const messagesFor = (turn: SearchAgentTurn): Message[] => {
 				content: results.map(({ call }) => ({
 					toolUse: {
 						toolUseId: call.id,
-						name: "find_intentions",
+						name: ToolName.FindIntentions,
 						input: { query: call.query },
 					},
 				})),
@@ -83,7 +84,9 @@ const messagesFor = (turn: SearchAgentTurn): Message[] => {
 };
 
 const toolChoiceFor = ({ mustPresent }: SearchAgentTurn): ToolChoice => {
-	return mustPresent ? { tool: { name: "present_suggestions" } } : { any: {} };
+	return mustPresent
+		? { tool: { name: ToolName.PresentSuggestions } }
+		: { any: {} };
 };
 
 export const createNovaSearchAgent = (
@@ -130,10 +133,13 @@ export const createNovaSearchAgent = (
 					const input = inputs.get(delta.contentBlockIndex ?? 0);
 					if (!input) continue;
 					input.json += delta.delta.toolUse.input ?? "";
-					if (input.name !== "present_suggestions") continue;
+					if (input.name !== ToolName.PresentSuggestions) continue;
 					const note = noteSoFar(input.json);
 					if (note.length > streamedNote.length) {
-						yield { type: "note_delta", text: note.slice(streamedNote.length) };
+						yield {
+							type: AgentEventType.NoteDelta,
+							text: note.slice(streamedNote.length),
+						};
 						streamedNote = note;
 					}
 				}
@@ -154,32 +160,33 @@ export const createNovaSearchAgent = (
 			});
 			const toolUses = [...inputs.values()];
 			const presentation = toolUses.find(
-				(toolUse) => toolUse.name === "present_suggestions",
+				(toolUse) => toolUse.name === ToolName.PresentSuggestions,
 			);
 			if (presentation) {
 				const { suggestions } = presentSuggestionsInput.parse(
 					JSON.parse(presentation.json),
 				);
-				yield { type: "present_suggestions", suggestions };
+				yield { type: AgentEventType.PresentSuggestions, suggestions };
 				return;
 			}
 			const question = toolUses.find(
-				(toolUse) => toolUse.name === askClarifyingQuestion,
+				(toolUse) => toolUse.name === ToolName.AskClarifyingQuestion,
 			);
 			if (question) {
 				yield clarifyingQuestionFrom(JSON.parse(question.json));
 				return;
 			}
 			const calls = toolUses
-				.filter((toolUse) => toolUse.name === "find_intentions")
+				.filter((toolUse) => toolUse.name === ToolName.FindIntentions)
 				.map((toolUse) => ({
 					id: toolUse.id,
 					query: findIntentionsInput.parse(JSON.parse(toolUse.json)).query,
 				}));
-			if (calls.length > 0) yield { type: "find_intentions", calls };
+			if (calls.length > 0)
+				yield { type: AgentEventType.FindIntentions, calls };
 		} catch (error) {
 			analytics.captureException(error);
-			yield { type: "unavailable" };
+			yield { type: AgentEventType.Unavailable };
 		}
 	};
 };

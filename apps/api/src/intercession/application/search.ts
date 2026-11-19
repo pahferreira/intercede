@@ -12,7 +12,7 @@ import { rank } from "../domain/ranking";
 import { internalError, type SearchEvent } from "../domain/search-event";
 import type { Embed } from "./embed";
 import {
-	askClarifyingQuestion,
+	AgentEventType,
 	type Clarification,
 	type FindIntentionsCall,
 	type FindIntentionsResult,
@@ -75,13 +75,13 @@ export const createSearch = ({
 				analytics,
 			)) {
 				switch (event.type) {
-					case "note_delta":
+					case AgentEventType.NoteDelta:
 						yield { type: "note_delta", data: { text: event.text } };
 						break;
-					case "find_intentions":
+					case AgentEventType.FindIntentions:
 						calls = event.calls;
 						break;
-					case "present_suggestions": {
+					case AgentEventType.PresentSuggestions: {
 						const suggestions = toSuggestions(event.suggestions, found);
 						await recordSuggestions(
 							database,
@@ -92,7 +92,7 @@ export const createSearch = ({
 						yield { type: "done", data: {} };
 						return;
 					}
-					case askClarifyingQuestion:
+					case AgentEventType.AskClarifyingQuestion:
 						if (clarification) {
 							yield internalError;
 							return;
@@ -100,7 +100,7 @@ export const createSearch = ({
 						yield { type: "question", data: { question: event.question } };
 						yield { type: "done", data: {} };
 						return;
-					case "unavailable":
+					case AgentEventType.Unavailable:
 						yield internalError;
 						return;
 				}

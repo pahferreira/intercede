@@ -9,10 +9,11 @@ import type {
 } from "@anthropic-ai/sdk/resources/messages";
 import {
 	type AgentEvent,
-	askClarifyingQuestion,
+	AgentEventType,
 	type FindIntentionsResult,
 	type SearchAgent,
 	type SearchAgentTurn,
+	ToolName,
 } from "../../application/search-agent";
 import {
 	asEntry,
@@ -63,7 +64,7 @@ const messagesFor = (turn: SearchAgentTurn): MessageParam[] => {
 				content: results.map(({ call }) => ({
 					type: "tool_use" as const,
 					id: call.id,
-					name: "find_intentions",
+					name: ToolName.FindIntentions,
 					input: { query: call.query },
 				})),
 			},
@@ -74,7 +75,7 @@ const messagesFor = (turn: SearchAgentTurn): MessageParam[] => {
 
 const toolChoiceFor = ({ mustPresent }: SearchAgentTurn): ToolChoice => {
 	return mustPresent
-		? { type: "tool", name: "present_suggestions" }
+		? { type: "tool", name: ToolName.PresentSuggestions }
 		: { type: "any" };
 };
 
@@ -119,10 +120,13 @@ export const createClaudeSearchAgent = (
 					const input = inputs.get(event.index);
 					if (!input) continue;
 					input.json += event.delta.partial_json;
-					if (input.name !== "present_suggestions") continue;
+					if (input.name !== ToolName.PresentSuggestions) continue;
 					const note = noteSoFar(input.json);
 					if (note.length > streamedNote.length) {
-						yield { type: "note_delta", text: note.slice(streamedNote.length) };
+						yield {
+							type: AgentEventType.NoteDelta,
+							text: note.slice(streamedNote.length),
+						};
 						streamedNote = note;
 					}
 				}
@@ -143,32 +147,33 @@ export const createClaudeSearchAgent = (
 				block.type === "tool_use" ? [block] : [],
 			);
 			const presentation = toolUses.find(
-				(block) => block.name === "present_suggestions",
+				(block) => block.name === ToolName.PresentSuggestions,
 			);
 			if (presentation) {
 				const { suggestions } = presentSuggestionsInput.parse(
 					presentation.input,
 				);
-				yield { type: "present_suggestions", suggestions };
+				yield { type: AgentEventType.PresentSuggestions, suggestions };
 				return;
 			}
 			const question = toolUses.find(
-				(block) => block.name === askClarifyingQuestion,
+				(block) => block.name === ToolName.AskClarifyingQuestion,
 			);
 			if (question) {
 				yield clarifyingQuestionFrom(question.input);
 				return;
 			}
 			const calls = toolUses
-				.filter((block) => block.name === "find_intentions")
+				.filter((block) => block.name === ToolName.FindIntentions)
 				.map((block) => ({
 					id: block.id,
 					query: findIntentionsInput.parse(block.input).query,
 				}));
-			if (calls.length > 0) yield { type: "find_intentions", calls };
+			if (calls.length > 0)
+				yield { type: AgentEventType.FindIntentions, calls };
 		} catch (error) {
 			analytics.captureException(error);
-			yield { type: "unavailable" };
+			yield { type: AgentEventType.Unavailable };
 		}
 	};
 };
