@@ -31,7 +31,7 @@ type EntryScore = {
 	ranked: string[];
 };
 
-export type RelevanceReport = {
+type RelevanceReport = {
 	entries: EntryScore[];
 	recall: Record<Language | "overall", number>;
 };
