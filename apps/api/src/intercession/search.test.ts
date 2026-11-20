@@ -76,6 +76,7 @@ type SignedClarification = {
 type Turn = {
 	turnstileToken?: string;
 	clarification?: SignedClarification;
+	transcript?: { turns: unknown[]; signature?: string };
 };
 
 const send = (
@@ -143,6 +144,7 @@ test("an Entry streams the note and the Suggestions found in the Catalog", async
 						whyNote: "About work",
 					},
 				],
+				signature: expect.any(String),
 			},
 		},
 		{ type: "done", data: {} },
@@ -231,11 +233,20 @@ test("the answer to the Clarifying Question continues the turn with the Entry", 
 
 	expect(await eventsOf(response)).toEqual([
 		{ type: "status", data: { status: "searching" } },
-		{ type: "suggestions", data: { match: "close", suggestions: [] } },
+		{
+			type: "suggestions",
+			data: { match: "close", suggestions: [], signature: expect.any(String) },
+		},
 		{ type: "done", data: {} },
 	]);
 	expect(turns).toEqual([
-		{ entry: "pray", clarification: clarified, steps: [], mustPresent: false },
+		{
+			transcript: [],
+			entry: "pray",
+			clarification: clarified,
+			steps: [],
+			mustPresent: false,
+		},
 	]);
 });
 
@@ -512,6 +523,303 @@ test.each([
 		expect(response.status).toBe(400);
 	},
 );
+
+const searched = async (
+	app: ReturnType<typeof createTestApp>,
+	entry: string,
+	headers: Record<string, string> = {},
+	turn: Turn = { turnstileToken: "turnstile-token" },
+) => {
+	const response = await send(app, entry, headers, turn);
+	const events = await eventsOf(response);
+	const note = events
+		.flatMap((event) => (event.type === "note_delta" ? [event.data.text] : []))
+		.join("");
+	const presented = events.find((event) => event.type === "suggestions");
+	if (presented?.type !== "suggestions") throw new Error("nothing presented");
+	return {
+		cookie: headers.cookie ?? visitorCookieOf(response),
+		events,
+		turn: {
+			entry,
+			...(turn.clarification && {
+				clarification: {
+					question: turn.clarification.question,
+					answer: turn.clarification.answer,
+				},
+			}),
+			note,
+			suggestions: presented.data.suggestions,
+		},
+		signature: presented.data.signature,
+	};
+};
+
+const presentsBrotherJob = (): AgentEvent[][] => {
+	return [
+		[
+			{
+				type: "find_intentions",
+				calls: [{ id: "c1", query: "a new job", language: "en" }],
+			},
+		],
+		[
+			{ type: "note_delta", text: "These are about work." },
+			{
+				type: "present_suggestions",
+				suggestions: [{ intentionId: brotherJob, whyNote: "About work" }],
+			},
+		],
+	];
+};
+
+const presentsNothing: AgentEvent[] = [
+	{ type: "present_suggestions", suggestions: [] },
+];
+
+test("a Refinement goes on from the signed transcript, with no Turnstile token, and the agent sees the earlier search", async () => {
+	await inCatalog(brotherJob, "For my brother's new job");
+	const tokens: string[] = [];
+	const { agent, turns } = recordingTurns(
+		...presentsBrotherJob(),
+		presentsNothing,
+	);
+	const app = createTestApp({
+		embed: embedsQuery,
+		agent,
+		verifyTurnstile: async (token) => {
+			tokens.push(token);
+			return true;
+		},
+	});
+	const first = await searched(app, "Someone looking for work");
+
+	const events = await eventsOf(
+		await send(
+			app,
+			"More about family",
+			{ cookie: first.cookie },
+			{ transcript: { turns: [first.turn], signature: first.signature } },
+		),
+	);
+
+	expect(events.at(-1)).toEqual({ type: "done", data: {} });
+	expect(first.turn).toEqual({
+		entry: "Someone looking for work",
+		note: "These are about work.",
+		suggestions: [
+			{
+				intentionId: brotherJob,
+				text: "For my brother's new job",
+				whyNote: "About work",
+			},
+		],
+	});
+	expect(turns[2]).toEqual({
+		transcript: [first.turn],
+		entry: "More about family",
+		steps: [],
+		mustPresent: false,
+	});
+	expect(tokens).toEqual(["turnstile-token"]);
+});
+
+const refined = (
+	app: ReturnType<typeof createTestApp>,
+	refinement: string,
+	earlier: Awaited<ReturnType<typeof searched>>,
+	turns: unknown[],
+) => {
+	return searched(
+		app,
+		refinement,
+		{ cookie: earlier.cookie },
+		{ transcript: { turns, signature: earlier.signature } },
+	);
+};
+
+test("after the second Refinement the transcript is no longer signed, and a third is refused before the agent runs", async () => {
+	let agentCalls = 0;
+	const app = createTestApp({
+		agent: async function* () {
+			agentCalls += 1;
+			yield* presentsNothing;
+		},
+	});
+	const entry = await searched(app, "Someone looking for work");
+	const first = await refined(app, "More about family", entry, [entry.turn]);
+	const second = await refined(app, "My cousin", first, [
+		entry.turn,
+		first.turn,
+	]);
+
+	const third = await send(
+		app,
+		"And her children",
+		{ cookie: entry.cookie },
+		{
+			transcript: {
+				turns: [entry.turn, first.turn, second.turn],
+				signature: first.signature,
+			},
+		},
+	);
+
+	expect(entry.signature).toEqual(expect.any(String));
+	expect(first.signature).toEqual(expect.any(String));
+	expect(second.signature).toBeUndefined();
+	expect(second.events.at(-1)).toEqual({ type: "done", data: {} });
+	expect(await eventsOf(third)).toEqual([
+		{ type: "error", data: { reason: "invalid_transcript" } },
+	]);
+	expect(agentCalls).toBe(3);
+});
+
+test.each<
+	[string, (turn: Awaited<ReturnType<typeof searched>>["turn"]) => unknown]
+>([
+	["another Entry", (turn) => ({ ...turn, entry: "Something else" })],
+	["a note the agent did not write", (turn) => ({ ...turn, note: "Forged" })],
+	[
+		"a Suggestion that was not shown",
+		(turn) => ({
+			...turn,
+			suggestions: [{ intentionId: sisterExams, text: "Made up" }],
+		}),
+	],
+	[
+		"a Clarifying Question that was not asked",
+		(turn) => ({ ...turn, clarification: { question: "Who?", answer: "Me" } }),
+	],
+])(
+	"a Refinement replayed with %s is refused before the agent runs",
+	async (_, tamper) => {
+		await inCatalog(brotherJob, "For my brother's new job");
+		let agentCalls = 0;
+		const play = scripted(...presentsBrotherJob());
+		const app = createTestApp({
+			embed: embedsQuery,
+			agent: (turn, analytics) => {
+				agentCalls += 1;
+				return play(turn, analytics);
+			},
+		});
+		const entry = await searched(app, "Someone looking for work");
+
+		const response = await send(
+			app,
+			"More about family",
+			{ cookie: entry.cookie },
+			{
+				transcript: { turns: [tamper(entry.turn)], signature: entry.signature },
+			},
+		);
+
+		expect(await eventsOf(response)).toEqual([
+			{ type: "error", data: { reason: "invalid_transcript" } },
+		]);
+		expect(agentCalls).toBe(2);
+	},
+);
+
+test("a Refinement signed for another Visitor is refused", async () => {
+	const app = createTestApp({
+		agent: scripted(presentsNothing, presentsNothing),
+	});
+	const entry = await searched(app, "Someone looking for work");
+	const other = await searched(app, "Someone looking for work");
+
+	const response = await send(
+		app,
+		"More about family",
+		{ cookie: other.cookie },
+		{ transcript: { turns: [entry.turn], signature: entry.signature } },
+	);
+
+	expect(await eventsOf(response)).toEqual([
+		{ type: "error", data: { reason: "invalid_transcript" } },
+	]);
+});
+
+test("a Refinement that also answers a Clarifying Question is refused", async () => {
+	const app = createTestApp({
+		agent: asksFirst(async function* () {
+			yield* presentsNothing;
+		}),
+	});
+	const { cookie, clarification } = await asked(app, "pray");
+	const answered = await searched(app, "pray", { cookie }, { clarification });
+
+	const response = await send(
+		app,
+		"pray",
+		{ cookie },
+		{
+			clarification,
+			transcript: { turns: [answered.turn], signature: answered.signature },
+		},
+	);
+
+	expect(await eventsOf(response)).toEqual([
+		{ type: "error", data: { reason: "invalid_transcript" } },
+	]);
+});
+
+test("answering the Clarifying Question does not use up a Refinement", async () => {
+	const turns: SearchAgentTurn[] = [];
+	const presents: SearchAgent = async function* (turn) {
+		turns.push(structuredClone(turn));
+		yield* presentsNothing;
+	};
+	const asksOnTheEntry = asksFirst(presents);
+	const app = createTestApp({
+		agent: (turn, analytics) => {
+			return turn.transcript.length === 0
+				? asksOnTheEntry(turn, analytics)
+				: presents(turn, analytics);
+		},
+	});
+	const { cookie, clarification } = await asked(app, "pray");
+	const answered = await searched(app, "pray", { cookie }, { clarification });
+	const first = await refined(app, "Her exams", answered, [answered.turn]);
+	const second = await refined(app, "Also her friends", first, [
+		answered.turn,
+		first.turn,
+	]);
+
+	expect(first.signature).toEqual(expect.any(String));
+	expect(second.events.at(-1)).toEqual({ type: "done", data: {} });
+	expect(turns.at(-1)?.transcript).toEqual([
+		{
+			entry: "pray",
+			clarification: clarified,
+			note: "",
+			suggestions: [],
+		},
+		{ entry: "Her exams", note: "", suggestions: [] },
+	]);
+});
+
+test("an agent asking a Clarifying Question on a Refinement ends the stream with an error", async () => {
+	const app = createTestApp({
+		agent: scripted(presentsNothing, [
+			{ type: "ask_clarifying_question", question: "Who exactly?" },
+		]),
+	});
+	const entry = await searched(app, "Someone looking for work");
+
+	const response = await send(
+		app,
+		"More about family",
+		{ cookie: entry.cookie },
+		{ transcript: { turns: [entry.turn], signature: entry.signature } },
+	);
+
+	expect(await eventsOf(response)).toEqual([
+		{ type: "status", data: { status: "searching" } },
+		{ type: "error", data: { reason: "internal" } },
+	]);
+});
 
 const keepsSearching = () => {
 	const turns: SearchAgentTurn[] = [];
@@ -892,6 +1200,7 @@ test("with no close match, up to 5 Intentions with the fewest Commitments are su
 					intentionId: intentionIds[index] ?? "",
 					text: `For intention number ${index}`,
 				})),
+				signature: expect.any(String),
 			},
 		},
 		{ type: "done", data: {} },
@@ -932,7 +1241,11 @@ test("a Catalog with no Intentions in the Entry's Language falls back to no Sugg
 
 	expect(events).toContainEqual({
 		type: "suggestions",
-		data: { match: "empty_catalog", suggestions: [] },
+		data: {
+			match: "empty_catalog",
+			suggestions: [],
+			signature: expect.any(String),
+		},
 	});
 });
 
@@ -946,7 +1259,7 @@ test("an agent that presents nothing without searching gets no fallback", async 
 
 	expect(events).toContainEqual({
 		type: "suggestions",
-		data: { match: "close", suggestions: [] },
+		data: { match: "close", suggestions: [], signature: expect.any(String) },
 	});
 });
 

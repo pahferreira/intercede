@@ -2,6 +2,7 @@ import type { Suggestion } from "./search-event";
 
 export const maxFindIntentionsCalls = 3;
 export const maxSuggestions = 5;
+export const maxRefinements = 2;
 export const suggestionWindowHours = 24;
 
 export type FoundIntention = { intentionId: string; text: string };

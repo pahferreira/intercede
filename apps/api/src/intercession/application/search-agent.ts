@@ -4,6 +4,7 @@ import type {
 	FoundIntention,
 	PresentedSuggestion,
 } from "../domain/presentation";
+import type { Suggestion } from "../domain/search-event";
 
 export const ToolName = {
 	FindIntentions: "find_intentions",
@@ -46,7 +47,15 @@ export type AgentEvent =
 
 export type Clarification = { question: string; answer: string };
 
+export type TranscriptTurn = {
+	entry: string;
+	clarification?: Clarification;
+	note: string;
+	suggestions: Suggestion[];
+};
+
 export type SearchAgentTurn = {
+	transcript: TranscriptTurn[];
 	entry: string;
 	clarification?: Clarification;
 	steps: FindIntentionsResult[][];

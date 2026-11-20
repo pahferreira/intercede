@@ -97,6 +97,8 @@ export type {
 	Commitment,
 	SearchEvent,
 	SignedClarification,
+	SignedTranscript,
 	Suggestion,
 	SuggestionMatch,
+	TranscriptTurn,
 } from "./intercession";

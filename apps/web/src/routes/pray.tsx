@@ -20,7 +20,7 @@ import { MessageBox } from "../ui/MessageBox";
 import { StatusMessage } from "../ui/StatusMessage";
 import { SuggestionCard } from "../ui/SuggestionCard";
 import { Textarea } from "../ui/Textarea";
-import { type Exchange, useChat } from "./useChat";
+import { type Composer, type Exchange, useChat } from "./useChat";
 import type { CommitControls } from "./useCommit";
 import { usePrayRoute } from "./usePrayRoute";
 
@@ -124,77 +124,104 @@ function EntryForm(props: EntryFormProps) {
 }
 
 type ChatProps = {
-	exchange: Exchange;
+	exchanges: Exchange[];
 	selected: ReadonlySet<string>;
-	awaitingAnswer: boolean;
+	composer?: Composer;
 	onToggle: (intentionId: string, checked: boolean) => void;
 	commit: CommitControls;
 	onAnswer: (answer: string) => void;
+	onRefine: (refinement: string) => void;
+	onNewSearch: () => void;
 };
 
 const asParagraphs = (text: string) => text.split(/\n{2,}/).filter(Boolean);
 
-function Chat(props: ChatProps) {
+type ExchangeMessagesProps = {
+	exchange: Exchange;
+	selected: ReadonlySet<string>;
+	onToggle: (intentionId: string, checked: boolean) => void;
+};
+
+function ExchangeMessages(props: ExchangeMessagesProps) {
 	const { t } = useLingui();
-	const [reply, setReply] = useState("");
 	const exchange = props.exchange;
 	const paragraphs = asParagraphs(exchange.note);
 
 	return (
+		<>
+			<EntryBubble text={exchange.entry} />
+			{exchange.clarification && (
+				<AssistantReply
+					paragraphs={asParagraphs(exchange.clarification.question)}
+				/>
+			)}
+			{exchange.clarification?.answer !== undefined && (
+				<EntryBubble text={exchange.clarification.answer} />
+			)}
+			{exchange.status === "searching" && <SearchingStatus />}
+			{paragraphs.length > 0 && (
+				<AssistantReply
+					paragraphs={paragraphs}
+					streaming={exchange.status === "answering"}
+				/>
+			)}
+			{exchange.match === "fallback" && (
+				<AssistantReply
+					paragraphs={[
+						t`I couldn't find a close match. These are still waiting for prayer:`,
+					]}
+				/>
+			)}
+			{exchange.match === "empty_catalog" && (
+				<p className="max-w-reply text-body-lg text-ivory">
+					<Trans>No intentions yet.</Trans>{" "}
+					<Link to="/" search={{ ask: true }}>
+						<Trans>Be the first to ask for prayer</Trans>
+					</Link>
+				</p>
+			)}
+			{exchange.suggestions.length > 0 && (
+				<ul aria-label={t`Suggestions`} className="flex flex-col gap-space-3">
+					{exchange.suggestions.map((suggestion) => (
+						<li key={suggestion.intentionId}>
+							<SuggestionCard
+								text={suggestion.text}
+								whyNote={suggestion.whyNote}
+								checked={props.selected.has(suggestion.intentionId)}
+								onCheckedChange={(checked) =>
+									props.onToggle(suggestion.intentionId, checked)
+								}
+							/>
+						</li>
+					))}
+				</ul>
+			)}
+			{exchange.status === "failed" && (
+				<StatusMessage tone="danger">
+					<Trans>Something went wrong. Please try again.</Trans>
+				</StatusMessage>
+			)}
+		</>
+	);
+}
+
+function Chat(props: ChatProps) {
+	const { t } = useLingui();
+	const [reply, setReply] = useState("");
+	const composer = props.composer;
+
+	return (
 		<div className="flex flex-col gap-space-5">
 			<Thread>
-				<EntryBubble text={exchange.entry} />
-				{exchange.clarification && (
-					<AssistantReply
-						paragraphs={asParagraphs(exchange.clarification.question)}
+				{props.exchanges.map((exchange, index) => (
+					<ExchangeMessages
+						// biome-ignore lint/suspicious/noArrayIndexKey: exchanges are only ever appended
+						key={index}
+						exchange={exchange}
+						selected={props.selected}
+						onToggle={props.onToggle}
 					/>
-				)}
-				{exchange.clarification?.answer !== undefined && (
-					<EntryBubble text={exchange.clarification.answer} />
-				)}
-				{exchange.status === "searching" && <SearchingStatus />}
-				{paragraphs.length > 0 && (
-					<AssistantReply
-						paragraphs={paragraphs}
-						streaming={exchange.status === "answering"}
-					/>
-				)}
-				{exchange.match === "fallback" && (
-					<AssistantReply
-						paragraphs={[
-							t`I couldn't find a close match. These are still waiting for prayer:`,
-						]}
-					/>
-				)}
-				{exchange.match === "empty_catalog" && (
-					<p className="max-w-reply text-body-lg text-ivory">
-						<Trans>No intentions yet.</Trans>{" "}
-						<Link to="/" search={{ ask: true }}>
-							<Trans>Be the first to ask for prayer</Trans>
-						</Link>
-					</p>
-				)}
-				{exchange.suggestions.length > 0 && (
-					<ul aria-label={t`Suggestions`} className="flex flex-col gap-space-3">
-						{exchange.suggestions.map((suggestion) => (
-							<li key={suggestion.intentionId}>
-								<SuggestionCard
-									text={suggestion.text}
-									whyNote={suggestion.whyNote}
-									checked={props.selected.has(suggestion.intentionId)}
-									onCheckedChange={(checked) =>
-										props.onToggle(suggestion.intentionId, checked)
-									}
-								/>
-							</li>
-						))}
-					</ul>
-				)}
-				{exchange.status === "failed" && (
-					<StatusMessage tone="danger">
-						<Trans>Something went wrong. Please try again.</Trans>
-					</StatusMessage>
-				)}
+				))}
 				{props.commit.unavailable && (
 					<StatusMessage tone="notice">
 						<Trans>
@@ -221,18 +248,33 @@ function Chat(props: ChatProps) {
 					</div>
 				)}
 			</Thread>
-			{(props.awaitingAnswer || exchange.status === "limited") && (
+			{composer === "finished" && (
+				<div className="mx-auto flex w-full max-w-column-chat justify-center">
+					<Button variant="secondary" onClick={props.onNewSearch}>
+						<Trans>New search</Trans>
+					</Button>
+				</div>
+			)}
+			{composer !== undefined && composer !== "finished" && (
 				<div className="sticky bottom-0 -mx-space-4 bg-violet md:mx-0">
 					<MessageBox
 						value={reply}
 						onChange={setReply}
 						onSubmit={(text) => {
 							setReply("");
-							props.onAnswer(text);
+							if (composer === "refine") {
+								props.onRefine(text);
+							} else {
+								props.onAnswer(text);
+							}
 						}}
-						placeholder={t`Tell me more…`}
+						placeholder={
+							composer === "refine"
+								? t`Tell me more, or refine your search…`
+								: t`Tell me more…`
+						}
 						disabledReason={
-							exchange.status === "limited"
+							composer === "limited"
 								? t`You've searched a lot today. Come back later. Meanwhile, the intentions you committed to are waiting for your prayer.`
 								: undefined
 						}
@@ -247,18 +289,19 @@ export function Pray() {
 	const { notice, copied, copy, dismiss } = usePrayRoute();
 	const turnstile = useTurnstile();
 	const chat = useChat({ turnstileToken: turnstile.token });
-	const exchange = chat.exchange;
 
 	return (
 		<>
-			{exchange ? (
+			{chat.exchanges.length > 0 ? (
 				<Chat
-					exchange={exchange}
+					exchanges={chat.exchanges}
 					selected={chat.selected}
-					awaitingAnswer={chat.awaitingAnswer}
+					composer={chat.composer}
 					onToggle={chat.toggle}
 					commit={chat.commit}
 					onAnswer={chat.answer}
+					onRefine={chat.refine}
+					onNewSearch={chat.newSearch}
 				/>
 			) : (
 				<div className="mx-auto flex w-full max-w-column-form flex-col gap-space-6 md:gap-space-7">

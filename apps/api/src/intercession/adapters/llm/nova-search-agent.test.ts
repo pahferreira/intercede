@@ -139,6 +139,7 @@ const agentFor = (bedrock: ReturnType<typeof fakeBedrock>) => {
 };
 
 const firstTurn: SearchAgentTurn = {
+	transcript: [],
 	entry: "Someone looking for work",
 	steps: [],
 	mustPresent: false,
@@ -219,6 +220,7 @@ test("earlier searches are replayed to Nova as tool calls and their results", as
 	await collect(
 		agentFor(bedrock)(
 			{
+				transcript: [],
 				entry: "Someone looking for work",
 				steps: [
 					[
@@ -349,6 +351,53 @@ test("once answered, the Clarifying Question is replayed to Nova and cannot be a
 	const messages = JSON.stringify(body?.messages);
 	expect(messages).toContain("Who would you like to pray for?");
 	expect(messages).toContain("My sister, she is sick");
+	expect(toolNames(body)).toEqual(["find_intentions", "present_suggestions"]);
+});
+
+test("a Refinement replays the earlier search to Nova, which cannot ask a Clarifying Question", async () => {
+	const bedrock = fakeBedrock(
+		novaStreams({
+			id: "tooluse_1",
+			name: "find_intentions",
+			inputChunks: ['{"query": "family", "language": "en"}'],
+		}),
+	);
+	const { analytics } = recordingAnalytics();
+
+	await collect(
+		agentFor(bedrock)(
+			{
+				...firstTurn,
+				transcript: [
+					{
+						entry: "Someone looking for work",
+						note: "These are about work.",
+						suggestions: [
+							{
+								intentionId: brotherJob,
+								text: "For my brother's new job",
+								whyNote: "About work",
+							},
+						],
+					},
+				],
+				entry: "More about family",
+			},
+			analytics,
+		),
+	);
+
+	const body = bedrock.requests[0]?.body;
+	const messages = JSON.stringify(body?.messages);
+	for (const earlier of [
+		"<entry>\\nSomeone looking for work\\n</entry>",
+		"These are about work.",
+		brotherJob,
+		"For my brother's new job",
+		"<refinement>\\nMore about family\\n</refinement>",
+	]) {
+		expect(messages).toContain(earlier);
+	}
 	expect(toolNames(body)).toEqual(["find_intentions", "present_suggestions"]);
 });
 

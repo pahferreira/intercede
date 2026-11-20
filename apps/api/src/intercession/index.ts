@@ -11,8 +11,13 @@ export {
 	createSearch,
 	type Search,
 	type SignedClarification,
+	type SignedTranscript,
 } from "./application/search";
-export type { Clarification, SearchAgent } from "./application/search-agent";
+export type {
+	Clarification,
+	SearchAgent,
+	TranscriptTurn,
+} from "./application/search-agent";
 export type { Commitment } from "./domain/commitment";
 export type {
 	SearchEvent,

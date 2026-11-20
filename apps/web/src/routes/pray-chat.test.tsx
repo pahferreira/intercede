@@ -404,3 +404,124 @@ test("showing the Clarifying Question is counted, and its answer is neither an E
 		{ event: "suggestions_shown", properties: { count: 1, fallback: false } },
 	]);
 });
+
+function signed(events: SearchEvent[], signature: string): SearchEvent[] {
+	return events.map((event) =>
+		event.type === "suggestions"
+			? { ...event, data: { ...event.data, signature } }
+			: event,
+	);
+}
+
+const refineLabel = {
+	en: "Tell me more, or refine your search…",
+	"pt-BR": "Conte-me mais ou refine sua busca…",
+} as const;
+
+async function refine(locale: keyof typeof labels, text: string) {
+	fireEvent.change(
+		await screen.findByRole("textbox", { name: refineLabel[locale] }),
+		{ target: { value: text } },
+	);
+	fireEvent.click(screen.getByRole("button", { name: labels[locale].send }));
+}
+
+test.each(["en", "pt-BR"] as const)(
+	"in %s, a Refinement from the composer sends the signed transcript and the thread goes on",
+	async (locale) => {
+		const searches = searchesOf(
+			signed(answered([suggestion(1)]), "signed-after-entry"),
+			signed(answered([suggestion(2)]), "signed-after-refinement"),
+		);
+		await sendEntry(locale, searches.search);
+		await screen.findByText("Intention number 1");
+
+		await refine(locale, "  More about family  ");
+
+		expect(await screen.findByText("Intention number 2")).toBeDefined();
+		expect(screen.getByText(entry)).toBeDefined();
+		expect(screen.getByText("Intention number 1")).toBeDefined();
+		expect(screen.getByText("More about family")).toBeDefined();
+		expect(searches.requests[1]).toEqual({
+			entry: "More about family",
+			turnstileToken: undefined,
+			clarification: undefined,
+			transcript: {
+				turns: [
+					{
+						entry,
+						note: "Here are some people to pray for.",
+						suggestions: [suggestion(1)],
+					},
+				],
+				signature: "signed-after-entry",
+			},
+			visitorId: expect.any(String),
+		});
+	},
+);
+
+test("each Refinement is counted with its number", async () => {
+	const searches = searchesOf(
+		signed(answered([suggestion(1)]), "signed-1"),
+		signed(answered([suggestion(2)]), "signed-2"),
+		answered([suggestion(3)]),
+	);
+	await sendEntry("en", searches.search);
+	await screen.findByText("Intention number 1");
+	await refine("en", "More about family");
+	await screen.findByText("Intention number 2");
+	await refine("en", "My cousin");
+	await screen.findByText("Intention number 3");
+
+	expect(events.filter((event) => event.event === "refinement_sent")).toEqual([
+		{ event: "refinement_sent", properties: { n: 1 } },
+		{ event: "refinement_sent", properties: { n: 2 } },
+	]);
+	expect(searches.requests[2]?.transcript).toEqual({
+		turns: [
+			{
+				entry,
+				note: "Here are some people to pray for.",
+				suggestions: [suggestion(1)],
+			},
+			{
+				entry: "More about family",
+				note: "Here are some people to pray for.",
+				suggestions: [suggestion(2)],
+			},
+		],
+		signature: "signed-2",
+	});
+});
+
+test.each(["en", "pt-BR"] as const)(
+	"in %s, after the second Refinement the composer becomes a New search button",
+	async (locale) => {
+		await sendEntry(
+			locale,
+			searchesOf(
+				signed(answered([suggestion(1)]), "signed-1"),
+				signed(answered([suggestion(2)]), "signed-2"),
+				answered([suggestion(3)]),
+			).search,
+		);
+		await screen.findByText("Intention number 1");
+		await refine(locale, "More about family");
+		await screen.findByText("Intention number 2");
+		await refine(locale, "My cousin");
+		await screen.findByText("Intention number 3");
+
+		expect(
+			screen.queryByRole("textbox", { name: refineLabel[locale] }),
+		).toBeNull();
+		fireEvent.click(
+			screen.getByRole("button", { name: labels[locale].newSearch }),
+		);
+
+		expect(
+			await screen.findByRole("textbox", { name: labels[locale].entry }),
+		).toBeDefined();
+		expect(screen.queryByText("Intention number 3")).toBeNull();
+	},
+);
