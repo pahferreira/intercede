@@ -9,7 +9,7 @@ export type ScoredVerdict = {
 	verdict: ModerationVerdict;
 };
 
-export type ReasonScore = { precision: number | null; recall: number | null };
+type ReasonScore = { precision: number | null; recall: number | null };
 
 const ratio = (part: number, whole: number) => {
 	return whole === 0 ? null : part / whole;

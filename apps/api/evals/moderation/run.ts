@@ -109,7 +109,10 @@ if (mismatches.length > 0) {
 
 if (unavailable.length > 0) {
 	console.log(
-		`\nModeration was unavailable for ${unavailable.length} intentions; they are left out of the scores.`,
+		`\nModeration was unavailable for ${unavailable.length} intentions; they are left out of the scores:`,
 	);
+	for (const intention of unavailable) {
+		console.log(`- [${intention.language}] ${intention.text}`);
+	}
 	console.error(exceptions[0]);
 }
