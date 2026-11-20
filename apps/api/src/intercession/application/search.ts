@@ -32,7 +32,7 @@ import {
 	type SearchAgent,
 } from "./search-agent";
 
-type SignedClarification = Clarification & { signature: string };
+export type SignedClarification = Clarification & { signature: string };
 
 type SearchRequest = {
 	entry: string;
@@ -50,7 +50,7 @@ type SearchDeps = {
 	database: Database;
 	embed: Embed;
 	agent: SearchAgent;
-	transcripts: Signer;
+	transcriptSigner: Signer;
 	verifyTurnstile: VerifyTurnstile;
 	consumeSearchTurn: ConsumeRateLimit;
 	tokenBudget: TokenBudget;
@@ -64,7 +64,7 @@ export const createSearch = ({
 	database,
 	embed,
 	agent,
-	transcripts,
+	transcriptSigner,
 	verifyTurnstile,
 	consumeSearchTurn,
 	tokenBudget,
@@ -77,7 +77,7 @@ export const createSearch = ({
 	}: SearchRequest) => {
 		if (clarification) {
 			const transcript = transcriptOf(visitorId, entry, clarification.question);
-			if (!transcripts.verify(transcript, clarification.signature)) {
+			if (!transcriptSigner.verify(transcript, clarification.signature)) {
 				return SearchErrorReason.InvalidTranscript;
 			}
 		} else if (
@@ -178,7 +178,7 @@ export const createSearch = ({
 							type: "question",
 							data: {
 								question,
-								signature: transcripts.sign(
+								signature: transcriptSigner.sign(
 									transcriptOf(visitorId, entry, question),
 								),
 							},

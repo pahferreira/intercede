@@ -1,4 +1,8 @@
-import type { Suggestion, SuggestionMatch } from "@intercede/api";
+import type {
+	SignedClarification,
+	Suggestion,
+	SuggestionMatch,
+} from "@intercede/api";
 import {
 	useNavigate,
 	useRouteContext,
@@ -10,15 +14,9 @@ import { isChatOpen } from "../chat";
 import { readSearchEvents } from "../search-stream";
 import { useCommit } from "./useCommit";
 
-type SignedClarification = {
-	question: string;
-	answer: string;
-	signature: string;
-};
-
 export type Exchange = {
 	entry: string;
-	clarification?: { question: string; signature: string; answer?: string };
+	clarification?: Omit<SignedClarification, "answer"> & { answer?: string };
 	status: "searching" | "answering" | "done" | "failed" | "limited";
 	note: string;
 	suggestions: Suggestion[];

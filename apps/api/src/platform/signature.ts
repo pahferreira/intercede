@@ -11,15 +11,36 @@ export const requireTranscriptKey = (env: Env = process.env) => {
 	return key;
 };
 
-export const createHmacSigner = (key: string): Signer => {
-	const sign = (payload: string) => {
-		return createHmac("sha256", key).update(payload).digest("base64url");
+const fifteenMinutesInMs = 15 * 60 * 1000;
+
+type HmacSignerOptions = {
+	ttlMs?: number;
+	now?: () => Date;
+};
+
+export const createHmacSigner = (
+	key: string,
+	{
+		ttlMs = fifteenMinutesInMs,
+		now = () => new Date(),
+	}: HmacSignerOptions = {},
+): Signer => {
+	const macOf = (payload: string, issuedAt: string) => {
+		return createHmac("sha256", key)
+			.update(`${issuedAt}.${payload}`)
+			.digest("base64url");
 	};
 	return {
-		sign,
+		sign: (payload) => {
+			const issuedAt = String(now().getTime());
+			return `${issuedAt}.${macOf(payload, issuedAt)}`;
+		},
 		verify: (payload, signature) => {
-			const expected = Buffer.from(sign(payload));
-			const given = Buffer.from(signature);
+			const [issuedAt = "", mac = ""] = signature.split(".");
+			const age = now().getTime() - Number(issuedAt);
+			if (!/^\d+$/.test(issuedAt) || age < 0 || age > ttlMs) return false;
+			const expected = Buffer.from(macOf(payload, issuedAt));
+			const given = Buffer.from(mac);
 			return (
 				expected.length === given.length && timingSafeEqual(expected, given)
 			);

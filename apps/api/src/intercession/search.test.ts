@@ -4,6 +4,7 @@ import { createTestApp } from "../../test/app";
 import { testDatabase } from "../../test/database";
 import type { Language } from "../intentions";
 import { createRateLimit } from "../platform/rate-limit";
+import { createHmacSigner } from "../platform/signature";
 import { createDailyTokenBudget } from "../platform/token-budget";
 import type { VerifyTurnstile } from "../platform/turnstile-port";
 import { putInCatalog } from "./adapters/persistence/catalog-store";
@@ -410,6 +411,46 @@ test.each<[string, Tampering]>([
 		expect(agentCalls).toBe(0);
 	},
 );
+
+test("an answer sent after the signed Clarifying Question has expired is refused", async () => {
+	const clock = { now: new Date("2026-11-18T09:00:00Z") };
+	const app = createTestApp({
+		transcriptSigner: createHmacSigner("test-transcript-key", {
+			now: () => clock.now,
+		}),
+		agent: asksFirst(async function* () {
+			yield { type: "present_suggestions", suggestions: [] };
+		}),
+	});
+	const { cookie, clarification } = await asked(app, "pray");
+
+	clock.now = new Date("2026-11-18T09:15:01Z");
+	const response = await send(app, "pray", { cookie }, { clarification });
+
+	expect(await eventsOf(response)).toEqual([
+		{ type: "error", data: { reason: "invalid_transcript" } },
+	]);
+});
+
+test("an answer sent while the signed Clarifying Question is fresh goes on", async () => {
+	const clock = { now: new Date("2026-11-18T09:00:00Z") };
+	const app = createTestApp({
+		transcriptSigner: createHmacSigner("test-transcript-key", {
+			now: () => clock.now,
+		}),
+		agent: asksFirst(async function* () {
+			yield { type: "present_suggestions", suggestions: [] };
+		}),
+	});
+	const { cookie, clarification } = await asked(app, "pray");
+
+	clock.now = new Date("2026-11-18T09:14:59Z");
+	const events = await eventsOf(
+		await send(app, "pray", { cookie }, { clarification }),
+	);
+
+	expect(events.at(-1)).toEqual({ type: "done", data: {} });
+});
 
 test("an answer signed for another Visitor is refused", async () => {
 	const app = createTestApp({

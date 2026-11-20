@@ -38,7 +38,7 @@ const openAnalytics = createPostHogAnalytics(requirePostHogSettings());
 const verifyTurnstile = createTurnstileVerifier({
 	secret: requireTurnstileSecret(),
 });
-const transcripts = createHmacSigner(requireTranscriptKey());
+const transcriptSigner = createHmacSigner(requireTranscriptKey());
 
 export const handler = streamHandle(
 	createApp({
@@ -58,7 +58,7 @@ export const handler = streamHandle(
 			database,
 			embed: createTitanEmbedder(),
 			agent: createNovaSearchAgent(),
-			transcripts,
+			transcriptSigner,
 			verifyTurnstile,
 			consumeSearchTurn: createSearchTurnLimit(database),
 			tokenBudget: createSearchTokenBudget(database),

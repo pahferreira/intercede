@@ -19,6 +19,7 @@ import {
 } from "../src/platform/rate-limit";
 import type { ConsumeRateLimit } from "../src/platform/rate-limit-port";
 import { createHmacSigner } from "../src/platform/signature";
+import type { Signer } from "../src/platform/signature-port";
 import { createSearchTokenBudget } from "../src/platform/token-budget";
 import type { TokenBudget } from "../src/platform/token-budget-port";
 import type { VerifyTurnstile } from "../src/platform/turnstile-port";
@@ -31,6 +32,7 @@ type TestAppOverrides = Partial<AppDependencies> & {
 	agent?: SearchAgent;
 	consumeSearchTurn?: ConsumeRateLimit;
 	tokenBudget?: TokenBudget;
+	transcriptSigner?: Signer;
 };
 
 const moderationNotExpected: Moderate = async () => {
@@ -54,6 +56,7 @@ export const createTestApp = ({
 	agent = agentNotExpected,
 	consumeSearchTurn = createSearchTurnLimit(testDatabase(), {}),
 	tokenBudget = createSearchTokenBudget(testDatabase(), {}),
+	transcriptSigner = createHmacSigner("test-transcript-key"),
 	...overrides
 }: TestAppOverrides = {}) => {
 	return createApp({
@@ -76,7 +79,7 @@ export const createTestApp = ({
 			database: testDatabase(),
 			embed,
 			agent,
-			transcripts: createHmacSigner("test-transcript-key"),
+			transcriptSigner,
 			verifyTurnstile,
 			consumeSearchTurn,
 			tokenBudget,

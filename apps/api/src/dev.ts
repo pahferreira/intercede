@@ -54,7 +54,7 @@ const server = Bun.serve({
 			database,
 			embed: createTitanEmbedder(),
 			agent: createNovaSearchAgent(),
-			transcripts: createHmacSigner(
+			transcriptSigner: createHmacSigner(
 				process.env.TRANSCRIPT_SIGNING_KEY ?? localTranscriptKey,
 			),
 			verifyTurnstile,
