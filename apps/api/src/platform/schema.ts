@@ -6,7 +6,11 @@ import {
 	timestamp,
 } from "drizzle-orm/pg-core";
 
-export const rateLimitedActions = ["submission"] as const;
+export const rateLimitedActions = [
+	"submission",
+	"search_turn",
+	"search_tokens",
+] as const;
 
 export const platformSchema = pgSchema("platform");
 

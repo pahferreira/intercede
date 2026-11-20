@@ -67,7 +67,7 @@ After the first apply, `.github/workflows/deploy.yml` deploys every push to `mai
 
 1. `terraform apply` on this stack, reading the function names, web bucket, distribution and site URL from its outputs.
 2. Drizzle migrations against Neon. `DATABASE_URL` is the pooled connection string; migrations use the direct one, the same URL without `-pooler` in the host. The job fails if the secret has no `-pooler` host.
-3. The API and sweeper builds, each zipped with its source map and shipped after their environment, so new code never starts without a setting it requires. The environment goes through `update-function-configuration` (ADR-0010): `DATABASE_URL` and `POSTHOG_KEY` for both the API and the sweeper, and `TURNSTILE_SECRET_KEY` for the API.
+3. The API and sweeper builds, each zipped with its source map and shipped after their environment, so new code never starts without a setting it requires. The environment goes through `update-function-configuration` (ADR-0010): `DATABASE_URL` and `POSTHOG_KEY` for both the API and the sweeper, and `TURNSTILE_SECRET_KEY` and `TRANSCRIPT_SIGNING_KEY` for the API.
 4. The web build, synced to the bucket (hashed `assets/` cached for a year, everything else `no-cache`), then a CloudFront invalidation of `/*`. Old hashed assets stay, so pages already open keep loading their chunks.
 5. A check that `/api/health` and `/` answer on `intercede.pahferreira.dev`.
 
@@ -83,6 +83,7 @@ Every step is safe to re-run. A new run waits for the one in progress, and only 
 | `POSTHOG_KEY`                     | secret   | The API's environment and the web build.      |
 | `CLOUDFLARE_TURNSTILE_SECRET_KEY` | secret   | The API's `TURNSTILE_SECRET_KEY`.             |
 | `CLOUDFLARE_TURNSTILE_SITE_KEY`   | secret   | The web build's `TURNSTILE_SITE_KEY`.         |
+| `TRANSCRIPT_SIGNING_KEY`          | secret   | The API's HMAC key for chat transcripts.      |
 
 After a deploy, `terraform plan -detailed-exitcode` must still exit `0`: the new code and environment don't show up as changes.
 

@@ -7,7 +7,11 @@ export { type Commit, createCommit } from "./application/commit";
 export { createCountCommitments } from "./application/count-commitments";
 export type { Embed } from "./application/embed";
 export { createKeepCatalogInStep } from "./application/keep-catalog-in-step";
-export { createSearch, type Search } from "./application/search";
+export {
+	createSearch,
+	type Search,
+	type SignedClarification,
+} from "./application/search";
 export type { Clarification, SearchAgent } from "./application/search-agent";
 export type { Commitment } from "./domain/commitment";
 export type {

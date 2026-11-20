@@ -1,5 +1,5 @@
 import type {
-	Clarification,
+	SignedClarification,
 	Suggestion,
 	SuggestionMatch,
 } from "@intercede/api";
@@ -16,14 +16,18 @@ import { useCommit } from "./useCommit";
 
 export type Exchange = {
 	entry: string;
-	clarification?: { question: string; answer?: string };
-	status: "searching" | "answering" | "done" | "failed";
+	clarification?: Omit<SignedClarification, "answer"> & { answer?: string };
+	status: "searching" | "answering" | "done" | "failed" | "limited";
 	note: string;
 	suggestions: Suggestion[];
 	match: SuggestionMatch;
 };
 
-export function useChat() {
+type ChatOptions = {
+	turnstileToken: () => Promise<string>;
+};
+
+export function useChat(options: ChatOptions) {
 	const navigate = useNavigate();
 	const { client } = useRouteContext({ from: "__root__" });
 	const chatOpen = useSearch({ strict: false, select: isChatOpen });
@@ -67,11 +71,15 @@ export function useChat() {
 
 	const stream = async (
 		entry: string,
-		clarification: Clarification | undefined,
+		clarification: SignedClarification | undefined,
 		signal: AbortSignal,
 	) => {
+		const turnstileToken = clarification
+			? undefined
+			: await options.turnstileToken();
+		if (signal.aborted) return;
 		const response = await client.api.search.$post(
-			{ json: { entry, clarification } },
+			{ json: { entry, turnstileToken, clarification } },
 			{ init: { signal } },
 		);
 		if (!response.ok || !response.body) {
@@ -99,17 +107,19 @@ export function useChat() {
 				update((current) => ({
 					...current,
 					status: "answering",
-					clarification: { question: event.data.question },
+					clarification: event.data,
 				}));
 			} else if (event.type === "done") {
 				update((current) => ({ ...current, status: "done" }));
 			} else if (event.type === "error") {
-				update((current) => ({ ...current, status: "failed" }));
+				const status =
+					event.data.reason === "limit_reached" ? "limited" : "failed";
+				update((current) => ({ ...current, status }));
 			}
 		}
 	};
 
-	const run = (entry: string, clarification?: Clarification) => {
+	const run = (entry: string, clarification?: SignedClarification) => {
 		const controller = new AbortController();
 		searching.current?.abort();
 		searching.current = controller;
@@ -136,12 +146,12 @@ export function useChat() {
 
 	const unansweredQuestion =
 		exchange?.clarification?.answer === undefined
-			? exchange?.clarification?.question
+			? exchange?.clarification
 			: undefined;
 
 	const answer = (text: string) => {
 		if (!exchange || unansweredQuestion === undefined) return;
-		const clarification = { question: unansweredQuestion, answer: text.trim() };
+		const clarification = { ...unansweredQuestion, answer: text.trim() };
 		setExchange({ ...exchange, clarification, status: "searching" });
 		run(exchange.entry, clarification);
 	};

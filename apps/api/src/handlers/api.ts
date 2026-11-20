@@ -21,7 +21,12 @@ import {
 	createDatabaseProbe,
 	requireDatabaseUrl,
 } from "../platform/database";
-import { createSubmissionLimit } from "../platform/rate-limit";
+import {
+	createSearchTurnLimit,
+	createSubmissionLimit,
+} from "../platform/rate-limit";
+import { createHmacSigner, requireTranscriptKey } from "../platform/signature";
+import { createSearchTokenBudget } from "../platform/token-budget";
 import {
 	createTurnstileVerifier,
 	requireTurnstileSecret,
@@ -33,6 +38,7 @@ const openAnalytics = createPostHogAnalytics(requirePostHogSettings());
 const verifyTurnstile = createTurnstileVerifier({
 	secret: requireTurnstileSecret(),
 });
+const transcriptSigner = createHmacSigner(requireTranscriptKey());
 
 export const handler = streamHandle(
 	createApp({
@@ -52,6 +58,10 @@ export const handler = streamHandle(
 			database,
 			embed: createTitanEmbedder(),
 			agent: createNovaSearchAgent(),
+			transcriptSigner,
+			verifyTurnstile,
+			consumeSearchTurn: createSearchTurnLimit(database),
+			tokenBudget: createSearchTokenBudget(database),
 		}),
 		commit: createCommit({ database }),
 	}),

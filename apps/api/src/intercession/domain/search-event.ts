@@ -22,6 +22,16 @@ export const toMatch = (
 		: SuggestionMatch.EmptyCatalog;
 };
 
+export const SearchErrorReason = {
+	Internal: "internal",
+	InvalidTranscript: "invalid_transcript",
+	VerificationFailed: "verification_failed",
+	LimitReached: "limit_reached",
+} as const;
+
+export type SearchErrorReason =
+	(typeof SearchErrorReason)[keyof typeof SearchErrorReason];
+
 export type SearchEvent =
 	| { type: "status"; data: { status: "searching" } }
 	| { type: "note_delta"; data: { text: string } }
@@ -29,11 +39,12 @@ export type SearchEvent =
 			type: "suggestions";
 			data: { match: SuggestionMatch; suggestions: Suggestion[] };
 	  }
-	| { type: "question"; data: { question: string } }
+	| { type: "question"; data: { question: string; signature: string } }
 	| { type: "done"; data: Record<string, never> }
-	| { type: "error"; data: { reason: "internal" } };
+	| { type: "error"; data: { reason: SearchErrorReason } };
 
-export const internalError: SearchEvent = {
-	type: "error",
-	data: { reason: "internal" },
+export const searchError = (reason: SearchErrorReason): SearchEvent => {
+	return { type: "error", data: { reason } };
 };
+
+export const internalError = searchError(SearchErrorReason.Internal);
