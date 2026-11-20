@@ -8,6 +8,7 @@ import {
 	searchesOf,
 	searchOf,
 } from "../../test/render";
+import { installTurnstile } from "../../test/turnstile";
 import { initAnalytics } from "../analytics";
 
 let events: { event: string; properties: unknown }[] = [];
@@ -274,11 +275,69 @@ test.each([
 	expect(screen.queryByRole("status")).toBeNull();
 });
 
+test("an Entry that fails Turnstile is not searched, and says so", async () => {
+	installTurnstile().passes = false;
+	const searches = searchesOf();
+	await sendEntry("en", searches.search);
+
+	expect(
+		await screen.findByText("Something went wrong. Please try again."),
+	).toBeDefined();
+	expect(searches.requests).toEqual([]);
+});
+
+test("a New search after the first gets a fresh Turnstile token", async () => {
+	const searches = searchesOf(
+		answered([suggestion(1)]),
+		answered([suggestion(2)]),
+	);
+	await sendEntry("en", searches.search);
+	fireEvent.click(
+		await screen.findByRole("link", { name: labels.en.newSearch }),
+	);
+	fireEvent.change(
+		await screen.findByRole("textbox", { name: labels.en.entry }),
+		{ target: { value: "Another Entry" } },
+	);
+	fireEvent.click(screen.getByRole("button", { name: labels.en.start }));
+	await screen.findByText("Intention number 2");
+
+	expect(searches.requests.map((request) => request.turnstileToken)).toEqual([
+		"turnstile-token-1",
+		"turnstile-token-2",
+	]);
+});
+
+const limitCopy = {
+	en: "You've searched a lot today. Come back later. Meanwhile, the intentions you committed to are waiting for your prayer.",
+	"pt-BR":
+		"Você já buscou bastante hoje. Volte mais tarde. Enquanto isso, as intenções com que você se comprometeu esperam pela sua oração.",
+} as const;
+
+test.each(["en", "pt-BR"] as const)(
+	"in %s, a search past the limit says so and disables the composer",
+	async (locale) => {
+		await sendEntry(
+			locale,
+			searchOf([{ type: "error", data: { reason: "limit_reached" } }]),
+		);
+
+		expect(await screen.findByText(limitCopy[locale])).toBeDefined();
+		const composer = screen.getByRole("textbox", {
+			name: labels[locale].answer,
+		}) as HTMLTextAreaElement;
+		expect(composer.disabled).toBe(true);
+		expect(
+			screen.queryByText("Something went wrong. Please try again."),
+		).toBeNull();
+	},
+);
+
 const question = "Who would you like to pray for?";
 
 const asked: SearchEvent[] = [
 	{ type: "status", data: { status: "searching" } },
-	{ type: "question", data: { question } },
+	{ type: "question", data: { question, signature: "signed-transcript" } },
 	{ type: "done", data: {} },
 ];
 
@@ -305,15 +364,25 @@ test.each(["en", "pt-BR"] as const)(
 		expect(screen.getByText(question)).toBeDefined();
 		expect(screen.getByText("My sister, she is sick")).toBeDefined();
 		expect(
-			searches.requests.map(({ entry, clarification }) => ({
+			searches.requests.map(({ entry, turnstileToken, clarification }) => ({
 				entry,
+				turnstileToken,
 				clarification,
 			})),
 		).toEqual([
-			{ entry: "pray", clarification: undefined },
 			{
 				entry: "pray",
-				clarification: { question, answer: "My sister, she is sick" },
+				turnstileToken: "turnstile-token-1",
+				clarification: undefined,
+			},
+			{
+				entry: "pray",
+				turnstileToken: undefined,
+				clarification: {
+					question,
+					answer: "My sister, she is sick",
+					signature: "signed-transcript",
+				},
 			},
 		]);
 		expect(

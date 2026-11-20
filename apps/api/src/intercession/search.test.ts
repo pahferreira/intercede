@@ -3,6 +3,9 @@ import { sql } from "drizzle-orm";
 import { createTestApp } from "../../test/app";
 import { testDatabase } from "../../test/database";
 import type { Language } from "../intentions";
+import { createRateLimit } from "../platform/rate-limit";
+import { createDailyTokenBudget } from "../platform/token-budget";
+import type { VerifyTurnstile } from "../platform/turnstile-port";
 import { putInCatalog } from "./adapters/persistence/catalog-store";
 import { recordCommitments } from "./adapters/persistence/commitment-store";
 import { suggestions } from "./adapters/persistence/schema";
@@ -63,16 +66,27 @@ const scripted = (...steps: AgentEvent[][]): SearchAgent => {
 	};
 };
 
+type SignedClarification = {
+	question: string;
+	answer: string;
+	signature: string;
+};
+
+type Turn = {
+	turnstileToken?: string;
+	clarification?: SignedClarification;
+};
+
 const send = (
 	app: ReturnType<typeof createTestApp>,
 	entry: string,
 	headers: Record<string, string> = {},
-	clarification?: { question: string; answer: string },
+	turn: Turn = { turnstileToken: "turnstile-token" },
 ) => {
 	return app.request("/api/search", {
 		method: "POST",
 		headers: { "content-type": "application/json", ...headers },
-		body: JSON.stringify({ entry, clarification }),
+		body: JSON.stringify({ entry, ...turn }),
 	});
 };
 
@@ -148,7 +162,13 @@ test("an Entry too vague to search gets the agent's Clarifying Question", async 
 
 	expect(await eventsOf(response)).toEqual([
 		{ type: "status", data: { status: "searching" } },
-		{ type: "question", data: { question: "Who would you like to pray for?" } },
+		{
+			type: "question",
+			data: {
+				question: "Who would you like to pray for?",
+				signature: expect.any(String),
+			},
+		},
 		{ type: "done", data: {} },
 	]);
 });
@@ -158,16 +178,55 @@ const clarified = {
 	answer: "My sister, she is sick",
 };
 
+const asksFirst = (agent: SearchAgent): SearchAgent => {
+	return async function* (turn, analytics) {
+		if (!turn.clarification) {
+			yield {
+				type: "ask_clarifying_question",
+				question: `  ${clarified.question}\n`,
+			};
+			return;
+		}
+		yield* agent(turn, analytics);
+	};
+};
+
+const visitorCookieOf = (response: Response) => {
+	return (response.headers.get("set-cookie") ?? "").split(";")[0] ?? "";
+};
+
+const asked = async (app: ReturnType<typeof createTestApp>, entry: string) => {
+	const response = await send(app, entry);
+	const cookie = visitorCookieOf(response);
+	const question = (await eventsOf(response)).find(
+		(event) => event.type === "question",
+	);
+	if (question?.type !== "question") throw new Error("the agent did not ask");
+	return {
+		cookie,
+		clarification: {
+			question: question.data.question,
+			answer: clarified.answer,
+			signature: question.data.signature,
+		},
+	};
+};
+
+const answer = async (app: ReturnType<typeof createTestApp>, entry: string) => {
+	const { cookie, clarification } = await asked(app, entry);
+	return send(app, entry, { cookie }, { clarification });
+};
+
 test("the answer to the Clarifying Question continues the turn with the Entry", async () => {
 	const turns: SearchAgentTurn[] = [];
 	const app = createTestApp({
-		agent: async function* (turn) {
+		agent: asksFirst(async function* (turn) {
 			turns.push(structuredClone(turn));
 			yield { type: "present_suggestions", suggestions: [] };
-		},
+		}),
 	});
 
-	const response = await send(app, "pray", {}, clarified);
+	const response = await answer(app, "pray");
 
 	expect(await eventsOf(response)).toEqual([
 		{ type: "status", data: { status: "searching" } },
@@ -179,14 +238,210 @@ test("the answer to the Clarifying Question continues the turn with the Entry", 
 	]);
 });
 
-test("an agent asking a second Clarifying Question ends the stream with an error", async () => {
+test.each<[string, VerifyTurnstile, Turn]>([
+	["fails Turnstile", async () => false, { turnstileToken: "turnstile-token" }],
+	["has no Turnstile token", async () => true, {}],
+])(
+	"an Entry that %s is refused before the agent runs",
+	async (_, verifyTurnstile, turn) => {
+		const app = createTestApp({ verifyTurnstile });
+
+		const response = await send(app, "Someone looking for work", {}, turn);
+
+		expect(await eventsOf(response)).toEqual([
+			{ type: "error", data: { reason: "verification_failed" } },
+		]);
+	},
+);
+
+test("the Entry's Turnstile token is verified, and the answer needs none", async () => {
+	const tokens: string[] = [];
 	const app = createTestApp({
-		agent: scripted([
-			{ type: "ask_clarifying_question", question: "And who else?" },
-		]),
+		verifyTurnstile: async (token) => {
+			tokens.push(token);
+			return true;
+		},
+		agent: asksFirst(async function* () {
+			yield { type: "present_suggestions", suggestions: [] };
+		}),
 	});
 
-	const response = await send(app, "pray", {}, clarified);
+	const events = await eventsOf(await answer(app, "pray"));
+
+	expect(events.at(-1)).toEqual({ type: "done", data: {} });
+	expect(tokens).toEqual(["turnstile-token"]);
+});
+
+const turnsPerHour = (limit: number) => {
+	return createRateLimit(testDatabase(), {
+		action: "search_turn",
+		per: "hour",
+		limit,
+	});
+};
+
+test("a Visitor past their search turns for the hour is refused, and the agent never runs", async () => {
+	let agentCalls = 0;
+	const app = createTestApp({
+		consumeSearchTurn: turnsPerHour(1),
+		agent: async function* () {
+			agentCalls += 1;
+			yield { type: "present_suggestions", suggestions: [] };
+		},
+	});
+	const first = await send(app, "Someone looking for work");
+	const cookie = visitorCookieOf(first);
+	await eventsOf(first);
+
+	const response = await send(app, "Someone else", { cookie });
+
+	expect(await eventsOf(response)).toEqual([
+		{ type: "error", data: { reason: "limit_reached" } },
+	]);
+	expect(agentCalls).toBe(1);
+});
+
+test("answering a Clarifying Question counts as a search turn", async () => {
+	let answeredTurns = 0;
+	const app = createTestApp({
+		consumeSearchTurn: turnsPerHour(1),
+		agent: asksFirst(async function* () {
+			answeredTurns += 1;
+			yield { type: "present_suggestions", suggestions: [] };
+		}),
+	});
+
+	expect(await eventsOf(await answer(app, "pray"))).toEqual([
+		{ type: "error", data: { reason: "limit_reached" } },
+	]);
+	expect(answeredTurns).toBe(0);
+});
+
+test("the search turn limit is per Visitor", async () => {
+	const app = createTestApp({
+		consumeSearchTurn: turnsPerHour(1),
+		agent: scripted(
+			[{ type: "present_suggestions", suggestions: [] }],
+			[{ type: "present_suggestions", suggestions: [] }],
+		),
+	});
+	await eventsOf(await send(app, "Someone looking for work"));
+
+	const events = await eventsOf(await send(app, "Someone looking for work"));
+
+	expect(events.at(-1)).toEqual({ type: "done", data: {} });
+});
+
+const spending = (tokens: number): SearchAgent => {
+	return async function* (_, analytics) {
+		analytics.captureLlmGeneration({
+			model: "fake",
+			inputTokens: tokens - 10,
+			outputTokens: 10,
+			latencyMs: 1,
+			costUsd: 0,
+		});
+		yield { type: "present_suggestions", suggestions: [] };
+	};
+};
+
+test("once the day's token budget is spent, every Visitor is refused and the agent never runs", async () => {
+	let agentCalls = 0;
+	const spend = spending(100);
+	const app = createTestApp({
+		tokenBudget: createDailyTokenBudget(testDatabase(), { limit: 100 }),
+		agent: (turn, analytics) => {
+			agentCalls += 1;
+			return spend(turn, analytics);
+		},
+	});
+	await eventsOf(await send(app, "Someone looking for work"));
+
+	const response = await send(app, "Someone else");
+
+	expect(await eventsOf(response)).toEqual([
+		{ type: "error", data: { reason: "limit_reached" } },
+	]);
+	expect(agentCalls).toBe(1);
+});
+
+test("searches go on while the day's token budget is not spent", async () => {
+	const app = createTestApp({
+		tokenBudget: createDailyTokenBudget(testDatabase(), { limit: 100 }),
+		agent: spending(99),
+	});
+	await eventsOf(await send(app, "Someone looking for work"));
+
+	const events = await eventsOf(await send(app, "Someone else"));
+
+	expect(events.at(-1)).toEqual({ type: "done", data: {} });
+});
+
+type Tampering = { entry?: string; question?: string; signature?: string };
+
+test.each<[string, Tampering]>([
+	["a question the agent did not ask", { question: "Who is it for, really?" }],
+	["another Entry", { entry: "something else" }],
+	["a made-up signature", { signature: "forged" }],
+])(
+	"an answer replayed with %s is refused before the agent runs",
+	async (_, tampered) => {
+		let agentCalls = 0;
+		const app = createTestApp({
+			agent: asksFirst(async function* () {
+				agentCalls += 1;
+				yield { type: "present_suggestions", suggestions: [] };
+			}),
+		});
+		const { cookie, clarification } = await asked(app, "pray");
+
+		const { entry = "pray", ...changed } = tampered;
+
+		const response = await send(
+			app,
+			entry,
+			{ cookie },
+			{ clarification: { ...clarification, ...changed } },
+		);
+
+		expect(await eventsOf(response)).toEqual([
+			{ type: "error", data: { reason: "invalid_transcript" } },
+		]);
+		expect(agentCalls).toBe(0);
+	},
+);
+
+test("an answer signed for another Visitor is refused", async () => {
+	const app = createTestApp({
+		agent: asksFirst(async function* () {
+			yield { type: "present_suggestions", suggestions: [] };
+		}),
+	});
+	const { clarification } = await asked(app, "pray");
+	const { cookie: otherVisitor } = await asked(app, "pray");
+
+	const response = await send(
+		app,
+		"pray",
+		{ cookie: otherVisitor },
+		{ clarification },
+	);
+
+	expect(await eventsOf(response)).toEqual([
+		{ type: "error", data: { reason: "invalid_transcript" } },
+	]);
+});
+
+test("an agent asking a second Clarifying Question ends the stream with an error", async () => {
+	const app = createTestApp({
+		agent: asksFirst(
+			scripted([
+				{ type: "ask_clarifying_question", question: "And who else?" },
+			]),
+		),
+	});
+
+	const response = await answer(app, "pray");
 
 	expect(await eventsOf(response)).toEqual([
 		{ type: "status", data: { status: "searching" } },
@@ -206,7 +461,12 @@ test.each([
 	async (_, clarification) => {
 		const app = createTestApp();
 
-		const response = await send(app, "pray", {}, clarification);
+		const response = await send(
+			app,
+			"pray",
+			{},
+			{ clarification: { ...clarification, signature: "signature" } },
+		);
 
 		expect(response.status).toBe(400);
 	},

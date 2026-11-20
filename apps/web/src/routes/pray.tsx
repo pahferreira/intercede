@@ -6,6 +6,7 @@ import {
 	IconX,
 } from "@tabler/icons-react";
 import { useState } from "react";
+import { useTurnstile } from "../hooks/useTurnstile";
 import { Button } from "../ui/Button";
 import { Hero } from "../ui/Hero";
 import { Link } from "../ui/Link";
@@ -220,7 +221,7 @@ function Chat(props: ChatProps) {
 					</div>
 				)}
 			</Thread>
-			{props.awaitingAnswer && (
+			{(props.awaitingAnswer || exchange.status === "limited") && (
 				<div className="sticky bottom-0 -mx-space-4 bg-violet md:mx-0">
 					<MessageBox
 						value={reply}
@@ -230,6 +231,11 @@ function Chat(props: ChatProps) {
 							props.onAnswer(text);
 						}}
 						placeholder={t`Tell me more…`}
+						disabledReason={
+							exchange.status === "limited"
+								? t`You've searched a lot today. Come back later. Meanwhile, the intentions you committed to are waiting for your prayer.`
+								: undefined
+						}
 					/>
 				</div>
 			)}
@@ -239,34 +245,36 @@ function Chat(props: ChatProps) {
 
 export function Pray() {
 	const { notice, copied, copy, dismiss } = usePrayRoute();
-	const chat = useChat();
+	const turnstile = useTurnstile();
+	const chat = useChat({ turnstileToken: turnstile.token });
 	const exchange = chat.exchange;
 
-	if (exchange) {
-		return (
-			<Chat
-				exchange={exchange}
-				selected={chat.selected}
-				awaitingAnswer={chat.awaitingAnswer}
-				onToggle={chat.toggle}
-				commit={chat.commit}
-				onAnswer={chat.answer}
-			/>
-		);
-	}
-
 	return (
-		<div className="mx-auto flex w-full max-w-column-form flex-col gap-space-6 md:gap-space-7">
-			{notice && (
-				<PublishedNotice
-					code={notice.code}
-					copied={copied}
-					onCopy={copy}
-					onDismiss={dismiss}
+		<>
+			{exchange ? (
+				<Chat
+					exchange={exchange}
+					selected={chat.selected}
+					awaitingAnswer={chat.awaitingAnswer}
+					onToggle={chat.toggle}
+					commit={chat.commit}
+					onAnswer={chat.answer}
 				/>
+			) : (
+				<div className="mx-auto flex w-full max-w-column-form flex-col gap-space-6 md:gap-space-7">
+					{notice && (
+						<PublishedNotice
+							code={notice.code}
+							copied={copied}
+							onCopy={copy}
+							onDismiss={dismiss}
+						/>
+					)}
+					<Hero />
+					<EntryForm onSend={chat.send} />
+				</div>
 			)}
-			<Hero />
-			<EntryForm onSend={chat.send} />
-		</div>
+			<div ref={turnstile.container} />
+		</>
 	);
 }

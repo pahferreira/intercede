@@ -17,10 +17,16 @@ import {
 	createDatabaseProbe,
 	localOrConfiguredDatabaseUrl,
 } from "./platform/database";
-import { createSubmissionLimit } from "./platform/rate-limit";
+import {
+	createSearchTurnLimit,
+	createSubmissionLimit,
+} from "./platform/rate-limit";
+import { createHmacSigner } from "./platform/signature";
+import { createSearchTokenBudget } from "./platform/token-budget";
 import { createTurnstileVerifier } from "./platform/turnstile";
 
 const alwaysPassesTurnstileSecret = "1x0000000000000000000000000000000AA";
+const localTranscriptKey = "local-transcript-signing-key";
 
 const database = createDatabase(localOrConfiguredDatabaseUrl());
 const isDatabaseReachable = createDatabaseProbe(database);
@@ -48,6 +54,12 @@ const server = Bun.serve({
 			database,
 			embed: createTitanEmbedder(),
 			agent: createNovaSearchAgent(),
+			transcripts: createHmacSigner(
+				process.env.TRANSCRIPT_SIGNING_KEY ?? localTranscriptKey,
+			),
+			verifyTurnstile,
+			consumeSearchTurn: createSearchTurnLimit(database),
+			tokenBudget: createSearchTokenBudget(database),
 		}),
 		commit: createCommit({ database }),
 	}).fetch,

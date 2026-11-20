@@ -74,7 +74,8 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           POSTHOG_KEY: ${{ secrets.POSTHOG_KEY }}
           TURNSTILE_SECRET_KEY: ${{ secrets.CLOUDFLARE_TURNSTILE_SECRET_KEY }}
-        run: .github/scripts/deploy-lambda.sh "$FUNCTION_NAME" api DATABASE_URL POSTHOG_KEY TURNSTILE_SECRET_KEY
+          TRANSCRIPT_SIGNING_KEY: ${{ secrets.TRANSCRIPT_SIGNING_KEY }}
+        run: .github/scripts/deploy-lambda.sh "$FUNCTION_NAME" api DATABASE_URL POSTHOG_KEY TURNSTILE_SECRET_KEY TRANSCRIPT_SIGNING_KEY
 
       - name: Release the sweeper
         env:

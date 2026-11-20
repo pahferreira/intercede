@@ -1,6 +1,10 @@
 import type { Analytics } from "../../platform/analytics-port";
 import type { Database } from "../../platform/database";
+import type { ConsumeRateLimit } from "../../platform/rate-limit-port";
 import type { Result } from "../../platform/result";
+import type { Signer } from "../../platform/signature-port";
+import type { TokenBudget } from "../../platform/token-budget-port";
+import type { VerifyTurnstile } from "../../platform/turnstile-port";
 import {
 	findCandidatesInCatalog,
 	findFewestCommittedInCatalog,
@@ -14,7 +18,9 @@ import {
 import { rank } from "../domain/ranking";
 import {
 	internalError,
+	SearchErrorReason,
 	type SearchEvent,
+	searchError,
 	toMatch,
 } from "../domain/search-event";
 import type { Embed } from "./embed";
@@ -26,24 +32,77 @@ import {
 	type SearchAgent,
 } from "./search-agent";
 
+type SignedClarification = Clarification & { signature: string };
+
+type SearchRequest = {
+	entry: string;
+	turnstileToken?: string;
+	clarification?: SignedClarification;
+	visitorId: string;
+};
+
 export type Search = (
-	request: { entry: string; clarification?: Clarification; visitorId: string },
+	request: SearchRequest,
 	analytics: Analytics,
 ) => AsyncIterable<SearchEvent>;
+
+type SearchDeps = {
+	database: Database;
+	embed: Embed;
+	agent: SearchAgent;
+	transcripts: Signer;
+	verifyTurnstile: VerifyTurnstile;
+	consumeSearchTurn: ConsumeRateLimit;
+	tokenBudget: TokenBudget;
+};
+
+const transcriptOf = (visitorId: string, entry: string, question: string) => {
+	return JSON.stringify([visitorId, entry, question]);
+};
 
 export const createSearch = ({
 	database,
 	embed,
 	agent,
-}: {
-	database: Database;
-	embed: Embed;
-	agent: SearchAgent;
-}): Search => {
-	return async function* (
-		{ entry, clarification, visitorId },
-		analytics,
+	transcripts,
+	verifyTurnstile,
+	consumeSearchTurn,
+	tokenBudget,
+}: SearchDeps): Search => {
+	const refusalOf = async ({
+		entry,
+		turnstileToken,
+		clarification,
+		visitorId,
+	}: SearchRequest) => {
+		if (clarification) {
+			const transcript = transcriptOf(visitorId, entry, clarification.question);
+			if (!transcripts.verify(transcript, clarification.signature)) {
+				return SearchErrorReason.InvalidTranscript;
+			}
+		} else if (
+			turnstileToken === undefined ||
+			!(await verifyTurnstile(turnstileToken))
+		) {
+			return SearchErrorReason.VerificationFailed;
+		}
+		if (
+			(await tokenBudget.isSpent()) ||
+			!(await consumeSearchTurn(visitorId))
+		) {
+			return SearchErrorReason.LimitReached;
+		}
+		return undefined;
+	};
+
+	const searchTurn = async function* (
+		{ entry, clarification: signed, visitorId }: SearchRequest,
+		analytics: Analytics,
 	): AsyncGenerator<SearchEvent> {
+		const clarification = signed && {
+			question: signed.question,
+			answer: signed.answer,
+		};
 		yield { type: "status", data: { status: "searching" } };
 		const steps: FindIntentionsResult[][] = [];
 		const found: FoundIntention[] = [];
@@ -109,14 +168,24 @@ export const createSearch = ({
 						yield { type: "done", data: {} };
 						return;
 					}
-					case AgentEventType.AskClarifyingQuestion:
+					case AgentEventType.AskClarifyingQuestion: {
 						if (clarification) {
 							yield internalError;
 							return;
 						}
-						yield { type: "question", data: { question: event.question } };
+						const question = event.question.trim();
+						yield {
+							type: "question",
+							data: {
+								question,
+								signature: transcripts.sign(
+									transcriptOf(visitorId, entry, question),
+								),
+							},
+						};
 						yield { type: "done", data: {} };
 						return;
+					}
 					case AgentEventType.Unavailable:
 						yield internalError;
 						return;
@@ -136,6 +205,28 @@ export const createSearch = ({
 				results.push(result.value);
 			}
 			steps.push(results);
+		}
+	};
+
+	return async function* (request, analytics): AsyncGenerator<SearchEvent> {
+		const refusal = await refusalOf(request);
+		if (refusal) {
+			yield searchError(refusal);
+			return;
+		}
+		let tokens = 0;
+		const metered: Analytics = {
+			captureException: (error) => analytics.captureException(error),
+			captureLlmGeneration: (generation) => {
+				tokens += generation.inputTokens + generation.outputTokens;
+				analytics.captureLlmGeneration(generation);
+			},
+			shutdown: () => analytics.shutdown(),
+		};
+		try {
+			yield* searchTurn(request, metered);
+		} finally {
+			if (tokens > 0) await tokenBudget.spend(tokens);
 		}
 	};
 };

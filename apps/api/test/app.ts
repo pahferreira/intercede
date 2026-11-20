@@ -13,7 +13,14 @@ import {
 } from "../src/intercession";
 import { createPostHogAnalytics } from "../src/platform/analytics";
 import { createDatabaseProbe } from "../src/platform/database";
-import { createSubmissionLimit } from "../src/platform/rate-limit";
+import {
+	createSearchTurnLimit,
+	createSubmissionLimit,
+} from "../src/platform/rate-limit";
+import type { ConsumeRateLimit } from "../src/platform/rate-limit-port";
+import { createHmacSigner } from "../src/platform/signature";
+import { createSearchTokenBudget } from "../src/platform/token-budget";
+import type { TokenBudget } from "../src/platform/token-budget-port";
 import type { VerifyTurnstile } from "../src/platform/turnstile-port";
 import { testDatabase } from "./database";
 
@@ -22,6 +29,8 @@ type TestAppOverrides = Partial<AppDependencies> & {
 	verifyTurnstile?: VerifyTurnstile;
 	embed?: Embed;
 	agent?: SearchAgent;
+	consumeSearchTurn?: ConsumeRateLimit;
+	tokenBudget?: TokenBudget;
 };
 
 const moderationNotExpected: Moderate = async () => {
@@ -43,6 +52,8 @@ export const createTestApp = ({
 	verifyTurnstile = passesTurnstile,
 	embed = embeddingNotExpected,
 	agent = agentNotExpected,
+	consumeSearchTurn = createSearchTurnLimit(testDatabase(), {}),
+	tokenBudget = createSearchTokenBudget(testDatabase(), {}),
 	...overrides
 }: TestAppOverrides = {}) => {
 	return createApp({
@@ -61,7 +72,15 @@ export const createTestApp = ({
 			database: testDatabase(),
 			countCommitments: createCountCommitments({ database: testDatabase() }),
 		}),
-		search: createSearch({ database: testDatabase(), embed, agent }),
+		search: createSearch({
+			database: testDatabase(),
+			embed,
+			agent,
+			transcripts: createHmacSigner("test-transcript-key"),
+			verifyTurnstile,
+			consumeSearchTurn,
+			tokenBudget,
+		}),
 		commit: createCommit({ database: testDatabase() }),
 		...overrides,
 	});
