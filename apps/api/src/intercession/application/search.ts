@@ -28,6 +28,7 @@ import type { Embed } from "./embed";
 import {
 	AgentEventType,
 	type Clarification,
+	canAskClarifyingQuestion,
 	type FindIntentionsCall,
 	type FindIntentionsResult,
 	type SearchAgent,
@@ -61,11 +62,15 @@ type SearchDeps = {
 	tokenBudget: TokenBudget;
 };
 
-const transcriptOf = (visitorId: string, entry: string, question: string) => {
+const questionPayloadOf = (
+	visitorId: string,
+	entry: string,
+	question: string,
+) => {
 	return JSON.stringify([visitorId, entry, question]);
 };
 
-const conversationOf = (visitorId: string, turns: TranscriptTurn[]) => {
+const transcriptPayloadOf = (visitorId: string, turns: TranscriptTurn[]) => {
 	return JSON.stringify([
 		"transcript",
 		visitorId,
@@ -99,7 +104,7 @@ export const createSearch = ({
 		visitorId,
 	}: SearchRequest) => {
 		if (transcript) {
-			const conversation = conversationOf(visitorId, transcript.turns);
+			const conversation = transcriptPayloadOf(visitorId, transcript.turns);
 			if (
 				clarification ||
 				!transcriptSigner.verify(conversation, transcript.signature)
@@ -107,7 +112,11 @@ export const createSearch = ({
 				return SearchErrorReason.InvalidTranscript;
 			}
 		} else if (clarification) {
-			const transcript = transcriptOf(visitorId, entry, clarification.question);
+			const transcript = questionPayloadOf(
+				visitorId,
+				entry,
+				clarification.question,
+			);
 			if (!transcriptSigner.verify(transcript, clarification.signature)) {
 				return SearchErrorReason.InvalidTranscript;
 			}
@@ -216,7 +225,7 @@ export const createSearch = ({
 								suggestions,
 								...(transcript.length < maxRefinements && {
 									signature: transcriptSigner.sign(
-										conversationOf(visitorId, turns),
+										transcriptPayloadOf(visitorId, turns),
 									),
 								}),
 							},
@@ -225,7 +234,7 @@ export const createSearch = ({
 						return;
 					}
 					case AgentEventType.AskClarifyingQuestion: {
-						if (clarification || transcript.length > 0) {
+						if (!canAskClarifyingQuestion({ transcript, clarification })) {
 							yield internalError;
 							return;
 						}
@@ -235,7 +244,7 @@ export const createSearch = ({
 							data: {
 								question,
 								signature: transcriptSigner.sign(
-									transcriptOf(visitorId, entry, question),
+									questionPayloadOf(visitorId, entry, question),
 								),
 							},
 						};

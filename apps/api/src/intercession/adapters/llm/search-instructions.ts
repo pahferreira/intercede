@@ -3,6 +3,7 @@ import { languages } from "../../../intentions";
 import {
 	type AgentEvent,
 	AgentEventType,
+	canAskClarifyingQuestion,
 	type SearchAgentTurn,
 	ToolName,
 	type TranscriptTurn,
@@ -134,10 +135,10 @@ const tools: ToolDefinition[] = [
 	},
 ];
 
-export const toolsFor = ({ transcript, clarification }: SearchAgentTurn) => {
-	return clarification || transcript.length > 0
-		? tools.filter((tool) => tool.name !== ToolName.AskClarifyingQuestion)
-		: tools;
+export const toolsFor = (turn: SearchAgentTurn) => {
+	return canAskClarifyingQuestion(turn)
+		? tools
+		: tools.filter((tool) => tool.name !== ToolName.AskClarifyingQuestion);
 };
 
 export const limitReachedResult = `The search limit of ${maxFindIntentionsCalls} is reached. Present your suggestions now.`;

@@ -26,7 +26,14 @@ export type Exchange = {
 	signature?: string;
 };
 
-export type Composer = "answer" | "refine" | "limited" | "finished";
+export const Composer = {
+	Answer: "answer",
+	Refine: "refine",
+	Limited: "limited",
+	Finished: "finished",
+} as const;
+
+export type Composer = (typeof Composer)[keyof typeof Composer];
 
 type Continuation = {
 	clarification?: SignedClarification;
@@ -207,10 +214,12 @@ export function useChat(options: ChatOptions) {
 	const composerFor = (
 		exchange: Exchange | undefined,
 	): Composer | undefined => {
-		if (unansweredQuestion !== undefined) return "answer";
-		if (exchange?.status === "limited") return "limited";
+		if (unansweredQuestion !== undefined) return Composer.Answer;
+		if (exchange?.status === "limited") return Composer.Limited;
 		if (exchange?.status !== "done") return undefined;
-		return exchange.signature === undefined ? "finished" : "refine";
+		return exchange.signature === undefined
+			? Composer.Finished
+			: Composer.Refine;
 	};
 
 	const toggle = (intentionId: string, checked: boolean) => {

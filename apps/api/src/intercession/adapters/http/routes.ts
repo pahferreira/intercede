@@ -20,7 +20,7 @@ const clarification = z.object({
 const transcriptTurn = z.object({
 	entry: boundedText,
 	clarification: clarification.optional(),
-	note: z.string().max(4000),
+	note: z.string().max(8000),
 	suggestions: z
 		.array(
 			z.object({

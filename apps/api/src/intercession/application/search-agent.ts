@@ -62,6 +62,13 @@ export type SearchAgentTurn = {
 	mustPresent: boolean;
 };
 
+export const canAskClarifyingQuestion = ({
+	transcript,
+	clarification,
+}: Pick<SearchAgentTurn, "transcript" | "clarification">) => {
+	return clarification === undefined && transcript.length === 0;
+};
+
 export type SearchAgent = (
 	turn: SearchAgentTurn,
 	analytics: Analytics,

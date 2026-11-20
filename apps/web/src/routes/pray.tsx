@@ -20,7 +20,7 @@ import { MessageBox } from "../ui/MessageBox";
 import { StatusMessage } from "../ui/StatusMessage";
 import { SuggestionCard } from "../ui/SuggestionCard";
 import { Textarea } from "../ui/Textarea";
-import { type Composer, type Exchange, useChat } from "./useChat";
+import { Composer, type Exchange, useChat } from "./useChat";
 import type { CommitControls } from "./useCommit";
 import { usePrayRoute } from "./usePrayRoute";
 
@@ -248,33 +248,33 @@ function Chat(props: ChatProps) {
 					</div>
 				)}
 			</Thread>
-			{composer === "finished" && (
+			{composer === Composer.Finished && (
 				<div className="mx-auto flex w-full max-w-column-chat justify-center">
 					<Button variant="secondary" onClick={props.onNewSearch}>
 						<Trans>New search</Trans>
 					</Button>
 				</div>
 			)}
-			{composer !== undefined && composer !== "finished" && (
+			{composer !== undefined && composer !== Composer.Finished && (
 				<div className="sticky bottom-0 -mx-space-4 bg-violet md:mx-0">
 					<MessageBox
 						value={reply}
 						onChange={setReply}
 						onSubmit={(text) => {
 							setReply("");
-							if (composer === "refine") {
+							if (composer === Composer.Refine) {
 								props.onRefine(text);
 							} else {
 								props.onAnswer(text);
 							}
 						}}
 						placeholder={
-							composer === "refine"
+							composer === Composer.Refine
 								? t`Tell me more, or refine your search…`
 								: t`Tell me more…`
 						}
 						disabledReason={
-							composer === "limited"
+							composer === Composer.Limited
 								? t`You've searched a lot today. Come back later. Meanwhile, the intentions you committed to are waiting for your prayer.`
 								: undefined
 						}
