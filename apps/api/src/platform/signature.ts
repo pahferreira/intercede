@@ -11,19 +11,15 @@ export const requireTranscriptKey = (env: Env = process.env) => {
 	return key;
 };
 
-const fifteenMinutesInMs = 15 * 60 * 1000;
+const lifetimeMs = 15 * 60 * 1000;
 
 type HmacSignerOptions = {
-	ttlMs?: number;
 	now?: () => Date;
 };
 
 export const createHmacSigner = (
 	key: string,
-	{
-		ttlMs = fifteenMinutesInMs,
-		now = () => new Date(),
-	}: HmacSignerOptions = {},
+	{ now = () => new Date() }: HmacSignerOptions = {},
 ): Signer => {
 	const macOf = (payload: string, issuedAt: string) => {
 		return createHmac("sha256", key)
@@ -38,7 +34,7 @@ export const createHmacSigner = (
 		verify: (payload, signature) => {
 			const [issuedAt = "", mac = ""] = signature.split(".");
 			const age = now().getTime() - Number(issuedAt);
-			if (!/^\d+$/.test(issuedAt) || age < 0 || age > ttlMs) return false;
+			if (!/^\d+$/.test(issuedAt) || age < 0 || age > lifetimeMs) return false;
 			const expected = Buffer.from(macOf(payload, issuedAt));
 			const given = Buffer.from(mac);
 			return (
