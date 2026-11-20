@@ -5,10 +5,7 @@ import type { Result } from "../../platform/result";
 import type { Signer } from "../../platform/signature-port";
 import type { TokenBudget } from "../../platform/token-budget-port";
 import type { VerifyTurnstile } from "../../platform/turnstile-port";
-import {
-	findCandidatesInCatalog,
-	findFewestCommittedInCatalog,
-} from "../adapters/persistence/catalog-store";
+import { findFewestCommittedInCatalog } from "../adapters/persistence/catalog-store";
 import { recordSuggestions } from "../adapters/persistence/suggestion-store";
 import {
 	type FoundIntention,
@@ -16,7 +13,6 @@ import {
 	maxRefinements,
 	toSuggestions,
 } from "../domain/presentation";
-import { rank } from "../domain/ranking";
 import {
 	internalError,
 	SearchErrorReason,
@@ -25,6 +21,7 @@ import {
 	toMatch,
 } from "../domain/search-event";
 import type { Embed } from "./embed";
+import { createFindIntentions } from "./find-intentions";
 import {
 	AgentEventType,
 	type Clarification,
@@ -96,6 +93,8 @@ export const createSearch = ({
 	consumeSearchTurn,
 	tokenBudget,
 }: SearchDeps): Search => {
+	const findInCatalog = createFindIntentions({ database, embed });
+
 	const refusalOf = async ({
 		entry,
 		turnstileToken,
@@ -165,19 +164,18 @@ export const createSearch = ({
 					value: { call, outcome: { kind: "limit_reached" } },
 				};
 			searchesLeft -= 1;
-			const embedding = await embed(call.query, analytics);
-			if (!embedding.ok) return { ok: false, error: "embedding_failed" };
-			const intentions = rank(
-				await findCandidatesInCatalog(database, {
-					embedding: embedding.value,
-					language: call.language,
-					visitorId,
-				}),
+			const intentions = await findInCatalog(
+				{ query: call.query, language: call.language, visitorId },
+				analytics,
 			);
-			found.push(...intentions);
+			if (!intentions.ok) return { ok: false, error: "embedding_failed" };
+			found.push(...intentions.value);
 			return {
 				ok: true,
-				value: { call, outcome: { kind: "found", intentions } },
+				value: {
+					call,
+					outcome: { kind: "found", intentions: intentions.value },
+				},
 			};
 		};
 

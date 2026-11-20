@@ -6,6 +6,7 @@ export { createTitanEmbedder } from "./adapters/llm/titan-embedder";
 export { type Commit, createCommit } from "./application/commit";
 export { createCountCommitments } from "./application/count-commitments";
 export type { Embed } from "./application/embed";
+export { createFindIntentions } from "./application/find-intentions";
 export { createKeepCatalogInStep } from "./application/keep-catalog-in-step";
 export {
 	createSearch,
