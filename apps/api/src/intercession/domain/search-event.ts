@@ -37,7 +37,11 @@ export type SearchEvent =
 	| { type: "note_delta"; data: { text: string } }
 	| {
 			type: "suggestions";
-			data: { match: SuggestionMatch; suggestions: Suggestion[] };
+			data: {
+				match: SuggestionMatch;
+				suggestions: Suggestion[];
+				signature?: string;
+			};
 	  }
 	| { type: "question"; data: { question: string; signature: string } }
 	| { type: "done"; data: Record<string, never> }

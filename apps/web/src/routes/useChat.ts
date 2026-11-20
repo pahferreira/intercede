@@ -1,7 +1,9 @@
 import type {
 	SignedClarification,
+	SignedTranscript,
 	Suggestion,
 	SuggestionMatch,
+	TranscriptTurn,
 } from "@intercede/api";
 import {
 	useNavigate,
@@ -21,6 +23,50 @@ export type Exchange = {
 	note: string;
 	suggestions: Suggestion[];
 	match: SuggestionMatch;
+	signature?: string;
+};
+
+export const Composer = {
+	Answer: "answer",
+	Refine: "refine",
+	Limited: "limited",
+	Finished: "finished",
+} as const;
+
+export type Composer = (typeof Composer)[keyof typeof Composer];
+
+type Continuation = {
+	clarification?: SignedClarification;
+	transcript?: SignedTranscript;
+};
+
+const opening = (entry: string): Exchange => {
+	return {
+		entry,
+		status: "searching",
+		note: "",
+		suggestions: [],
+		match: "close",
+	};
+};
+
+const turnOf = ({
+	entry,
+	clarification,
+	note,
+	suggestions,
+}: Exchange): TranscriptTurn => {
+	return {
+		entry,
+		...(clarification?.answer !== undefined && {
+			clarification: {
+				question: clarification.question,
+				answer: clarification.answer,
+			},
+		}),
+		note,
+		suggestions,
+	};
 };
 
 type ChatOptions = {
@@ -31,7 +77,7 @@ export function useChat(options: ChatOptions) {
 	const navigate = useNavigate();
 	const { client } = useRouteContext({ from: "__root__" });
 	const chatOpen = useSearch({ strict: false, select: isChatOpen });
-	const [exchange, setExchange] = useState<Exchange | null>(null);
+	const [exchanges, setExchanges] = useState<Exchange[]>([]);
 	const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
 	const searching = useRef<AbortController | null>(null);
 
@@ -54,7 +100,7 @@ export function useChat(options: ChatOptions) {
 		}
 		searching.current?.abort();
 		searching.current = null;
-		setExchange(null);
+		setExchanges([]);
 		setSelected(new Set());
 	}, [chatOpen, navigate]);
 
@@ -66,20 +112,23 @@ export function useChat(options: ChatOptions) {
 	);
 
 	const update = (change: (current: Exchange) => Exchange) => {
-		setExchange((current) => (current ? change(current) : current));
+		setExchanges((current) =>
+			current.map((exchange, index) =>
+				index === current.length - 1 ? change(exchange) : exchange,
+			),
+		);
 	};
 
 	const stream = async (
 		entry: string,
-		clarification: SignedClarification | undefined,
+		{ clarification, transcript }: Continuation,
 		signal: AbortSignal,
 	) => {
-		const turnstileToken = clarification
-			? undefined
-			: await options.turnstileToken();
+		const turnstileToken =
+			clarification || transcript ? undefined : await options.turnstileToken();
 		if (signal.aborted) return;
 		const response = await client.api.search.$post(
-			{ json: { entry, turnstileToken, clarification } },
+			{ json: { entry, turnstileToken, clarification, transcript } },
 			{ init: { signal } },
 		);
 		if (!response.ok || !response.body) {
@@ -94,14 +143,14 @@ export function useChat(options: ChatOptions) {
 					note: current.note + event.data.text,
 				}));
 			} else if (event.type === "suggestions") {
-				const { match, suggestions } = event.data;
+				const { match, suggestions, signature } = event.data;
 				if (suggestions.length > 0) {
 					track("suggestions_shown", {
 						count: suggestions.length,
 						fallback: match === "fallback",
 					});
 				}
-				update((current) => ({ ...current, match, suggestions }));
+				update((current) => ({ ...current, match, suggestions, signature }));
 			} else if (event.type === "question") {
 				track("clarifying_question_shown", {});
 				update((current) => ({
@@ -119,11 +168,11 @@ export function useChat(options: ChatOptions) {
 		}
 	};
 
-	const run = (entry: string, clarification?: SignedClarification) => {
+	const run = (entry: string, continuation: Continuation = {}) => {
 		const controller = new AbortController();
 		searching.current?.abort();
 		searching.current = controller;
-		stream(entry, clarification, controller.signal).catch(() => {
+		stream(entry, continuation, controller.signal).catch(() => {
 			if (controller.signal.aborted) return;
 			update((current) => ({ ...current, status: "failed" }));
 		});
@@ -133,27 +182,44 @@ export function useChat(options: ChatOptions) {
 		track("entry_sent", {});
 		setSelected(new Set());
 		commit.reset();
-		setExchange({
-			entry,
-			status: "searching",
-			note: "",
-			suggestions: [],
-			match: "close",
-		});
+		setExchanges([opening(entry)]);
 		navigate({ to: "/pray", search: { chat: true } });
 		run(entry);
 	};
 
+	const last = exchanges.at(-1);
+
 	const unansweredQuestion =
-		exchange?.clarification?.answer === undefined
-			? exchange?.clarification
-			: undefined;
+		last?.clarification?.answer === undefined ? last?.clarification : undefined;
 
 	const answer = (text: string) => {
-		if (!exchange || unansweredQuestion === undefined) return;
+		if (!last || unansweredQuestion === undefined) return;
 		const clarification = { ...unansweredQuestion, answer: text.trim() };
-		setExchange({ ...exchange, clarification, status: "searching" });
-		run(exchange.entry, clarification);
+		update((current) => ({ ...current, clarification, status: "searching" }));
+		run(last.entry, { clarification });
+	};
+
+	const refine = (text: string) => {
+		if (last?.signature === undefined) return;
+		const refinement = text.trim();
+		track("refinement_sent", { n: exchanges.length });
+		const transcript = {
+			turns: exchanges.map(turnOf),
+			signature: last.signature,
+		};
+		setExchanges([...exchanges, opening(refinement)]);
+		run(refinement, { transcript });
+	};
+
+	const composerFor = (
+		exchange: Exchange | undefined,
+	): Composer | undefined => {
+		if (unansweredQuestion !== undefined) return Composer.Answer;
+		if (exchange?.status === "limited") return Composer.Limited;
+		if (exchange?.status !== "done") return undefined;
+		return exchange.signature === undefined
+			? Composer.Finished
+			: Composer.Refine;
 	};
 
 	const toggle = (intentionId: string, checked: boolean) => {
@@ -169,11 +235,13 @@ export function useChat(options: ChatOptions) {
 	};
 
 	return {
-		exchange: chatOpen ? exchange : null,
+		exchanges: chatOpen ? exchanges : [],
 		selected,
-		awaitingAnswer: unansweredQuestion !== undefined,
+		composer: composerFor(last),
 		send,
 		answer,
+		refine,
+		newSearch: () => navigate({ to: "/pray" }),
 		toggle,
 		commit,
 	};

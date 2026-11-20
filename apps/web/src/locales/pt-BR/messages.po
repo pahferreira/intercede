@@ -21,7 +21,7 @@ msgstr "Um lugar para compartilhar sua fé com o mundo todo"
 msgid "Ask for prayer"
 msgstr "Pedir oração"
 
-#: src/routes/pray.tsx:173
+#: src/routes/pray.tsx:179
 msgid "Be the first to ask for prayer"
 msgstr "Seja a primeira pessoa a pedir oração"
 
@@ -37,7 +37,7 @@ msgstr "Comprometer-me a rezar por esta intenção"
 msgid "Committed intentions"
 msgstr "Intenções assumidas"
 
-#: src/routes/pray.tsx:216
+#: src/routes/pray.tsx:243
 msgid "Committing…"
 msgstr "Salvando…"
 
@@ -53,7 +53,7 @@ msgstr "Copiar link"
 msgid "Couldn't load this prayer request."
 msgstr "Não foi possível carregar este pedido de oração."
 
-#: src/routes/pray.tsx:209
+#: src/routes/pray.tsx:236
 msgid "Couldn't save your commitment."
 msgstr "Não foi possível salvar seu compromisso."
 
@@ -69,11 +69,11 @@ msgstr "Fechar"
 msgid "Have a good prayer"
 msgstr "Tenha uma boa oração"
 
-#: src/routes/pray.tsx:219
+#: src/routes/pray.tsx:246
 msgid "I commit!"
 msgstr "Eu me comprometo!"
 
-#: src/routes/pray.tsx:165
+#: src/routes/pray.tsx:171
 msgid "I couldn't find a close match. These are still waiting for prayer:"
 msgstr "Não encontrei nada muito próximo. Estas intenções ainda esperam por oração:"
 
@@ -107,10 +107,11 @@ msgstr "Procurando intenções…"
 
 #: src/layout.tsx:18
 #: src/routes/committed.tsx:33
+#: src/routes/pray.tsx:254
 msgid "New search"
 msgstr "Nova busca"
 
-#: src/routes/pray.tsx:171
+#: src/routes/pray.tsx:177
 msgid "No intentions yet."
 msgstr "Ainda não há intenções."
 
@@ -159,11 +160,11 @@ msgstr "Mostrar menos"
 msgid "Show more"
 msgstr "Mostrar mais"
 
-#: src/routes/pray.tsx:200
+#: src/routes/pray.tsx:227
 msgid "Some of the intentions you chose are no longer available."
 msgstr "Algumas das intenções que você escolheu não estão mais disponíveis."
 
-#: src/routes/pray.tsx:195
+#: src/routes/pray.tsx:201
 #: src/routes/submit.tsx:90
 msgid "Something went wrong. Please try again."
 msgstr "Algo deu errado. Tente novamente."
@@ -184,11 +185,15 @@ msgstr "Envie seu pedido de oração"
 msgid "Submitting…"
 msgstr "Enviando…"
 
-#: src/routes/pray.tsx:178
+#: src/routes/pray.tsx:184
 msgid "Suggestions"
 msgstr "Sugestões"
 
-#: src/routes/pray.tsx:233
+#: src/routes/pray.tsx:273
+msgid "Tell me more, or refine your search…"
+msgstr "Conte-me mais ou refine sua busca…"
+
+#: src/routes/pray.tsx:274
 msgid "Tell me more…"
 msgstr "Conte-me mais…"
 
@@ -220,7 +225,7 @@ msgstr "Você se comprometeu a rezar por estas intenções:"
 msgid "You've reached today's limit for prayer requests. Come back tomorrow, or skip to pray for others."
 msgstr "Você atingiu o limite de pedidos de oração de hoje. Volte amanhã ou pule para rezar pelos outros."
 
-#: src/routes/pray.tsx:236
+#: src/routes/pray.tsx:278
 msgid "You've searched a lot today. Come back later. Meanwhile, the intentions you committed to are waiting for your prayer."
 msgstr "Você já buscou bastante hoje. Volte mais tarde. Enquanto isso, as intenções com que você se comprometeu esperam pela sua oração."
 

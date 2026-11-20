@@ -21,7 +21,7 @@ msgstr "A place where you can share your faith around the world"
 msgid "Ask for prayer"
 msgstr "Ask for prayer"
 
-#: src/routes/pray.tsx:173
+#: src/routes/pray.tsx:179
 msgid "Be the first to ask for prayer"
 msgstr "Be the first to ask for prayer"
 
@@ -37,7 +37,7 @@ msgstr "Commit to pray for this intention"
 msgid "Committed intentions"
 msgstr "Committed intentions"
 
-#: src/routes/pray.tsx:216
+#: src/routes/pray.tsx:243
 msgid "Committing…"
 msgstr "Committing…"
 
@@ -53,7 +53,7 @@ msgstr "Copy link"
 msgid "Couldn't load this prayer request."
 msgstr "Couldn't load this prayer request."
 
-#: src/routes/pray.tsx:209
+#: src/routes/pray.tsx:236
 msgid "Couldn't save your commitment."
 msgstr "Couldn't save your commitment."
 
@@ -69,11 +69,11 @@ msgstr "Dismiss"
 msgid "Have a good prayer"
 msgstr "Have a good prayer"
 
-#: src/routes/pray.tsx:219
+#: src/routes/pray.tsx:246
 msgid "I commit!"
 msgstr "I commit!"
 
-#: src/routes/pray.tsx:165
+#: src/routes/pray.tsx:171
 msgid "I couldn't find a close match. These are still waiting for prayer:"
 msgstr "I couldn't find a close match. These are still waiting for prayer:"
 
@@ -107,10 +107,11 @@ msgstr "Looking for intentions…"
 
 #: src/layout.tsx:18
 #: src/routes/committed.tsx:33
+#: src/routes/pray.tsx:254
 msgid "New search"
 msgstr "New search"
 
-#: src/routes/pray.tsx:171
+#: src/routes/pray.tsx:177
 msgid "No intentions yet."
 msgstr "No intentions yet."
 
@@ -159,11 +160,11 @@ msgstr "Show less"
 msgid "Show more"
 msgstr "Show more"
 
-#: src/routes/pray.tsx:200
+#: src/routes/pray.tsx:227
 msgid "Some of the intentions you chose are no longer available."
 msgstr "Some of the intentions you chose are no longer available."
 
-#: src/routes/pray.tsx:195
+#: src/routes/pray.tsx:201
 #: src/routes/submit.tsx:90
 msgid "Something went wrong. Please try again."
 msgstr "Something went wrong. Please try again."
@@ -184,11 +185,15 @@ msgstr "Submit your prayer request"
 msgid "Submitting…"
 msgstr "Submitting…"
 
-#: src/routes/pray.tsx:178
+#: src/routes/pray.tsx:184
 msgid "Suggestions"
 msgstr "Suggestions"
 
-#: src/routes/pray.tsx:233
+#: src/routes/pray.tsx:273
+msgid "Tell me more, or refine your search…"
+msgstr "Tell me more, or refine your search…"
+
+#: src/routes/pray.tsx:274
 msgid "Tell me more…"
 msgstr "Tell me more…"
 
@@ -220,7 +225,7 @@ msgstr "You committed to pray for these intentions:"
 msgid "You've reached today's limit for prayer requests. Come back tomorrow, or skip to pray for others."
 msgstr "You've reached today's limit for prayer requests. Come back tomorrow, or skip to pray for others."
 
-#: src/routes/pray.tsx:236
+#: src/routes/pray.tsx:278
 msgid "You've searched a lot today. Come back later. Meanwhile, the intentions you committed to are waiting for your prayer."
 msgstr "You've searched a lot today. Come back later. Meanwhile, the intentions you committed to are waiting for your prayer."
 
