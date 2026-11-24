@@ -8,7 +8,7 @@
 	"scripts": {
 		"prepare": "husky",
 		"lint": "biome check . && bun run --filter @intercede/web lint:classes",
-		"lint:deps": "depcruise apps/api/src --config .dependency-cruiser.cjs",
+		"lint:deps": "depcruise apps/api/src apps/api/evals --config .dependency-cruiser.cjs",
 		"typecheck": "bun run --filter '*' typecheck",
 		"test": "bun run --filter '*' test",
 		"eval:search": "bun run --cwd apps/api eval:search",
