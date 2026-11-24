@@ -22,7 +22,15 @@ type CruiseOutput = {
 
 const cruise = (cwd: string) => {
 	const { stdout } = Bun.spawnSync(
-		[depcruise, "apps/api/src", "--config", config, "--output-type", "json"],
+		[
+			depcruise,
+			"apps/api/src",
+			"apps/api/evals",
+			"--config",
+			config,
+			"--output-type",
+			"json",
+		],
 		{ cwd },
 	);
 	const { summary } = JSON.parse(stdout.toString()) as CruiseOutput;
@@ -43,7 +51,7 @@ afterEach(() => {
 const cruiseFixture = (files: Record<string, string>) => {
 	const root = mkdtempSync(join(tmpdir(), "boundaries-"));
 	fixtures.push(root);
-	mkdirSync(join(root, "apps/api"), { recursive: true });
+	mkdirSync(join(root, "apps/api/evals"), { recursive: true });
 	writeFileSync(join(root, "apps/api/tsconfig.json"), "{}");
 	symlinkSync(
 		join(repoRoot, "apps/api/node_modules"),
@@ -162,6 +170,29 @@ test("importing a type from a context whose use case touches its own persistence
 			'export { type SubmittedIntention, submitIntention } from "./application/submit-intention";',
 		"intercession/application/seen.ts":
 			'import type { SubmittedIntention } from "../../intentions";\nexport type Seen = SubmittedIntention;',
+	});
+
+	expect(rules).toEqual([]);
+});
+
+test("an eval reaching past a context's index.ts is rejected", () => {
+	const { rules } = cruiseFixture({
+		...intentionRepository,
+		"../evals/relevance/run.ts":
+			'import { intentionRepository } from "../../src/intentions/adapters/persistence/intention-repository";\nexport const leak = intentionRepository;',
+	});
+
+	expect(rules).toEqual(["evals-via-index"]);
+});
+
+test("an eval importing a context's index.ts and the platform is allowed", () => {
+	const { rules } = cruiseFixture({
+		"intentions/domain/intention.ts": "export type Intention = { id: string };",
+		"intentions/index.ts":
+			'export type { Intention } from "./domain/intention";',
+		"platform/database.ts": "export type Database = { url: string };",
+		"../evals/relevance/run.ts":
+			'import type { Intention } from "../../src/intentions";\nimport type { Database } from "../../src/platform/database";\nexport type Run = [Intention, Database];',
 	});
 
 	expect(rules).toEqual([]);

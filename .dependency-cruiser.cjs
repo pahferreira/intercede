@@ -1,4 +1,5 @@
 const sourceRoot = "^apps/api/src/";
+const evalsRoot = "^apps/api/evals/";
 const nonContextFolders = ["platform", "handlers"];
 
 const notNonContext = `(?!${nonContextFolders.map((folder) => `${folder}/`).join("|")})`;
@@ -15,6 +16,12 @@ module.exports = {
 				path: context,
 				pathNot: [`${sourceRoot}$1/`, `${anyContext}index\\.ts$`],
 			},
+		},
+		{
+			name: "evals-via-index",
+			severity: "error",
+			from: { path: evalsRoot },
+			to: { path: context, pathNot: `${anyContext}index\\.ts$` },
 		},
 		{
 			name: "domain-not-adapters",

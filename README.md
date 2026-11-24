@@ -35,6 +35,14 @@ bun run test
 
 Tests need the local Postgres (`docker compose up -d --wait`). They create and migrate a separate `intercede_test` database on it, so the dev `intercede` database is never touched, and roll back each test's writes. The Compose project is named `intercede`, so every worktree shares one container; stop it with `docker compose down` when you are done.
 
+## Evals
+
+```sh
+bun run eval:search
+```
+
+Scores search relevance as recall@5: it embeds the fixture Catalog and Entries in `apps/api/evals/search-relevance/` with Titan on Bedrock, searches with each Entry's text as the query (skipping the agent's rewrite), ranks the results with the production ranking, and prints each Entry's score and the mean per Language. It costs money, so CI never runs it; it needs AWS credentials for Bedrock and the local Postgres, where it uses the `intercede_test` database and rolls its writes back.
+
 ## Infrastructure
 
 Terraform lives in `infra/`. Start with `infra/bootstrap`, which a human applies once; see its README.
