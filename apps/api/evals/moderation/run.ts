@@ -60,6 +60,13 @@ console.log(
 );
 await Promise.all(Array.from({ length: concurrency }, work));
 
+console.log(`Scored ${judged.length} of ${labelledIntentions.length}.\n`);
+if (judged.length === 0) {
+	console.error("Moderation was unavailable for every intention.");
+	for (const error of exceptions) console.error(error);
+	process.exit(1);
+}
+
 const percent = (value: number | null) => {
 	return value === null ? "n/a" : `${(value * 100).toFixed(0)}%`;
 };
@@ -114,5 +121,6 @@ if (unavailable.length > 0) {
 	for (const intention of unavailable) {
 		console.log(`- [${intention.language}] ${intention.text}`);
 	}
-	console.error(exceptions[0]);
+	for (const error of exceptions) console.error(error);
+	process.exitCode = 1;
 }
