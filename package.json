@@ -12,6 +12,7 @@
 		"typecheck": "bun run --filter '*' typecheck",
 		"test": "bun run --filter '*' test",
 		"eval:search": "bun run --cwd apps/api eval:search",
+		"eval:moderation": "bun run --cwd apps/api eval:moderation",
 		"db:migrate": "bun run --filter @intercede/api db:migrate"
 	},
 	"lint-staged": {

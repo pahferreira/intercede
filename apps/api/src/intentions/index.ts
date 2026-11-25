@@ -13,3 +13,8 @@ export {
 } from "./application/submit-intention";
 export { type Language, languages } from "./domain/intention";
 export type { IntentionEvent } from "./domain/intention-event";
+export {
+	type ModerationVerdict,
+	type RejectionReason,
+	rejectionReasons,
+} from "./domain/moderation-verdict";
